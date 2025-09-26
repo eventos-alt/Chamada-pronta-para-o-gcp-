@@ -79,6 +79,7 @@ async def test_connection():
 @app.on_event("startup")
 async def startup_event():
     await test_connection()
+    await initialize_system()
 
 # -------------------------
 # Router e rota de teste
