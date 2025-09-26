@@ -479,7 +479,9 @@ async def get_users(
     status: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    check_admin_permission(current_user)
+    # Admin can see all users, others can see basic user info
+    if current_user.tipo != "admin" and current_user.tipo not in ["instrutor", "pedagogo"]:
+        raise HTTPException(status_code=403, detail="Acesso negado")
     
     query = {}
     if tipo:
@@ -1089,6 +1091,42 @@ async def create_sample_data():
         existing = await db.turmas.find_one({"nome": turma["nome"]})
         if not existing:
             await db.turmas.insert_one(turma)
+
+# TEACHER STATS ENDPOINT
+@api_router.get("/teacher/stats")
+async def get_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
+    """Retorna estatísticas para professores/instrutores"""
+    if current_user.tipo not in ["instrutor", "admin"]:
+        raise HTTPException(status_code=403, detail="Acesso restrito a instrutores")
+    
+    # Count turmas do instrutor
+    turmas_count = await db.turmas.count_documents({
+        "instrutor_id": current_user.id,
+        "ativo": True
+    })
+    
+    # Count alunos nas suas turmas
+    turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(100)
+    turma_ids = [turma["id"] for turma in turmas]
+    
+    alunos_count = await db.alunos.count_documents({
+        "turma_id": {"$in": turma_ids},
+        "ativo": True
+    })
+    
+    # Count presenças registradas hoje
+    hoje = datetime.now().date()
+    presencas_hoje = await db.chamadas.count_documents({
+        "turma_id": {"$in": turma_ids},
+        "data": hoje.isoformat()
+    })
+    
+    return {
+        "total_turmas": turmas_count,
+        "total_alunos": alunos_count,
+        "presencas_hoje": presencas_hoje,
+        "nome_instrutor": current_user.nome
+    }
 
 # Include the router in the main app
 app.include_router(api_router)
