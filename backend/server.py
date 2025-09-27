@@ -516,12 +516,47 @@ async def update_user(user_id: str, user_update: UserUpdate, current_user: UserR
 
 @api_router.post("/auth/reset-password-request")
 async def reset_password_request(email_data: dict):
+    """
+    Reset de senha para usuário comum
+    🔐 SEGURANÇA: Não expõe se email existe ou não
+    📧 TODO: Implementar envio por email
+    """
     email = email_data.get("email")
     if not email:
         raise HTTPException(status_code=400, detail="Email é obrigatório")
     
     # Check if user exists
     user = await db.usuarios.find_one({"email": email})
+    
+    if user:
+        # Generate new temporary password
+        temp_password = str(uuid.uuid4())[:8]
+        hashed_password = bcrypt.hash(temp_password)
+        
+        # Update user password
+        await db.usuarios.update_one(
+            {"email": email},
+            {"$set": {"senha": hashed_password, "primeiro_acesso": True}}
+        )
+        
+        # TODO: Enviar por email
+        # send_password_email(email, temp_password)
+        print(f"🔐 SENHA TEMPORÁRIA PARA {email}: {temp_password}")
+    
+    # ✅ SEGURANÇA: Sempre retorna sucesso (não expõe se email existe)
+    return {"message": "Se o email estiver cadastrado, uma nova senha será enviada"}
+
+@api_router.post("/users/{user_id}/reset-password")
+async def admin_reset_user_password(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """
+    Reset de senha administrativo
+    👨‍💼 ADMIN: Pode resetar senha de qualquer usuário
+    🔐 SEGURANÇA: Retorna senha para admin informar pessoalmente
+    """
+    check_admin_permission(current_user)
+    
+    # Buscar dados do usuário
+    user = await db.usuarios.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
@@ -530,30 +565,23 @@ async def reset_password_request(email_data: dict):
     hashed_password = bcrypt.hash(temp_password)
     
     # Update user password
-    await db.usuarios.update_one(
-        {"email": email},
-        {"$set": {"senha": hashed_password, "primeiro_acesso": True}}
-    )
-    
-    return {"message": "Nova senha temporária gerada", "temp_password": temp_password}
-
-@api_router.post("/users/{user_id}/reset-password")
-async def admin_reset_user_password(user_id: str, current_user: UserResponse = Depends(get_current_user)):
-    check_admin_permission(current_user)
-    
-    # Generate new temporary password
-    temp_password = str(uuid.uuid4())[:8]
-    hashed_password = bcrypt.hash(temp_password)
-    
     result = await db.usuarios.update_one(
         {"id": user_id},
         {"$set": {"senha": hashed_password, "primeiro_acesso": True}}
     )
     
     if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        raise HTTPException(status_code=404, detail="Erro ao atualizar senha")
     
-    return {"message": "Senha resetada com sucesso", "temp_password": temp_password}
+    # Log da ação administrativa
+    print(f"🔐 ADMIN {current_user.email} resetou senha de {user['email']}: {temp_password}")
+    
+    return {
+        "message": "Senha resetada com sucesso", 
+        "temp_password": temp_password,
+        "user_email": user["email"],
+        "user_name": user["nome"]
+    }
 
 @api_router.put("/users/{user_id}/approve")
 async def approve_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
