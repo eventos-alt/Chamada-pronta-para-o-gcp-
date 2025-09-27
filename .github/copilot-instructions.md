@@ -7,6 +7,7 @@ Este é um sistema full-stack de controle de presença com backend FastAPI e fro
 - **Backend**: FastAPI + MongoDB (Motor driver assíncrono) + JWT auth
 - **Frontend**: Create React App + shadcn/ui + Tailwind CSS + React Router
 - **Banco**: MongoDB com collections: users, units, courses, students, classes, attendances
+- **Deploy**: Backend no Render, Frontend no Vercel (ONLINE desde 27/09/2025)
 
 ## Estrutura e Padrões
 
@@ -166,10 +167,16 @@ Autenticação via JWT, middleware verifica tokens em rotas protegidas.
 # Criação de usuário (admin only)
 temp_password = str(uuid.uuid4())[:8]
 hashed_password = bcrypt.hash(temp_password)
-# TODO: Enviar senha por email (atualmente retorna na resposta)
+# Senha temporária retornada na resposta para admin informar pessoalmente
 
-# Reset de senha (admin)
-/api/users/{user_id}/reset-password # Gera nova senha temporária
+# Reset de senha (admin) - ATUALIZADO 27/09/2025
+/api/users/{user_id}/reset-password # Admin reseta senha de qualquer usuário
+# Frontend: Botão com ícone de chave no painel de usuários
+# Popup seguro mostra senha temporária apenas para admin
+
+# Reset de senha comum
+/api/auth/reset-password # Usuário solicita reset (não expõe se email existe)
+# Melhor segurança: não mostra informações sensíveis na tela
 
 # Primeiro acesso
 /api/auth/first-access # Usuário define senha permanente
@@ -220,11 +227,17 @@ attendances: {id, turma_id, aluno_id, data, presente, ...}
 # Admin: criar usuário com senha temporária
 @api_router.post("/users")
 
-# Admin: resetar senha de usuário
-@api_router.post("/users/{user_id}/reset-password")
+# Admin: resetar senha de usuário (ATUALIZADO 27/09/2025)
+@api_router.post("/users/{user_id}/reset-password") # Com logs de auditoria
+
+# Reset comum (não expõe se email existe)
+@api_router.post("/auth/reset-password") # Melhor segurança
 
 # Admin: aprovar usuário pendente (gera nova senha)
 @api_router.put("/users/{user_id}/approve")
+
+# Endpoint para instrutores (ADICIONADO 27/09/2025)
+@api_router.get("/teacher/stats") # Estatísticas para instrutores
 ```
 
 ### Component Props Flow
