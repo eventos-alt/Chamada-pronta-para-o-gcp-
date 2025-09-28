@@ -1545,6 +1545,23 @@ const TurmasManager = () => {
     });
   };
 
+  const handleViewTurma = (turma) => {
+    const unidadeNome = unidades.find(u => u.id === turma.unidade_id)?.nome || "N/A";
+    const cursoNome = cursos.find(c => c.id === turma.curso_id)?.nome || "N/A";
+    const instrutorNome = usuarios.find(u => u.id === turma.instrutor_id)?.nome || "N/A";
+    
+    alert(`📋 DETALHES DA TURMA\n\n` +
+          `Nome: ${turma.nome}\n` +
+          `Unidade: ${unidadeNome}\n` +
+          `Curso: ${cursoNome}\n` +
+          `Instrutor: ${instrutorNome}\n` +
+          `Período: ${turma.data_inicio} a ${turma.data_fim}\n` +
+          `Horário: ${turma.horario_inicio} às ${turma.horario_fim}\n` +
+          `Vagas: ${turma.vagas_ocupadas || 0}/${turma.vagas_total}\n` +
+          `Ciclo: ${turma.ciclo}\n` +
+          `Status: ${turma.ativo ? "Ativa" : "Inativa"}`);
+  };
+
   const handleEdit = (turma) => {
     setEditingTurma(turma);
     setFormData({
@@ -1822,13 +1839,19 @@ const TurmasManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewTurma(turma)}
+                        title="Visualizar detalhes"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(turma)}
+                        title="Editar turma"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -2145,6 +2168,22 @@ const AlunosManager = () => {
     });
   };
 
+  const handleViewAluno = (aluno) => {
+    alert(`👤 DETALHES DO ALUNO\n\n` +
+          `Nome: ${aluno.nome}\n` +
+          `CPF: ${aluno.cpf}\n` +
+          `RG: ${aluno.rg || "N/A"}\n` +
+          `Data Nascimento: ${aluno.data_nascimento || "N/A"}\n` +
+          `Gênero: ${aluno.genero || "N/A"}\n` +
+          `Telefone: ${aluno.telefone || "N/A"}\n` +
+          `Email: ${aluno.email || "N/A"}\n` +
+          `Endereço: ${aluno.endereco || "N/A"}\n` +
+          `Responsável: ${aluno.nome_responsavel || "N/A"}\n` +
+          `Tel. Responsável: ${aluno.telefone_responsavel || "N/A"}\n` +
+          `Status: ${aluno.ativo ? "Ativo" : "Inativo"}\n` +
+          `Observações: ${aluno.observacoes || "Nenhuma"}`);
+  };
+
   const handleEdit = (aluno) => {
     setEditingAluno(aluno);
     setFormData({
@@ -2440,13 +2479,19 @@ const AlunosManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewAluno(aluno)}
+                        title="Visualizar detalhes"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleEdit(aluno)}
+                        title="Editar aluno"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
