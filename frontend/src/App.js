@@ -1445,9 +1445,12 @@ const TurmasManager = () => {
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [alunos, setAlunos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAlunoDialogOpen, setIsAlunoDialogOpen] = useState(false);
   const [editingTurma, setEditingTurma] = useState(null);
+  const [selectedTurmaForAlunos, setSelectedTurmaForAlunos] = useState(null);
   const [formData, setFormData] = useState({
     nome: "",
     unidade_id: "",
@@ -1470,23 +1473,26 @@ const TurmasManager = () => {
   const fetchData = async () => {
     try {
       console.log("Fetching turmas data...");
-      const [turmasRes, unidadesRes, cursosRes, usuariosRes] =
+      const [turmasRes, unidadesRes, cursosRes, usuariosRes, alunosRes] =
         await Promise.all([
           axios.get(`${API}/classes`),
           axios.get(`${API}/units`),
           axios.get(`${API}/courses`),
           axios.get(`${API}/users?tipo=instrutor`),
+          axios.get(`${API}/students`),
         ]);
 
       console.log("Turmas:", turmasRes.data);
       console.log("Unidades:", unidadesRes.data);
       console.log("Cursos:", cursosRes.data);
       console.log("Usuarios:", usuariosRes.data);
+      console.log("Alunos:", alunosRes.data);
 
       setTurmas(turmasRes.data);
       setUnidades(unidadesRes.data);
       setCursos(cursosRes.data);
       setUsuarios(usuariosRes.data);
+      setAlunos(alunosRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -1546,20 +1552,25 @@ const TurmasManager = () => {
   };
 
   const handleViewTurma = (turma) => {
-    const unidadeNome = unidades.find(u => u.id === turma.unidade_id)?.nome || "N/A";
-    const cursoNome = cursos.find(c => c.id === turma.curso_id)?.nome || "N/A";
-    const instrutorNome = usuarios.find(u => u.id === turma.instrutor_id)?.nome || "N/A";
-    
-    alert(`📋 DETALHES DA TURMA\n\n` +
-          `Nome: ${turma.nome}\n` +
-          `Unidade: ${unidadeNome}\n` +
-          `Curso: ${cursoNome}\n` +
-          `Instrutor: ${instrutorNome}\n` +
-          `Período: ${turma.data_inicio} a ${turma.data_fim}\n` +
-          `Horário: ${turma.horario_inicio} às ${turma.horario_fim}\n` +
-          `Vagas: ${turma.vagas_ocupadas || 0}/${turma.vagas_total}\n` +
-          `Ciclo: ${turma.ciclo}\n` +
-          `Status: ${turma.ativo ? "Ativa" : "Inativa"}`);
+    const unidadeNome =
+      unidades.find((u) => u.id === turma.unidade_id)?.nome || "N/A";
+    const cursoNome =
+      cursos.find((c) => c.id === turma.curso_id)?.nome || "N/A";
+    const instrutorNome =
+      usuarios.find((u) => u.id === turma.instrutor_id)?.nome || "N/A";
+
+    alert(
+      `📋 DETALHES DA TURMA\n\n` +
+        `Nome: ${turma.nome}\n` +
+        `Unidade: ${unidadeNome}\n` +
+        `Curso: ${cursoNome}\n` +
+        `Instrutor: ${instrutorNome}\n` +
+        `Período: ${turma.data_inicio} a ${turma.data_fim}\n` +
+        `Horário: ${turma.horario_inicio} às ${turma.horario_fim}\n` +
+        `Vagas: ${turma.vagas_ocupadas || 0}/${turma.vagas_total}\n` +
+        `Ciclo: ${turma.ciclo}\n` +
+        `Status: ${turma.ativo ? "Ativa" : "Inativa"}`
+    );
   };
 
   const handleEdit = (turma) => {
@@ -1584,6 +1595,49 @@ const TurmasManager = () => {
     setEditingTurma(null);
     resetForm();
     setIsDialogOpen(true);
+  };
+
+  const handleManageAlunos = (turma) => {
+    setSelectedTurmaForAlunos(turma);
+    setIsAlunoDialogOpen(true);
+  };
+
+  const handleAddAlunoToTurma = async (alunoId) => {
+    try {
+      await axios.put(
+        `${API}/classes/${selectedTurmaForAlunos.id}/students/${alunoId}`
+      );
+      toast({
+        title: "Aluno adicionado com sucesso!",
+        description: "O aluno foi adicionado à turma.",
+      });
+      fetchData(); // Atualizar dados
+    } catch (error) {
+      toast({
+        title: "Erro ao adicionar aluno",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveAlunoFromTurma = async (alunoId) => {
+    try {
+      await axios.delete(
+        `${API}/classes/${selectedTurmaForAlunos.id}/students/${alunoId}`
+      );
+      toast({
+        title: "Aluno removido com sucesso!",
+        description: "O aluno foi removido da turma.",
+      });
+      fetchData(); // Atualizar dados
+    } catch (error) {
+      toast({
+        title: "Erro ao remover aluno",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) return <div>Carregando...</div>;
@@ -1839,13 +1893,22 @@ const TurmasManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleViewTurma(turma)}
                         title="Visualizar detalhes"
                       >
                         <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleManageAlunos(turma)}
+                        title="Gerenciar alunos"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <UserPlus className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
@@ -1863,6 +1926,92 @@ const TurmasManager = () => {
           </Table>
         </div>
       </CardContent>
+
+      {/* Dialog para gerenciar alunos da turma */}
+      <Dialog open={isAlunoDialogOpen} onOpenChange={setIsAlunoDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>
+              Gerenciar Alunos - {selectedTurmaForAlunos?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              Adicione ou remova alunos desta turma
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Alunos Disponíveis</h3>
+              <div className="max-h-40 overflow-y-auto border rounded p-2">
+                {alunos
+                  .filter(
+                    (aluno) =>
+                      !selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id) &&
+                      aluno.ativo
+                  )
+                  .map((aluno) => (
+                    <div
+                      key={aluno.id}
+                      className="flex justify-between items-center p-2 hover:bg-gray-50 rounded"
+                    >
+                      <div>
+                        <span className="font-medium">{aluno.nome}</span>
+                        <span className="text-sm text-gray-500 ml-2">
+                          {aluno.cpf}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddAlunoToTurma(aluno.id)}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Adicionar
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-2">
+                Alunos na Turma (
+                {selectedTurmaForAlunos?.alunos_ids?.length || 0}/
+                {selectedTurmaForAlunos?.vagas_total || 0})
+              </h3>
+              <div className="max-h-40 overflow-y-auto border rounded p-2">
+                {alunos
+                  .filter((aluno) =>
+                    selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id)
+                  )
+                  .map((aluno) => (
+                    <div
+                      key={aluno.id}
+                      className="flex justify-between items-center p-2 hover:bg-gray-50 rounded"
+                    >
+                      <div>
+                        <span className="font-medium">{aluno.nome}</span>
+                        <span className="text-sm text-gray-500 ml-2">
+                          {aluno.cpf}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRemoveAlunoFromTurma(aluno.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Remover
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
@@ -2169,19 +2318,21 @@ const AlunosManager = () => {
   };
 
   const handleViewAluno = (aluno) => {
-    alert(`👤 DETALHES DO ALUNO\n\n` +
-          `Nome: ${aluno.nome}\n` +
-          `CPF: ${aluno.cpf}\n` +
-          `RG: ${aluno.rg || "N/A"}\n` +
-          `Data Nascimento: ${aluno.data_nascimento || "N/A"}\n` +
-          `Gênero: ${aluno.genero || "N/A"}\n` +
-          `Telefone: ${aluno.telefone || "N/A"}\n` +
-          `Email: ${aluno.email || "N/A"}\n` +
-          `Endereço: ${aluno.endereco || "N/A"}\n` +
-          `Responsável: ${aluno.nome_responsavel || "N/A"}\n` +
-          `Tel. Responsável: ${aluno.telefone_responsavel || "N/A"}\n` +
-          `Status: ${aluno.ativo ? "Ativo" : "Inativo"}\n` +
-          `Observações: ${aluno.observacoes || "Nenhuma"}`);
+    alert(
+      `👤 DETALHES DO ALUNO\n\n` +
+        `Nome: ${aluno.nome}\n` +
+        `CPF: ${aluno.cpf}\n` +
+        `RG: ${aluno.rg || "N/A"}\n` +
+        `Data Nascimento: ${aluno.data_nascimento || "N/A"}\n` +
+        `Gênero: ${aluno.genero || "N/A"}\n` +
+        `Telefone: ${aluno.telefone || "N/A"}\n` +
+        `Email: ${aluno.email || "N/A"}\n` +
+        `Endereço: ${aluno.endereco || "N/A"}\n` +
+        `Responsável: ${aluno.nome_responsavel || "N/A"}\n` +
+        `Tel. Responsável: ${aluno.telefone_responsavel || "N/A"}\n` +
+        `Status: ${aluno.ativo ? "Ativo" : "Inativo"}\n` +
+        `Observações: ${aluno.observacoes || "Nenhuma"}`
+    );
   };
 
   const handleEdit = (aluno) => {
@@ -2479,8 +2630,8 @@ const AlunosManager = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => handleViewAluno(aluno)}
                         title="Visualizar detalhes"
