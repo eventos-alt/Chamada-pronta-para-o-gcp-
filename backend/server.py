@@ -112,6 +112,7 @@ class User(BaseModel):
     primeiro_acesso: bool = True
     token_confirmacao: Optional[str] = None
     unidade_id: Optional[str] = None  # Para instrutores/pedagogos/monitores
+    curso_id: Optional[str] = None  # Para instrutores/pedagogos/monitores - curso específico
     telefone: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
@@ -121,6 +122,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     tipo: str
     unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None  # Obrigatório para instrutores/pedagogos/monitores
     telefone: Optional[str] = None
 
 class UserUpdate(BaseModel):
@@ -129,6 +131,7 @@ class UserUpdate(BaseModel):
     telefone: Optional[str] = None
     ativo: Optional[bool] = None
     unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -143,6 +146,7 @@ class UserResponse(BaseModel):
     status: str
     primeiro_acesso: bool
     unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None
     telefone: Optional[str] = None
     last_login: Optional[datetime] = None
 
@@ -450,6 +454,24 @@ async def create_user(user_create: UserCreate, current_user: UserResponse = Depe
     if existing_user:
         raise HTTPException(status_code=400, detail="Email já cadastrado")
     
+    # Validação específica para instrutores, pedagogos e monitores
+    if user_create.tipo in ["instrutor", "pedagogo", "monitor"]:
+        if not user_create.unidade_id:
+            raise HTTPException(status_code=400, detail="Unidade é obrigatória para instrutores, pedagogos e monitores")
+        
+        if not user_create.curso_id:
+            raise HTTPException(status_code=400, detail="Curso é obrigatório para instrutores, pedagogos e monitores")
+        
+        # Verificar se unidade existe
+        unidade = await db.unidades.find_one({"id": user_create.unidade_id})
+        if not unidade:
+            raise HTTPException(status_code=400, detail="Unidade não encontrada")
+        
+        # Verificar se curso existe
+        curso = await db.cursos.find_one({"id": user_create.curso_id})
+        if not curso:
+            raise HTTPException(status_code=400, detail="Curso não encontrado")
+    
     # Generate temporary password and confirmation token
     temp_password = str(uuid.uuid4())[:8]
     hashed_password = bcrypt.hash(temp_password)
@@ -466,8 +488,15 @@ async def create_user(user_create: UserCreate, current_user: UserResponse = Depe
     user_obj = User(**user_dict)
     await db.usuarios.insert_one(user_obj.dict())
     
-    # TODO: Send email with confirmation link and temporary password
-    # For now, return the temp password in response (remove in production)
+    # Log da criação para auditoria
+    await log_admin_action(
+        admin_id=current_user.id,
+        action="create_user",
+        details=f"Criado usuário {user_create.tipo}: {user_create.nome} ({user_create.email})" + 
+                (f" - Unidade: {user_create.unidade_id}, Curso: {user_create.curso_id}" if user_create.tipo != "admin" else ""),
+        temp_password=temp_password
+    )
+    
     response = UserResponse(**user_obj.dict())
     return response
 
@@ -664,6 +693,31 @@ async def get_cursos(current_user: UserResponse = Depends(get_current_user)):
     cursos = await db.cursos.find({"ativo": True}).to_list(1000)
     return [Curso(**curso) for curso in cursos]
 
+@api_router.get("/users/{user_id}/details")
+async def get_user_details(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    # Admin pode ver detalhes de qualquer usuário
+    if current_user.tipo != "admin" and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    user = await db.usuarios.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    user_response = UserResponse(**user)
+    details = {"user": user_response}
+    
+    # Buscar informações da unidade
+    if user.get("unidade_id"):
+        unidade = await db.unidades.find_one({"id": user["unidade_id"]})
+        details["unidade"] = unidade
+    
+    # Buscar informações do curso
+    if user.get("curso_id"):
+        curso = await db.cursos.find_one({"id": user["curso_id"]})
+        details["curso"] = curso
+    
+    return details
+
 @api_router.put("/courses/{curso_id}", response_model=Curso)
 async def update_curso(curso_id: str, curso_update: CursoUpdate, current_user: UserResponse = Depends(get_current_user)):
     check_admin_permission(current_user)
@@ -738,7 +792,40 @@ async def update_aluno(aluno_id: str, aluno_update: AlunoUpdate, current_user: U
 # TURMAS ROUTES
 @api_router.post("/classes", response_model=Turma)
 async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = Depends(get_current_user)):
-    check_admin_permission(current_user)
+    # Admin pode criar qualquer turma
+    if current_user.tipo == "admin":
+        # Validar se instrutor existe e está ativo
+        if turma_create.instrutor_id:
+            instrutor = await db.usuarios.find_one({"id": turma_create.instrutor_id, "tipo": "instrutor", "status": "ativo"})
+            if not instrutor:
+                raise HTTPException(status_code=400, detail="Instrutor não encontrado ou inativo")
+    
+    # Instrutor só pode criar turmas do seu próprio curso e unidade
+    elif current_user.tipo == "instrutor":
+        if not current_user.curso_id or not current_user.unidade_id:
+            raise HTTPException(status_code=400, detail="Instrutor deve estar associado a um curso e unidade")
+        
+        # Validar se a turma é do curso e unidade do instrutor
+        if turma_create.curso_id != current_user.curso_id:
+            raise HTTPException(status_code=403, detail="Instrutor só pode criar turmas do seu curso")
+        
+        if turma_create.unidade_id != current_user.unidade_id:
+            raise HTTPException(status_code=403, detail="Instrutor só pode criar turmas da sua unidade")
+        
+        # Definir instrutor automaticamente
+        turma_create.instrutor_id = current_user.id
+    
+    else:
+        raise HTTPException(status_code=403, detail="Apenas admins e instrutores podem criar turmas")
+    
+    # Validar se curso e unidade existem
+    curso = await db.cursos.find_one({"id": turma_create.curso_id})
+    if not curso:
+        raise HTTPException(status_code=400, detail="Curso não encontrado")
+    
+    unidade = await db.unidades.find_one({"id": turma_create.unidade_id})
+    if not unidade:
+        raise HTTPException(status_code=400, detail="Unidade não encontrada")
     
     turma_dict = prepare_for_mongo(turma_create.dict())
     turma_obj = Turma(**turma_dict)
@@ -752,30 +839,58 @@ async def get_turmas(current_user: UserResponse = Depends(get_current_user)):
     if current_user.tipo == "admin":
         turmas = await db.turmas.find({"ativo": True}).to_list(1000)
     else:
-        # Instrutor, pedagogo ou monitor vê apenas suas turmas
-        query = {
-            "ativo": True,
-            "$or": [
-                {"instrutor_id": current_user.id},
-                {"pedagogo_id": current_user.id},
-                {"monitor_id": current_user.id}
-            ]
-        }
+        # Instrutor, pedagogo ou monitor vê turmas do seu curso e unidade
+        query = {"ativo": True}
+        
+        if current_user.tipo == "instrutor":
+            # Instrutor vê suas próprias turmas do curso
+            query["instrutor_id"] = current_user.id
+            if current_user.curso_id:
+                query["curso_id"] = current_user.curso_id
+            if current_user.unidade_id:
+                query["unidade_id"] = current_user.unidade_id
+        
+        elif current_user.tipo in ["pedagogo", "monitor"]:
+            # Pedagogo e monitor veem turmas do seu curso e unidade
+            if current_user.curso_id:
+                query["curso_id"] = current_user.curso_id
+            if current_user.unidade_id:
+                query["unidade_id"] = current_user.unidade_id
+        
         turmas = await db.turmas.find(query).to_list(1000)
     
     return [Turma(**parse_from_mongo(turma)) for turma in turmas]
 
 @api_router.put("/classes/{turma_id}/students/{aluno_id}")
 async def add_aluno_to_turma(turma_id: str, aluno_id: str, current_user: UserResponse = Depends(get_current_user)):
-    check_admin_permission(current_user)
-    
-    # Check if turma exists and has space
+    # Check if turma exists
     turma = await db.turmas.find_one({"id": turma_id})
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
     
+    # Verificar permissões baseadas no curso/unidade
+    if current_user.tipo == "admin":
+        # Admin pode adicionar qualquer aluno
+        pass
+    elif current_user.tipo == "instrutor":
+        # Instrutor só pode adicionar alunos em suas próprias turmas
+        if turma["instrutor_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="Instrutor só pode gerenciar suas próprias turmas")
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        # Pedagogo/monitor só pode adicionar em turmas do seu curso e unidade
+        if (current_user.curso_id and turma["curso_id"] != current_user.curso_id) or \
+           (current_user.unidade_id and turma["unidade_id"] != current_user.unidade_id):
+            raise HTTPException(status_code=403, detail="Acesso negado: turma fora do seu curso/unidade")
+    else:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
     if len(turma.get("alunos_ids", [])) >= turma.get("vagas_total", 30):
         raise HTTPException(status_code=400, detail="Turma está lotada")
+    
+    # Verificar se aluno existe
+    aluno = await db.alunos.find_one({"id": aluno_id})
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
     
     # Add aluno to turma
     await db.turmas.update_one(
@@ -1046,11 +1161,17 @@ async def create_sample_data():
             senha=bcrypt.hash("instrutor123"),
             tipo="instrutor",
             unidade_id=unidade1_id,
+            curso_id=curso1_id,  # Associado ao curso de Informática Básica
             primeiro_acesso=False
         )
         await db.usuarios.insert_one(instrutor.dict())
     else:
         instrutor_id = instrutor_exists["id"]
+        # Atualizar instrutor existente com curso_id se não tiver
+        await db.usuarios.update_one(
+            {"email": "instrutor@ios.com.br"},
+            {"$set": {"curso_id": curso1_id, "unidade_id": unidade1_id}}
+        )
     
     # Create sample alunos (30 alunos for each turma)
     alunos_ids = []

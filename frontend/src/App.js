@@ -1001,6 +1001,7 @@ const UsuariosManager = () => {
     tipo: "",
     telefone: "",
     unidade_id: "",
+    curso_id: "",
   });
   const { toast } = useToast();
 
@@ -1010,13 +1011,15 @@ const UsuariosManager = () => {
 
   const fetchData = async () => {
     try {
-      const [usuariosRes, unidadesRes] = await Promise.all([
+      const [usuariosRes, unidadesRes, cursosRes] = await Promise.all([
         axios.get(`${API}/users`),
         axios.get(`${API}/units`),
+        axios.get(`${API}/courses`),
       ]);
 
       setUsuarios(usuariosRes.data);
       setUnidades(unidadesRes.data);
+      setCursos(cursosRes.data);
 
       // Fetch pending users
       try {
@@ -1116,6 +1119,7 @@ const UsuariosManager = () => {
       tipo: "",
       telefone: "",
       unidade_id: "",
+      curso_id: "",
     });
   };
 
@@ -1127,6 +1131,7 @@ const UsuariosManager = () => {
       tipo: usuario.tipo,
       telefone: usuario.telefone || "",
       unidade_id: usuario.unidade_id || "",
+      curso_id: usuario.curso_id || "",
     });
     setIsDialogOpen(true);
   };
@@ -1300,26 +1305,51 @@ const UsuariosManager = () => {
                   </div>
 
                   {formData.tipo !== "admin" && (
-                    <div className="space-y-2">
-                      <Label>Unidade</Label>
-                      <Select
-                        value={formData.unidade_id}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, unidade_id: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a unidade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {unidades.map((unidade) => (
-                            <SelectItem key={unidade.id} value={unidade.id}>
-                              {unidade.nome}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label>Unidade</Label>
+                        <Select
+                          value={formData.unidade_id}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, unidade_id: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a unidade" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {unidades.map((unidade) => (
+                              <SelectItem key={unidade.id} value={unidade.id}>
+                                {unidade.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {["instrutor", "pedagogo", "monitor"].includes(formData.tipo) && (
+                        <div className="space-y-2">
+                          <Label>Curso *</Label>
+                          <Select
+                            value={formData.curso_id}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, curso_id: value })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o curso" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {cursos.map((curso) => (
+                                <SelectItem key={curso.id} value={curso.id}>
+                                  {curso.nome}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <Button
