@@ -29,19 +29,25 @@ Este é um sistema full-stack de controle de presença com backend FastAPI e fro
 
 ### Convenções de Código
 
-#### Backend Models
+#### Backend Models - ATUALIZADO 28/09/2025
 
 ```python
 # Pattern: Base model + Create/Update variants
 class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    # ... campos completos
+    unidade_id: Optional[str] = None  # Para instrutor/pedagogo/monitor
+    curso_id: Optional[str] = None    # NOVO: Obrigatório para não-admin
+    # ... outros campos
 
 class UserCreate(BaseModel):
-    # Apenas campos obrigatórios na criação
+    # Campos obrigatórios na criação
+    unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None  # NOVO: Validado se tipo != admin
 
 class UserResponse(BaseModel):
     # Campos seguros para retorno (sem senha)
+    unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None  # NOVO: Retorna associação do curso
 ```
 
 #### Frontend Components
@@ -141,14 +147,20 @@ npm start
 - **Frontend**: `npm run build` gera build otimizado
 - **Config**: CRACO config desabilita hot reload opcionalmente
 
-## Tipos de Usuário e Permissões
+## Tipos de Usuário e Permissões - ATUALIZADO 28/09/2025
 
-Sistema com 4 tipos de usuário:
+Sistema com 4 tipos de usuário com controle granular por curso:
 
-- `admin`: Acesso total
-- `instrutor`: Gerencia turmas/presenças
-- `pedagogo`: Visualiza relatórios
-- `monitor`: Auxilia em turmas
+- `admin`: Acesso total (pode gerenciar qualquer curso/unidade)
+- `instrutor`: Gerencia turmas/presenças **APENAS do seu curso específico**
+- `pedagogo`: Visualiza relatórios **APENAS do seu curso específico**  
+- `monitor`: Auxilia em turmas **APENAS do seu curso específico**
+
+**Regras de Associação Curso-Usuário:**
+- **Obrigatório**: instrutor/pedagogo/monitor devem ter `unidade_id` + `curso_id`
+- **Validação**: Sistema verifica existência do curso e unidade na criação
+- **Permissões**: Usuários só acessam dados do seu curso/unidade
+- **Admin**: Único tipo sem restrições de curso
 
 Autenticação via JWT, middleware verifica tokens em rotas protegidas.
 
@@ -187,17 +199,23 @@ hashed_password = bcrypt.hash(temp_password)
 
 ## Pontos de Integração
 
-### Database Schema
+### Database Schema - ATUALIZADO 28/09/2025
 
 ```python
 # Collections principais:
-users: {id, nome, email, tipo, unidade_id, ...}
+users: {id, nome, email, tipo, unidade_id, curso_id, ...}  # CURSO_ID OBRIGATÓRIO para instrutor/pedagogo/monitor
 units: {id, nome, endereco, responsavel, ...}
 courses: {id, nome, carga_horaria, categoria, ...}
 students: {id, nome, cpf, endereco, ...}
 classes: {id, curso_id, unidade_id, instrutor_id, ...}
 attendances: {id, turma_id, aluno_id, data, presente, ...}
 ```
+
+**Associação Curso-Usuário Implementada:**
+- `instrutor`: Associado a 1 curso específico + 1 unidade (só pode criar turmas desse curso)
+- `pedagogo`: Associado a 1 curso específico + 1 unidade (vê turmas do curso)
+- `monitor`: Associado a 1 curso específico + 1 unidade (auxilia no curso)
+- `admin`: Sem restrições de curso (acesso total)
 
 ### API Endpoints Pattern
 
@@ -238,6 +256,11 @@ attendances: {id, turma_id, aluno_id, data, presente, ...}
 
 # Endpoint para instrutores (ADICIONADO 27/09/2025)
 @api_router.get("/teacher/stats") # Estatísticas para instrutores
+
+# Endpoints curso-usuário (ADICIONADO 28/09/2025)
+@api_router.get("/users/{user_id}/details") # Detalhes completos do usuário com curso/unidade
+@api_router.post("/classes") # Criar turma (instrutor: só do seu curso)
+@api_router.get("/classes") # Listar turmas (filtrado por curso do usuário)
 ```
 
 ### Component Props Flow
@@ -245,6 +268,88 @@ attendances: {id, turma_id, aluno_id, data, presente, ...}
 - Dados carregados no componente pai via API
 - Estado passado como props ou via Context
 - Mutações via handlers que fazem requests e atualizam estado local
+
+### Sistema de Associação Curso-Usuário - IMPLEMENTADO 28/09/2025
+
+#### **Funcionalidades Principais:**
+
+**1. Validação Backend:**
+```python
+# Criação de usuário com validação de curso
+if user_create.tipo in ["instrutor", "pedagogo", "monitor"]:
+    if not user_create.curso_id:
+        raise HTTPException(400, "Curso é obrigatório")
+    
+    # Verificar existência do curso
+    curso = await db.cursos.find_one({"id": user_create.curso_id})
+    if not curso:
+        raise HTTPException(400, "Curso não encontrado")
+```
+
+**2. Controle de Permissões por Curso:**
+```python
+# Instrutor só pode criar turmas do seu curso
+if current_user.tipo == "instrutor":
+    if turma_create.curso_id != current_user.curso_id:
+        raise HTTPException(403, "Instrutor só pode criar turmas do seu curso")
+```
+
+**3. Filtragem de Dados por Curso:**
+```python
+# Listagem de turmas filtrada por curso do usuário
+if current_user.tipo == "instrutor":
+    query["instrutor_id"] = current_user.id
+    if current_user.curso_id:
+        query["curso_id"] = current_user.curso_id
+```
+
+**4. Frontend com Seleção de Curso:**
+```javascript
+// Formulário de usuário com campo curso obrigatório
+{["instrutor", "pedagogo", "monitor"].includes(formData.tipo) && (
+  <div className="space-y-2">
+    <Label>Curso *</Label>
+    <Select value={formData.curso_id} onValueChange={(value) => 
+      setFormData({ ...formData, curso_id: value })}>
+      {cursos.map((curso) => (
+        <SelectItem key={curso.id} value={curso.id}>
+          {curso.nome}
+        </SelectItem>
+      ))}
+    </Select>
+  </div>
+)}
+```
+
+#### **Fluxo de Trabalho:**
+
+**Para Administradores:**
+1. Criar unidades e cursos
+2. Criar usuários associando-os a curso+unidade específicos
+3. Monitorar atividades de todos os cursos
+
+**Para Instrutores:**
+1. Login → Acesso apenas ao seu curso
+2. Criar turmas → Apenas do curso associado
+3. Gerenciar alunos → Apenas das suas turmas
+
+**Para Pedagogos/Monitores:**
+1. Login → Visualização do curso associado
+2. Relatórios → Apenas do seu curso
+3. Suporte → Limitado ao curso/unidade
+
+#### **Endpoints Específicos:**
+
+```python
+# Detalhes completos do usuário (incluindo curso/unidade)
+@api_router.get("/users/{user_id}/details")
+
+# Validação na criação de turmas
+@api_router.post("/classes") # Com verificação de curso do instrutor
+
+# Listagem filtrada por curso
+@api_router.get("/classes") # Retorna apenas turmas do curso do usuário
+```
 
 ## Debugging e Logs
 
@@ -463,6 +568,31 @@ await db.attendances.insert_one({
 ```
 
 **✅ Resultado**: Dados ficam salvos permanentemente no MongoDB Atlas, acessíveis de qualquer lugar do mundo!
+
+#### 📚 **Exemplo Prático - Sistema Curso-Usuário:**
+
+```javascript
+// Admin cria instrutor associado a curso específico
+const response = await axios.post(`${API}/users`, {
+  nome: "Professor Silva",
+  email: "silva@ios.com",
+  tipo: "instrutor",
+  unidade_id: "unidade_centro_123",
+  curso_id: "informatica_basica_456"  // OBRIGATÓRIO
+});
+
+// Instrutor logado tenta criar turma
+const turmaResponse = await axios.post(`${API}/classes`, {
+  nome: "Turma Informática A",
+  curso_id: "informatica_basica_456",  // Deve ser o mesmo do instrutor
+  unidade_id: "unidade_centro_123"     // Deve ser a mesma do instrutor
+});
+
+// Backend valida automaticamente:
+// - Se curso_id da turma == curso_id do instrutor ✅
+// - Se unidade_id da turma == unidade_id do instrutor ✅
+// - Se instrutor tentar criar turma de outro curso ❌ 403 Forbidden
+```
 
 ### 5. Fluxo de Deploy Completo
 
