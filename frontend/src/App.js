@@ -2244,6 +2244,7 @@ const AlunosManager = () => {
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
+    idade: "",
     rg: "",
     data_nascimento: "",
     genero: "",
@@ -2305,6 +2306,7 @@ const AlunosManager = () => {
     setFormData({
       nome: "",
       cpf: "",
+      idade: "",
       rg: "",
       data_nascimento: "",
       genero: "",
@@ -2320,8 +2322,11 @@ const AlunosManager = () => {
   const handleViewAluno = (aluno) => {
     alert(
       `👤 DETALHES DO ALUNO\n\n` +
+        `📋 DADOS OBRIGATÓRIOS:\n` +
         `Nome: ${aluno.nome}\n` +
         `CPF: ${aluno.cpf}\n` +
+        `Idade: ${aluno.idade ? `${aluno.idade} anos` : "N/A"}\n\n` +
+        `📄 DADOS COMPLEMENTARES:\n` +
         `RG: ${aluno.rg || "N/A"}\n` +
         `Data Nascimento: ${aluno.data_nascimento || "N/A"}\n` +
         `Gênero: ${aluno.genero || "N/A"}\n` +
@@ -2340,6 +2345,7 @@ const AlunosManager = () => {
     setFormData({
       nome: aluno.nome,
       cpf: aluno.cpf,
+      idade: aluno.idade || "",
       rg: aluno.rg || "",
       data_nascimento: aluno.data_nascimento || "",
       genero: aluno.genero || "",
@@ -2413,34 +2419,72 @@ const AlunosManager = () => {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome Completo</Label>
-                    <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) =>
-                        setFormData({ ...formData, nome: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
+                {/* Campos Obrigatórios - Destacados */}
+                <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-3">
+                    📋 Informações Obrigatórias
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nome" className="text-blue-700 font-medium">
+                        Nome Completo *
+                      </Label>
+                      <Input
+                        id="nome"
+                        value={formData.nome}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nome: e.target.value })
+                        }
+                        placeholder="Ex: João Silva Santos"
+                        className="border-blue-300 focus:border-blue-500"
+                        required
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cpf">CPF</Label>
-                    <Input
-                      id="cpf"
-                      value={formData.cpf}
-                      onChange={(e) =>
-                        setFormData({ ...formData, cpf: e.target.value })
-                      }
-                      placeholder="000.000.000-00"
-                      required
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="idade" className="text-blue-700 font-medium">
+                        Idade *
+                      </Label>
+                      <Input
+                        id="idade"
+                        type="number"
+                        value={formData.idade}
+                        onChange={(e) =>
+                          setFormData({ ...formData, idade: e.target.value })
+                        }
+                        placeholder="Ex: 25"
+                        min="1"
+                        max="120"
+                        className="border-blue-300 focus:border-blue-500"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="cpf" className="text-blue-700 font-medium">
+                        CPF *
+                      </Label>
+                      <Input
+                        id="cpf"
+                        value={formData.cpf}
+                        onChange={(e) =>
+                          setFormData({ ...formData, cpf: e.target.value })
+                        }
+                        placeholder="000.000.000-00"
+                        className="border-blue-300 focus:border-blue-500"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                {/* Campos Complementares */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    📄 Informações Complementares
+                  </h3>
+
+                  <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="rg">RG</Label>
                     <Input
@@ -2577,6 +2621,7 @@ const AlunosManager = () => {
                     placeholder="Observações sobre o aluno..."
                   />
                 </div>
+                </div>
 
                 <Button
                   type="submit"
@@ -2597,6 +2642,7 @@ const AlunosManager = () => {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>CPF</TableHead>
+                <TableHead>Idade</TableHead>
                 <TableHead>Contato</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
@@ -2607,6 +2653,9 @@ const AlunosManager = () => {
                 <TableRow key={aluno.id}>
                   <TableCell className="font-medium">{aluno.nome}</TableCell>
                   <TableCell>{aluno.cpf}</TableCell>
+                  <TableCell className="text-center font-medium">
+                    {aluno.idade ? `${aluno.idade} anos` : "N/A"}
+                  </TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       {aluno.telefone && (
