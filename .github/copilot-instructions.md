@@ -153,10 +153,11 @@ Sistema com 4 tipos de usuário com controle granular por curso:
 
 - `admin`: Acesso total (pode gerenciar qualquer curso/unidade)
 - `instrutor`: Gerencia turmas/presenças **APENAS do seu curso específico**
-- `pedagogo`: Visualiza relatórios **APENAS do seu curso específico**  
+- `pedagogo`: Visualiza relatórios **APENAS do seu curso específico**
 - `monitor`: Auxilia em turmas **APENAS do seu curso específico**
 
 **Regras de Associação Curso-Usuário:**
+
 - **Obrigatório**: instrutor/pedagogo/monitor devem ter `unidade_id` + `curso_id`
 - **Validação**: Sistema verifica existência do curso e unidade na criação
 - **Permissões**: Usuários só acessam dados do seu curso/unidade
@@ -212,6 +213,7 @@ attendances: {id, turma_id, aluno_id, data, presente, ...}
 ```
 
 **Associação Curso-Usuário Implementada:**
+
 - `instrutor`: Associado a 1 curso específico + 1 unidade (só pode criar turmas desse curso)
 - `pedagogo`: Associado a 1 curso específico + 1 unidade (vê turmas do curso)
 - `monitor`: Associado a 1 curso específico + 1 unidade (auxilia no curso)
@@ -274,12 +276,13 @@ attendances: {id, turma_id, aluno_id, data, presente, ...}
 #### **Funcionalidades Principais:**
 
 **1. Validação Backend:**
+
 ```python
 # Criação de usuário com validação de curso
 if user_create.tipo in ["instrutor", "pedagogo", "monitor"]:
     if not user_create.curso_id:
         raise HTTPException(400, "Curso é obrigatório")
-    
+
     # Verificar existência do curso
     curso = await db.cursos.find_one({"id": user_create.curso_id})
     if not curso:
@@ -287,6 +290,7 @@ if user_create.tipo in ["instrutor", "pedagogo", "monitor"]:
 ```
 
 **2. Controle de Permissões por Curso:**
+
 ```python
 # Instrutor só pode criar turmas do seu curso
 if current_user.tipo == "instrutor":
@@ -295,6 +299,7 @@ if current_user.tipo == "instrutor":
 ```
 
 **3. Filtragem de Dados por Curso:**
+
 ```python
 # Listagem de turmas filtrada por curso do usuário
 if current_user.tipo == "instrutor":
@@ -304,36 +309,44 @@ if current_user.tipo == "instrutor":
 ```
 
 **4. Frontend com Seleção de Curso:**
+
 ```javascript
 // Formulário de usuário com campo curso obrigatório
-{["instrutor", "pedagogo", "monitor"].includes(formData.tipo) && (
-  <div className="space-y-2">
-    <Label>Curso *</Label>
-    <Select value={formData.curso_id} onValueChange={(value) => 
-      setFormData({ ...formData, curso_id: value })}>
-      {cursos.map((curso) => (
-        <SelectItem key={curso.id} value={curso.id}>
-          {curso.nome}
-        </SelectItem>
-      ))}
-    </Select>
-  </div>
-)}
+{
+  ["instrutor", "pedagogo", "monitor"].includes(formData.tipo) && (
+    <div className="space-y-2">
+      <Label>Curso *</Label>
+      <Select
+        value={formData.curso_id}
+        onValueChange={(value) => setFormData({ ...formData, curso_id: value })}
+      >
+        {cursos.map((curso) => (
+          <SelectItem key={curso.id} value={curso.id}>
+            {curso.nome}
+          </SelectItem>
+        ))}
+      </Select>
+    </div>
+  );
+}
 ```
 
 #### **Fluxo de Trabalho:**
 
 **Para Administradores:**
+
 1. Criar unidades e cursos
 2. Criar usuários associando-os a curso+unidade específicos
 3. Monitorar atividades de todos os cursos
 
 **Para Instrutores:**
+
 1. Login → Acesso apenas ao seu curso
 2. Criar turmas → Apenas do curso associado
 3. Gerenciar alunos → Apenas das suas turmas
 
 **Para Pedagogos/Monitores:**
+
 1. Login → Visualização do curso associado
 2. Relatórios → Apenas do seu curso
 3. Suporte → Limitado ao curso/unidade
@@ -578,14 +591,14 @@ const response = await axios.post(`${API}/users`, {
   email: "silva@ios.com",
   tipo: "instrutor",
   unidade_id: "unidade_centro_123",
-  curso_id: "informatica_basica_456"  // OBRIGATÓRIO
+  curso_id: "informatica_basica_456", // OBRIGATÓRIO
 });
 
 // Instrutor logado tenta criar turma
 const turmaResponse = await axios.post(`${API}/classes`, {
   nome: "Turma Informática A",
-  curso_id: "informatica_basica_456",  // Deve ser o mesmo do instrutor
-  unidade_id: "unidade_centro_123"     // Deve ser a mesma do instrutor
+  curso_id: "informatica_basica_456", // Deve ser o mesmo do instrutor
+  unidade_id: "unidade_centro_123", // Deve ser a mesma do instrutor
 });
 
 // Backend valida automaticamente:

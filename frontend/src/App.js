@@ -991,6 +991,7 @@ const ChamadaManager = () => {
 const UsuariosManager = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [unidades, setUnidades] = useState([]);
+  const [cursos, setCursos] = useState([]);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -1327,7 +1328,9 @@ const UsuariosManager = () => {
                         </Select>
                       </div>
 
-                      {["instrutor", "pedagogo", "monitor"].includes(formData.tipo) && (
+                      {["instrutor", "pedagogo", "monitor"].includes(
+                        formData.tipo
+                      ) && (
                         <div className="space-y-2">
                           <Label>Curso *</Label>
                           <Select
