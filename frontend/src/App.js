@@ -238,16 +238,16 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl border-purple-200">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center">
+          <div className="mx-auto mb-4 p-3 bg-gradient-to-r from-purple-600 to-orange-500 rounded-full w-16 h-16 flex items-center justify-center shadow-lg">
             <GraduationCap className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
             Sistema IOS
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-600">
             Controle de Presença - Instituto da Oportunidade Social
           </CardDescription>
         </CardHeader>
@@ -279,17 +279,17 @@ const Login = () => {
                 </div>
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white shadow-lg"
                   disabled={loading}
                 >
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
 
-              <div className="mt-4 pt-4 border-t space-y-2">
+              <div className="mt-4 pt-4 border-t border-purple-100 space-y-2">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
                   onClick={() => setShowFirstAccess(true)}
                 >
                   <UserPlus className="h-4 w-4 mr-2" />
@@ -298,7 +298,7 @@ const Login = () => {
 
                 <Button
                   variant="ghost"
-                  className="w-full text-sm"
+                  className="w-full text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50"
                   onClick={() => setShowResetPassword(true)}
                 >
                   Esqueci minha senha
@@ -330,14 +330,14 @@ const Login = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-purple-300 text-purple-600 hover:bg-purple-50"
                   onClick={() => setShowResetPassword(false)}
                 >
                   Voltar
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
                   disabled={resetLoading}
                 >
                   {resetLoading ? "Resetando..." : "Resetar Senha"}
@@ -409,14 +409,14 @@ const Login = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 border-purple-300 text-purple-600 hover:bg-purple-50"
                   onClick={() => setShowFirstAccess(false)}
                 >
                   Voltar
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
                 >
                   Solicitar Acesso
                 </Button>
@@ -2426,7 +2426,10 @@ const AlunosManager = () => {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="nome" className="text-blue-700 font-medium">
+                      <Label
+                        htmlFor="nome"
+                        className="text-blue-700 font-medium"
+                      >
                         Nome Completo *
                       </Label>
                       <Input
@@ -2442,7 +2445,10 @@ const AlunosManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="idade" className="text-blue-700 font-medium">
+                      <Label
+                        htmlFor="idade"
+                        className="text-blue-700 font-medium"
+                      >
                         Idade *
                       </Label>
                       <Input
@@ -2461,7 +2467,10 @@ const AlunosManager = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="cpf" className="text-blue-700 font-medium">
+                      <Label
+                        htmlFor="cpf"
+                        className="text-blue-700 font-medium"
+                      >
                         CPF *
                       </Label>
                       <Input
@@ -2485,142 +2494,147 @@ const AlunosManager = () => {
                   </h3>
 
                   <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="rg">RG</Label>
-                    <Input
-                      id="rg"
-                      value={formData.rg}
-                      onChange={(e) =>
-                        setFormData({ ...formData, rg: e.target.value })
-                      }
-                      placeholder="00.000.000-0"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="rg">RG</Label>
+                      <Input
+                        id="rg"
+                        value={formData.rg}
+                        onChange={(e) =>
+                          setFormData({ ...formData, rg: e.target.value })
+                        }
+                        placeholder="00.000.000-0"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="data_nascimento">
+                        Data de Nascimento
+                      </Label>
+                      <Input
+                        id="data_nascimento"
+                        type="date"
+                        value={formData.data_nascimento}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            data_nascimento: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Gênero</Label>
+                      <Select
+                        value={formData.genero}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, genero: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="feminino">Feminino</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                          <SelectItem value="nao_informado">
+                            Não informado
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="telefone">Telefone</Label>
+                      <Input
+                        id="telefone"
+                        value={formData.telefone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, telefone: e.target.value })
+                        }
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        placeholder="aluno@email.com"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="data_nascimento">Data de Nascimento</Label>
+                    <Label htmlFor="endereco">Endereço Completo</Label>
                     <Input
-                      id="data_nascimento"
-                      type="date"
-                      value={formData.data_nascimento}
+                      id="endereco"
+                      value={formData.endereco}
+                      onChange={(e) =>
+                        setFormData({ ...formData, endereco: e.target.value })
+                      }
+                      placeholder="Rua, número, bairro, cidade, CEP"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nome_responsavel">
+                        Nome do Responsável
+                      </Label>
+                      <Input
+                        id="nome_responsavel"
+                        value={formData.nome_responsavel}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            nome_responsavel: e.target.value,
+                          })
+                        }
+                        placeholder="Para menores de idade"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="telefone_responsavel">
+                        Telefone do Responsável
+                      </Label>
+                      <Input
+                        id="telefone_responsavel"
+                        value={formData.telefone_responsavel}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            telefone_responsavel: e.target.value,
+                          })
+                        }
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="observacoes">Observações</Label>
+                    <Textarea
+                      id="observacoes"
+                      value={formData.observacoes}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          data_nascimento: e.target.value,
+                          observacoes: e.target.value,
                         })
                       }
+                      placeholder="Observações sobre o aluno..."
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>Gênero</Label>
-                    <Select
-                      value={formData.genero}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, genero: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="masculino">Masculino</SelectItem>
-                        <SelectItem value="feminino">Feminino</SelectItem>
-                        <SelectItem value="outro">Outro</SelectItem>
-                        <SelectItem value="nao_informado">
-                          Não informado
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
-                    <Input
-                      id="telefone"
-                      value={formData.telefone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, telefone: e.target.value })
-                      }
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      placeholder="aluno@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço Completo</Label>
-                  <Input
-                    id="endereco"
-                    value={formData.endereco}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endereco: e.target.value })
-                    }
-                    placeholder="Rua, número, bairro, cidade, CEP"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome_responsavel">
-                      Nome do Responsável
-                    </Label>
-                    <Input
-                      id="nome_responsavel"
-                      value={formData.nome_responsavel}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          nome_responsavel: e.target.value,
-                        })
-                      }
-                      placeholder="Para menores de idade"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone_responsavel">
-                      Telefone do Responsável
-                    </Label>
-                    <Input
-                      id="telefone_responsavel"
-                      value={formData.telefone_responsavel}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          telefone_responsavel: e.target.value,
-                        })
-                      }
-                      placeholder="(11) 99999-9999"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="observacoes">Observações</Label>
-                  <Textarea
-                    id="observacoes"
-                    value={formData.observacoes}
-                    onChange={(e) =>
-                      setFormData({ ...formData, observacoes: e.target.value })
-                    }
-                    placeholder="Observações sobre o aluno..."
-                  />
-                </div>
                 </div>
 
                 <Button
