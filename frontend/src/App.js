@@ -764,10 +764,24 @@ const ChamadaManager = () => {
       return;
     }
 
-    try {
-      const hoje = new Date().toISOString().split("T")[0];
-      const agora = new Date().toTimeString().split(" ")[0].substring(0, 5);
+    // 🔒 VALIDAÇÃO: Só permite chamada do dia atual
+    const hoje = new Date().toISOString().split("T")[0];
+    const agora = new Date().toTimeString().split(" ")[0].substring(0, 5);
 
+    // Verificar se é realmente hoje
+    const dataAtual = new Date();
+    const dataHoje = dataAtual.toISOString().split("T")[0];
+
+    if (hoje !== dataHoje) {
+      toast({
+        title: "Data inválida",
+        description: "Só é possível fazer chamada da data atual",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
       await axios.post(`${API}/attendance`, {
         turma_id: selectedTurma,
         data: hoje,
@@ -778,15 +792,23 @@ const ChamadaManager = () => {
 
       toast({
         title: "Chamada salva com sucesso!",
-        description: "Os dados de presença foram registrados.",
+        description: `Os dados de presença foram registrados para ${new Date().toLocaleDateString(
+          "pt-BR"
+        )}`,
       });
 
-      // Reset form
+      // 🎯 IMPORTANTE: Após salvar, remover a turma da lista (não pode fazer chamada novamente hoje)
+      setTurmas((prev) => prev.filter((t) => t.id !== selectedTurma));
+      setSelectedTurma("");
+      setAlunos([]);
+      setPresencas({});
       setObservacoes("");
     } catch (error) {
       toast({
         title: "Erro ao salvar chamada",
-        description: error.response?.data?.detail || "Tente novamente",
+        description:
+          error.response?.data?.detail ||
+          "Já foi feita chamada hoje para esta turma",
         variant: "destructive",
       });
     }
@@ -2016,97 +2038,77 @@ const TurmasManager = () => {
   );
 };
 
-// Relatórios Manager Component CORRIGIDO para Professores
+// 📊 RELATÓRIOS DINÂMICOS - Atualizados Automaticamente
 const RelatoriosManager = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.tipo !== "admin") {
-      fetchTeacherStats();
-    }
+    fetchDynamicStats();
+
+    // 🔄 AUTO-REFRESH: Atualizar relatórios a cada 30 segundos
+    const interval = setInterval(fetchDynamicStats, 30000);
+
+    return () => clearInterval(interval);
   }, [user]);
 
-  const fetchTeacherStats = async () => {
+  const fetchDynamicStats = async () => {
     try {
-      // Fetch teacher specific stats
-      const response = await axios.get(`${API}/teacher/stats`);
+      // 🎯 NOVO ENDPOINT: Relatórios dinâmicos para todos os tipos de usuário
+      const response = await axios.get(`${API}/reports/teacher-stats`);
       setStats(response.data);
     } catch (error) {
-      console.error("Error fetching teacher stats:", error);
+      console.error("Error fetching dynamic stats:", error);
+      // Fallback para endpoint antigo se necessário
+      if (user?.tipo === "instrutor") {
+        try {
+          const fallbackResponse = await axios.get(`${API}/teacher/stats`);
+          setStats(fallbackResponse.data);
+        } catch (fallbackError) {
+          console.error("Fallback also failed:", fallbackError);
+        }
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (user?.tipo === "admin") {
-    // Admin version with CSV exports
+  if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Relatórios e Exportação</CardTitle>
-          <CardDescription>
-            Gere relatórios de frequência e desistentes com exportação CSV
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Relatório de Frequência
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">
-                  Gere relatórios detalhados de presença por aluno, turma ou
-                  unidade.
-                </p>
-                <Button className="w-full" variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Frequência (CSV)
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  Relatório de Desistentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">
-                  Liste alunos desistentes com motivos e datas de desistência.
-                </p>
-                <Button className="w-full" variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Desistentes (CSV)
-                </Button>
-              </CardContent>
-            </Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+            <span>Carregando relatórios dinâmicos...</span>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  // Teacher version with statistics only
+  // 📊 RELATÓRIOS DINÂMICOS - Interface completamente atualizada
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <BarChart3 className="h-5 w-5 mr-2" />
-          Estatísticas das Minhas Turmas
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2" />
+            Estatísticas das Minhas Turmas
+          </div>
+          <div className="flex items-center text-sm text-gray-500">
+            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+            Atualizado automaticamente
+          </div>
         </CardTitle>
         <CardDescription>
-          Visualize índices de presença e faltas dos seus alunos
+          Visualize índices de presença e faltas dos seus alunos - Dados em
+          tempo real
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Students with Most Attendance */}
+          {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg text-green-600">
@@ -2115,43 +2117,38 @@ const RelatoriosManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">João Silva</p>
-                    <p className="text-sm text-gray-500">Turma A</p>
+                {stats.maiores_presencas &&
+                stats.maiores_presencas.length > 0 ? (
+                  stats.maiores_presencas.map((aluno, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{aluno.nome}</p>
+                        <p className="text-sm text-gray-500">{aluno.turma}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-green-600">
+                          {aluno.taxa_presenca}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {aluno.aulas_presentes}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum dado de presença disponível ainda</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">95%</p>
-                    <p className="text-xs text-gray-500">38/40 aulas</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Maria Santos</p>
-                    <p className="text-sm text-gray-500">Turma B</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">92%</p>
-                    <p className="text-xs text-gray-500">37/40 aulas</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Ana Costa</p>
-                    <p className="text-sm text-gray-500">Turma A</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-green-600">90%</p>
-                    <p className="text-xs text-gray-500">36/40 aulas</p>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Students with Most Absences */}
+          {/* 🔴 MAIORES FALTAS - Dados Dinâmicos */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg text-red-600">
@@ -2160,43 +2157,35 @@ const RelatoriosManager = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Pedro Oliveira</p>
-                    <p className="text-sm text-gray-500">Turma B</p>
+                {stats.maiores_faltas && stats.maiores_faltas.length > 0 ? (
+                  stats.maiores_faltas.map((aluno, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 bg-red-50 rounded-lg"
+                    >
+                      <div>
+                        <p className="font-medium">{aluno.nome}</p>
+                        <p className="text-sm text-gray-500">{aluno.turma}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-red-600">
+                          {aluno.taxa_presenca}
+                        </p>
+                        <p className="text-xs text-gray-500">{aluno.faltas}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum dado de falta disponível ainda</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600">25%</p>
-                    <p className="text-xs text-gray-500">10/40 faltas</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Lucas Lima</p>
-                    <p className="text-sm text-gray-500">Turma A</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600">20%</p>
-                    <p className="text-xs text-gray-500">8/40 faltas</p>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                  <div>
-                    <p className="font-medium">Carla Souza</p>
-                    <p className="text-sm text-gray-500">Turma B</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-red-600">18%</p>
-                    <p className="text-xs text-gray-500">7/40 faltas</p>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Overall Statistics */}
+          {/* 📊 RESUMO GERAL - Dados Dinâmicos */}
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle className="text-lg">
@@ -2206,29 +2195,73 @@ const RelatoriosManager = () => {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">85%</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {stats.taxa_media_presenca || "0%"}
+                  </p>
                   <p className="text-sm text-gray-600">
                     Taxa Média de Presença
                   </p>
                 </div>
 
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">127</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    {stats.total_alunos || 0}
+                  </p>
                   <p className="text-sm text-gray-600">Total de Alunos</p>
                 </div>
 
                 <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-2xl font-bold text-yellow-600">3</p>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {stats.alunos_em_risco || 0}
+                  </p>
                   <p className="text-sm text-gray-600">Alunos em Risco</p>
                 </div>
 
                 <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">2</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    {stats.desistentes || 0}
+                  </p>
                   <p className="text-sm text-gray-600">Desistentes</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* 📋 RESUMO POR TURMA - NOVO */}
+          {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-lg">Resumo por Turma</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {stats.resumo_turmas.map((turma, index) => (
+                    <div key={index} className="p-4 border rounded-lg">
+                      <h4 className="font-medium text-lg mb-2">{turma.nome}</h4>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <p className="text-gray-600">Alunos</p>
+                          <p className="font-bold">{turma.total_alunos}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Taxa Média</p>
+                          <p className="font-bold text-blue-600">
+                            {turma.taxa_media}%
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-gray-600">Em Risco</p>
+                          <p className="font-bold text-yellow-600">
+                            {turma.alunos_risco}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -204,10 +204,10 @@ class CursoUpdate(BaseModel):
 
 class Aluno(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    nome: str
-    cpf: str
+    nome: str  # OBRIGATÓRIO - Nome completo
+    cpf: str   # OBRIGATÓRIO - CPF válido
+    data_nascimento: date  # OBRIGATÓRIO - Data de nascimento
     rg: Optional[str] = None
-    data_nascimento: Optional[date] = None
     genero: Optional[str] = None
     telefone: Optional[str] = None
     email: Optional[str] = None
@@ -220,10 +220,10 @@ class Aluno(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AlunoCreate(BaseModel):
-    nome: str
-    cpf: str
+    nome: str  # OBRIGATÓRIO - Nome completo
+    cpf: str   # OBRIGATÓRIO - CPF válido
+    data_nascimento: date  # OBRIGATÓRIO - Data de nascimento
     rg: Optional[str] = None
-    data_nascimento: Optional[date] = None
     genero: Optional[str] = None
     telefone: Optional[str] = None
     email: Optional[str] = None
@@ -920,6 +920,44 @@ async def remove_aluno_from_turma(turma_id: str, aluno_id: str, current_user: Us
 # CHAMADA ROUTES
 @api_router.post("/attendance", response_model=Chamada)
 async def create_chamada(chamada_create: ChamadaCreate, current_user: UserResponse = Depends(get_current_user)):
+    # 🔒 VALIDAÇÃO DE DATA: Só pode fazer chamada do dia atual
+    data_chamada = chamada_create.data
+    data_hoje = date.today()
+    
+    if data_chamada != data_hoje:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Só é possível fazer chamada da data atual ({data_hoje.strftime('%d/%m/%Y')})"
+        )
+    
+    # 🔒 VALIDAÇÃO: Verificar se já existe chamada para esta turma hoje
+    chamada_existente = await db.chamadas.find_one({
+        "turma_id": chamada_create.turma_id,
+        "data": data_hoje.isoformat()
+    })
+    
+    if chamada_existente:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Chamada já foi realizada para esta turma hoje ({data_hoje.strftime('%d/%m/%Y')})"
+        )
+    
+    # Verificar permissões da turma
+    turma = await db.turmas.find_one({"id": chamada_create.turma_id})
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    
+    # Verificar se o usuário pode fazer chamada nesta turma
+    if current_user.tipo == "instrutor":
+        if turma["instrutor_id"] != current_user.id:
+            raise HTTPException(status_code=403, detail="Você só pode fazer chamada das suas turmas")
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        if (current_user.curso_id and turma["curso_id"] != current_user.curso_id) or \
+           (current_user.unidade_id and turma["unidade_id"] != current_user.unidade_id):
+            raise HTTPException(status_code=403, detail="Acesso negado: turma fora do seu curso/unidade")
+    elif current_user.tipo != "admin":
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
     # Calculate totals
     total_presentes = sum(1 for p in chamada_create.presencas.values() if p.get("presente", False))
     total_faltas = len(chamada_create.presencas) - total_presentes
@@ -1241,10 +1279,142 @@ async def create_sample_data():
         if not existing:
             await db.turmas.insert_one(turma)
 
-# TEACHER STATS ENDPOINT
+# RELATÓRIOS DINÂMICOS - ENDPOINT COMPLETO
+@api_router.get("/reports/teacher-stats")
+async def get_dynamic_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
+    """📊 RELATÓRIOS DINÂMICOS: Estatísticas completas e atualizadas automaticamente"""
+    if current_user.tipo not in ["instrutor", "pedagogo", "monitor", "admin"]:
+        raise HTTPException(status_code=403, detail="Acesso restrito")
+    
+    # 🎯 Filtrar turmas baseado no tipo de usuário
+    query_turmas = {"ativo": True}
+    if current_user.tipo == "instrutor":
+        query_turmas["instrutor_id"] = current_user.id
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        if current_user.curso_id:
+            query_turmas["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            query_turmas["unidade_id"] = current_user.unidade_id
+    
+    # 📈 Buscar turmas do usuário
+    turmas = await db.turmas.find(query_turmas).to_list(1000)
+    turma_ids = [turma["id"] for turma in turmas]
+    
+    if not turma_ids:
+        return {
+            "taxa_media_presenca": 0,
+            "total_alunos": 0,
+            "alunos_em_risco": 0,
+            "desistentes": 0,
+            "maiores_presencas": [],
+            "maiores_faltas": [],
+            "resumo_turmas": []
+        }
+    
+    # 📊 Calcular estatísticas dinâmicas por aluno
+    alunos_stats = []
+    for turma in turmas:
+        aluno_ids = turma.get("alunos_ids", [])
+        if not aluno_ids:
+            continue
+            
+        # Buscar alunos da turma
+        alunos = await db.alunos.find({"id": {"$in": aluno_ids}}).to_list(1000)
+        
+        for aluno in alunos:
+            # Contar presenças e faltas do aluno nesta turma
+            chamadas = await db.chamadas.find({"turma_id": turma["id"]}).to_list(1000)
+            
+            total_aulas = len(chamadas)
+            presencas = 0
+            faltas = 0
+            
+            for chamada in chamadas:
+                presencas_dict = chamada.get("presencas", {})
+                if aluno["id"] in presencas_dict:
+                    if presencas_dict[aluno["id"]].get("presente", False):
+                        presencas += 1
+                    else:
+                        faltas += 1
+            
+            if total_aulas > 0:
+                taxa_presenca = (presencas / total_aulas) * 100
+            else:
+                taxa_presenca = 0
+            
+            alunos_stats.append({
+                "id": aluno["id"],
+                "nome": aluno["nome"],
+                "turma": turma["nome"],
+                "presencas": presencas,
+                "faltas": faltas,
+                "total_aulas": total_aulas,
+                "taxa_presenca": round(taxa_presenca, 1),
+                "status": aluno.get("status", "ativo")
+            })
+    
+    # 📊 Calcular métricas gerais
+    if alunos_stats:
+        taxa_media = sum(a["taxa_presenca"] for a in alunos_stats) / len(alunos_stats)
+        alunos_em_risco = [a for a in alunos_stats if a["taxa_presenca"] < 75]
+        desistentes = [a for a in alunos_stats if a["status"] == "desistente"]
+        
+        # Top 3 maiores presenças
+        maiores_presencas = sorted(alunos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
+        
+        # Top 3 maiores faltas
+        maiores_faltas = sorted(alunos_stats, key=lambda x: x["taxa_presenca"])[:3]
+    else:
+        taxa_media = 0
+        alunos_em_risco = []
+        desistentes = []
+        maiores_presencas = []
+        maiores_faltas = []
+    
+    # 📋 Resumo por turma
+    resumo_turmas = []
+    for turma in turmas:
+        turma_alunos = [a for a in alunos_stats if a["turma"] == turma["nome"]]
+        if turma_alunos:
+            media_turma = sum(a["taxa_presenca"] for a in turma_alunos) / len(turma_alunos)
+        else:
+            media_turma = 0
+            
+        resumo_turmas.append({
+            "nome": turma["nome"],
+            "total_alunos": len(turma_alunos),
+            "taxa_media": round(media_turma, 1),
+            "alunos_risco": len([a for a in turma_alunos if a["taxa_presenca"] < 75])
+        })
+    
+    return {
+        "taxa_media_presenca": f"{round(taxa_media, 1)}%",
+        "total_alunos": len(alunos_stats),
+        "alunos_em_risco": len(alunos_em_risco),
+        "desistentes": len(desistentes),
+        "maiores_presencas": [
+            {
+                "nome": a["nome"],
+                "turma": a["turma"],
+                "taxa_presenca": f"{a['taxa_presenca']}%",
+                "aulas_presentes": f"{a['presencas']}/{a['total_aulas']} aulas"
+            } for a in maiores_presencas
+        ],
+        "maiores_faltas": [
+            {
+                "nome": a["nome"],
+                "turma": a["turma"],
+                "taxa_presenca": f"{a['taxa_presenca']}%",
+                "faltas": f"{a['faltas']}/{a['total_aulas']} faltas"
+            } for a in maiores_faltas
+        ],
+        "resumo_turmas": resumo_turmas
+    }
+
+# TEACHER STATS ENDPOINT (MANTER COMPATIBILIDADE)
 @api_router.get("/teacher/stats")
 async def get_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
-    """Retorna estatísticas para professores/instrutores"""
+    """Retorna estatísticas para professores/instrutores (compatibilidade)"""
     if current_user.tipo not in ["instrutor", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso restrito a instrutores")
     
@@ -1258,10 +1428,9 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
     turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(100)
     turma_ids = [turma["id"] for turma in turmas]
     
-    alunos_count = await db.alunos.count_documents({
-        "turma_id": {"$in": turma_ids},
-        "ativo": True
-    })
+    total_alunos = 0
+    for turma in turmas:
+        total_alunos += len(turma.get("alunos_ids", []))
     
     # Count presenças registradas hoje
     hoje = datetime.now().date()
@@ -1272,7 +1441,7 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
     
     return {
         "total_turmas": turmas_count,
-        "total_alunos": alunos_count,
+        "total_alunos": total_alunos,
         "presencas_hoje": presencas_hoje,
         "nome_instrutor": current_user.nome
     }
