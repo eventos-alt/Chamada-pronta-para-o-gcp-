@@ -746,18 +746,41 @@ async def delete_curso(curso_id: str, current_user: UserResponse = Depends(get_c
 # ALUNOS ROUTES
 @api_router.post("/students", response_model=Aluno)
 async def create_aluno(aluno_create: AlunoCreate, current_user: UserResponse = Depends(get_current_user)):
-    check_admin_permission(current_user)
+    """🎯 CADASTRO DE ALUNO: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas"""
     
-    # Check if CPF already exists
+    # ✅ PERMISSÕES GRANULARES: Verificar se o usuário pode cadastrar alunos
+    if current_user.tipo == "admin":
+        # Admin pode cadastrar qualquer aluno
+        pass
+    elif current_user.tipo in ["instrutor", "pedagogo", "monitor"]:
+        # Verificar se o usuário tem curso/unidade atribuídos
+        if not current_user.curso_id or not current_user.unidade_id:
+            raise HTTPException(
+                status_code=403, 
+                detail="Usuário deve ter curso e unidade atribuídos para cadastrar alunos"
+            )
+        # Instrutor/Pedagogo/Monitor podem cadastrar alunos (serão adicionados às suas turmas depois)
+    else:
+        raise HTTPException(status_code=403, detail="Acesso negado: sem permissão para cadastrar alunos")
+    
+    # ✅ VALIDAÇÃO: CPF único no sistema
     existing_aluno = await db.alunos.find_one({"cpf": aluno_create.cpf})
     if existing_aluno:
-        raise HTTPException(status_code=400, detail="CPF já cadastrado")
+        raise HTTPException(status_code=400, detail="CPF já cadastrado no sistema")
+    
+    # ✅ VALIDAÇÃO: Nome completo obrigatório (não aceita "Aluno 1", "Aluno 2")
+    if len(aluno_create.nome.strip()) < 3 or aluno_create.nome.strip().lower().startswith("aluno"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Nome completo é obrigatório. Não é permitido 'Aluno 1', 'Aluno 2', etc."
+        )
     
     aluno_dict = prepare_for_mongo(aluno_create.dict())
     aluno_obj = Aluno(**aluno_dict)
     
     mongo_data = prepare_for_mongo(aluno_obj.dict())
     await db.alunos.insert_one(mongo_data)
+    
     return aluno_obj
 
 @api_router.get("/students", response_model=List[Aluno])
@@ -767,9 +790,46 @@ async def get_alunos(
     status: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
+    """🎯 LISTAGEM DE ALUNOS: Filtrada por permissões do usuário"""
+    
     query = {"ativo": True}
     if status:
         query["status"] = status
+    
+    # ✅ FILTROS POR TIPO DE USUÁRIO
+    if current_user.tipo == "admin":
+        # Admin vê todos os alunos
+        pass
+    elif current_user.tipo in ["instrutor", "pedagogo", "monitor"]:
+        # Buscar alunos que estão nas turmas do curso/unidade do usuário
+        if current_user.curso_id and current_user.unidade_id:
+            # Buscar turmas do curso e unidade do usuário
+            turmas_usuario = await db.turmas.find({
+                "curso_id": current_user.curso_id,
+                "unidade_id": current_user.unidade_id,
+                "ativo": True
+            }).to_list(1000)
+            
+            # Se for instrutor, filtrar apenas suas turmas
+            if current_user.tipo == "instrutor":
+                turmas_usuario = [t for t in turmas_usuario if t.get("instrutor_id") == current_user.id]
+            
+            # Coletar IDs de todos os alunos das turmas relevantes
+            aluno_ids = set()
+            for turma in turmas_usuario:
+                aluno_ids.update(turma.get("alunos_ids", []))
+            
+            if aluno_ids:
+                query["id"] = {"$in": list(aluno_ids)}
+            else:
+                # Se não há alunos nas turmas, retornar lista vazia
+                return []
+        else:
+            # Se usuário não tem curso/unidade, não pode ver alunos
+            return []
+    else:
+        # Outros tipos de usuário não podem ver alunos
+        return []
         
     alunos = await db.alunos.find(query).skip(skip).limit(limit).to_list(limit)
     return [Aluno(**parse_from_mongo(aluno)) for aluno in alunos]

@@ -73,6 +73,7 @@ import {
   BarChart3,
   Copy,
   RefreshCw,
+  Info,
 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -616,12 +617,21 @@ const Dashboard = () => {
 
         {/* Management Tabs */}
         <Tabs defaultValue="turmas" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList
+            className={`grid w-full ${
+              user?.tipo === "admin" ? "grid-cols-6" : "grid-cols-4"
+            }`}
+          >
             <TabsTrigger value="turmas">Turmas</TabsTrigger>
             <TabsTrigger value="chamada">Chamada</TabsTrigger>
+
+            {/* 🎯 ALUNOS: Disponível para instrutores, pedagogos, monitores e admin */}
+            {["admin", "instrutor", "pedagogo", "monitor"].includes(
+              user?.tipo
+            ) && <TabsTrigger value="alunos">Alunos</TabsTrigger>}
+
             {user?.tipo === "admin" && (
               <>
-                <TabsTrigger value="alunos">Alunos</TabsTrigger>
                 <TabsTrigger value="unidades">Unidades</TabsTrigger>
                 <TabsTrigger value="cursos">Cursos</TabsTrigger>
                 <TabsTrigger value="usuarios">Usuários</TabsTrigger>
@@ -638,12 +648,17 @@ const Dashboard = () => {
             <ChamadaManager />
           </TabsContent>
 
+          {/* 🎯 ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
+          {["admin", "instrutor", "pedagogo", "monitor"].includes(
+            user?.tipo
+          ) && (
+            <TabsContent value="alunos">
+              <AlunosManager />
+            </TabsContent>
+          )}
+
           {user?.tipo === "admin" && (
             <>
-              <TabsContent value="alunos">
-                <AlunosManager />
-              </TabsContent>
-
               <TabsContent value="unidades">
                 <UnidadesManager />
               </TabsContent>
@@ -2420,6 +2435,8 @@ const AlunosManager = () => {
 
   if (loading) return <div>Carregando...</div>;
 
+  const { user } = useAuth();
+
   return (
     <Card>
       <CardHeader>
@@ -2427,7 +2444,11 @@ const AlunosManager = () => {
           <div>
             <CardTitle>Gerenciamento de Alunos</CardTitle>
             <CardDescription>
-              Gerencie os alunos cadastrados no sistema
+              {user?.tipo === "admin"
+                ? "Gerencie todos os alunos cadastrados no sistema"
+                : `Gerencie alunos das suas turmas (${
+                    user?.curso_nome || "seu curso"
+                  })`}
             </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -2682,6 +2703,33 @@ const AlunosManager = () => {
           </Dialog>
         </div>
       </CardHeader>
+
+      {/* Contexto de Permissões para Não-Admin */}
+      {user?.tipo !== "admin" && (
+        <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="flex items-center gap-2 text-orange-800">
+            <Info className="h-4 w-4" />
+            <span className="text-sm font-medium">Suas Permissões:</span>
+          </div>
+          <div className="mt-2 text-sm text-orange-700">
+            <p>
+              • <strong>Tipo:</strong>{" "}
+              {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}
+            </p>
+            <p>
+              • <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
+            </p>
+            <p>
+              • <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
+            </p>
+            <p>
+              • <strong>Permissão:</strong> Criar e gerenciar alunos apenas das
+              suas turmas
+            </p>
+          </div>
+        </div>
+      )}
+
       <CardContent>
         <div className="table-container">
           <Table>
