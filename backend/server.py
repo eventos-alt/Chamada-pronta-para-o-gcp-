@@ -206,7 +206,7 @@ class Aluno(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     nome: str  # OBRIGATÓRIO - Nome completo
     cpf: str   # OBRIGATÓRIO - CPF válido
-    data_nascimento: date  # OBRIGATÓRIO - Data de nascimento
+    data_nascimento: Optional[date] = None  # OPCIONAL para compatibilidade com dados existentes
     rg: Optional[str] = None
     genero: Optional[str] = None
     telefone: Optional[str] = None
@@ -1132,6 +1132,44 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         "taxa_presenca_mes": round((total_presencas_mes / (total_presencas_mes + total_faltas_mes) * 100) if (total_presencas_mes + total_faltas_mes) > 0 else 0, 1)
     }
 
+# MIGRAÇÃO DE DADOS - Corrigir alunos sem data_nascimento
+@api_router.post("/migrate/fix-students")
+async def fix_students_migration(current_user: UserResponse = Depends(get_current_user)):
+    """🔧 MIGRAÇÃO: Adiciona data_nascimento padrão para alunos existentes"""
+    check_admin_permission(current_user)
+    
+    try:
+        # Buscar alunos sem data_nascimento
+        alunos_sem_data = await db.alunos.find({
+            "$or": [
+                {"data_nascimento": {"$exists": False}},
+                {"data_nascimento": None}
+            ]
+        }).to_list(1000)
+        
+        if not alunos_sem_data:
+            return {"message": "Todos os alunos já possuem data_nascimento", "migrated": 0}
+        
+        # Atualizar com data padrão (1 de janeiro de 2000)
+        data_padrao = date(2000, 1, 1)
+        migrated_count = 0
+        
+        for aluno in alunos_sem_data:
+            await db.alunos.update_one(
+                {"id": aluno["id"]},
+                {"$set": {"data_nascimento": data_padrao.isoformat()}}
+            )
+            migrated_count += 1
+        
+        return {
+            "message": f"Migração concluída! {migrated_count} alunos atualizados",
+            "migrated": migrated_count,
+            "data_padrao_usada": data_padrao.isoformat()
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro na migração: {str(e)}")
+
 # INITIALIZE SYSTEM
 @api_router.post("/init")
 async def initialize_system():
@@ -1452,8 +1490,14 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
+    allow_origins=[
+        "http://localhost:3000",  # Desenvolvimento local
+        "https://front-end-sistema-qbl0lhxig-jesielamarojunior-makers-projects.vercel.app",  # Vercel deployment
+        "https://front-end-sistema.vercel.app",  # Vercel custom domain
+        "https://sistema-ios-frontend.vercel.app",  # Possível domínio personalizado
+        "*"  # Fallback para desenvolvimento
+    ],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
