@@ -313,6 +313,50 @@ const handleRemoveAlunoFromTurma = async (alunoId) => {
 - `monitor`: Associado a 1 curso específico + 1 unidade (auxilia no curso)
 - `admin`: Sem restrições de curso (acesso total)
 
+### 🔧 **CORREÇÕES CRÍTICAS DE PRODUÇÃO - 28/09/2025**
+
+#### **1. CORS Policy Error - RESOLVIDO**
+```python
+# Backend: Configuração CORS para Vercel
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # Desenvolvimento
+        "https://front-end-sistema-qbl0lhxig-jesielamarojunior-makers-projects.vercel.app",
+        "https://front-end-sistema.vercel.app",
+        "https://sistema-ios-frontend.vercel.app"
+    ],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
+# ❌ Erro antes: Access-Control-Allow-Origin header not present
+# ✅ Agora: Frontend Vercel acessa backend Render sem problemas
+```
+
+#### **2. Validação Pydantic - RESOLVIDO**
+```python
+# Backend: Compatibilidade com dados existentes
+class Aluno(BaseModel):
+    data_nascimento: Optional[date] = None  # Opcional para dados existentes
+
+class AlunoCreate(BaseModel):  
+    data_nascimento: date  # Obrigatória para novos cadastros
+
+# ❌ Erro antes: Field 'data_nascimento' required [type=missing]
+# ✅ Agora: Compatível com alunos existentes + obrigatório para novos
+```
+
+#### **3. Endpoint de Migração de Dados**
+```python
+# Backend: Migração automática de dados
+@api_router.post("/migrate/fix-students")
+async def fix_students_migration(current_user):
+    # Atualiza alunos sem data_nascimento com data padrão (01/01/2000)
+    # Só admin pode executar
+    # Não quebra dados existentes
+```
+
 ### API Endpoints Pattern
 
 ```python
