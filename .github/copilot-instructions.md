@@ -908,20 +908,24 @@ if current_user.tipo == "instrutor":
 #### **Fluxo de Trabalho Implementado:**
 
 **Para Relatórios CSV:**
+
 1. Usuário acessa aba "Relatórios" → Clica "Exportar CSV"
 2. Frontend chama `/reports/attendance?export_csv=true`
 3. Download automático do arquivo `relatorio_frequencia_YYYY-MM-DD.csv`
 
 **Para Desistências:**
+
 1. Usuário acessa aba "Alunos" → Clica ícone de desistência
 2. Dialog modal solicita motivo → Submit chama `/dropouts`
 3. Status do aluno atualizado para 'desistente' automaticamente
 
 **Para Atestados Médicos:**
+
 1. **Na tabela de alunos**: Clica ícone upload → Seleciona arquivo → `/upload/atestado`
 2. **Durante a chamada**: Aluno faltoso → Clica "Atestado" → Upload automático justifica falta
 
 #### **Estados e Validações:**
+
 - ✅ Arquivos aceitos: PDF, JPG, PNG (validação frontend + backend)
 - ✅ Campos obrigatórios: Motivo desistência, arquivo atestado
 - ✅ Feedback visual: Toast notifications para todas as ações
