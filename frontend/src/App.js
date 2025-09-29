@@ -1829,6 +1829,7 @@ const UsuariosManager = () => {
 
 // Turmas Manager Component CORRIGIDO
 const TurmasManager = () => {
+  const { user } = useAuth(); // ✅ CORREÇÃO: Adicionar useAuth para acessar user
   const [turmas, setTurmas] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
@@ -1925,10 +1926,11 @@ const TurmasManager = () => {
 
   const resetForm = () => {
     // ✅ AUTO-PREENCHIMENTO: Para não-admin, pré-preencher unidade e instrutor
-    const defaultUnidadeId = user?.tipo !== "admin" ? (user?.unidade_id || "") : "";
-    const defaultInstrutorId = user?.tipo !== "admin" ? (user?.id || "") : "";
-    const defaultCursoId = user?.tipo !== "admin" ? (user?.curso_id || "") : "";
-    
+    const defaultUnidadeId =
+      user?.tipo !== "admin" ? user?.unidade_id || "" : "";
+    const defaultInstrutorId = user?.tipo !== "admin" ? user?.id || "" : "";
+    const defaultCursoId = user?.tipo !== "admin" ? user?.curso_id || "" : "";
+
     setFormData({
       nome: "",
       unidade_id: defaultUnidadeId,
@@ -2096,7 +2098,10 @@ const TurmasManager = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>
-                      Unidade {user?.tipo === "admin" ? `(${unidades.length} disponíveis)` : "(Sua unidade)"}
+                      Unidade{" "}
+                      {user?.tipo === "admin"
+                        ? `(${unidades.length} disponíveis)`
+                        : "(Sua unidade)"}
                     </Label>
                     {user?.tipo === "admin" ? (
                       <Select
@@ -2118,7 +2123,12 @@ const TurmasManager = () => {
                       </Select>
                     ) : (
                       <Input
-                        value={unidades.find(u => u.id === formData.unidade_id)?.nome || user?.unidade_nome || "Sua unidade"}
+                        value={
+                          unidades.find((u) => u.id === formData.unidade_id)
+                            ?.nome ||
+                          user?.unidade_nome ||
+                          "Sua unidade"
+                        }
                         readOnly
                         className="bg-gray-50 cursor-not-allowed"
                       />
@@ -2127,7 +2137,10 @@ const TurmasManager = () => {
 
                   <div className="space-y-2">
                     <Label>
-                      Curso {user?.tipo === "admin" ? `(${cursos.length} disponíveis)` : "(Seu curso)"}
+                      Curso{" "}
+                      {user?.tipo === "admin"
+                        ? `(${cursos.length} disponíveis)`
+                        : "(Seu curso)"}
                     </Label>
                     {user?.tipo === "admin" ? (
                       <Select
@@ -2149,7 +2162,12 @@ const TurmasManager = () => {
                       </Select>
                     ) : (
                       <Input
-                        value={cursos.find(c => c.id === formData.curso_id)?.nome || user?.curso_nome || "Seu curso"}
+                        value={
+                          cursos.find((c) => c.id === formData.curso_id)
+                            ?.nome ||
+                          user?.curso_nome ||
+                          "Seu curso"
+                        }
                         readOnly
                         className="bg-gray-50 cursor-not-allowed"
                       />
@@ -2159,7 +2177,10 @@ const TurmasManager = () => {
 
                 <div className="space-y-2">
                   <Label>
-                    Instrutor {user?.tipo === "admin" ? `(${usuarios.length} disponíveis)` : "(Você)"}
+                    Instrutor{" "}
+                    {user?.tipo === "admin"
+                      ? `(${usuarios.length} disponíveis)`
+                      : "(Você)"}
                   </Label>
                   {user?.tipo === "admin" ? (
                     <Select
