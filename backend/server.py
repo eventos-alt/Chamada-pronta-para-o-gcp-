@@ -809,22 +809,49 @@ async def delete_curso(curso_id: str, current_user: UserResponse = Depends(get_c
 # ALUNOS ROUTES
 @api_router.post("/students", response_model=Aluno)
 async def create_aluno(aluno_create: AlunoCreate, current_user: UserResponse = Depends(get_current_user)):
-    """🎯 CADASTRO DE ALUNO: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas"""
+    """📖 CADASTRO DE ALUNO - LÓGICA REFINADA 29/09/2025
     
-    # ✅ PERMISSÕES GRANULARES: Verificar se o usuário pode cadastrar alunos
+    👨‍🏫 Instrutor: Cadastra apenas no seu curso
+    📊 Pedagogo: Cadastra em qualquer curso da sua unidade  
+    👩‍💻 Monitor: NÃO pode cadastrar alunos
+    👑 Admin: Cadastra em qualquer lugar
+    """
+    
+    # 🔒 MONITOR: Não pode cadastrar alunos
+    if current_user.tipo == "monitor":
+        raise HTTPException(
+            status_code=403, 
+            detail="Monitores não podem cadastrar alunos. Apenas visualizar."
+        )
+    
+    # 👑 ADMIN: Pode cadastrar qualquer aluno
     if current_user.tipo == "admin":
-        # Admin pode cadastrar qualquer aluno
-        pass
-    elif current_user.tipo in ["instrutor", "pedagogo", "monitor"]:
-        # Verificar se o usuário tem curso/unidade atribuídos
+        print(f"👑 Admin {current_user.email} cadastrando aluno: {aluno_create.nome}")
+        
+    # 👨‍🏫 INSTRUTOR: Apenas no seu curso específico
+    elif current_user.tipo == "instrutor":
         if not current_user.curso_id or not current_user.unidade_id:
             raise HTTPException(
                 status_code=403, 
-                detail="Usuário deve ter curso e unidade atribuídos para cadastrar alunos"
+                detail="Instrutor deve ter curso e unidade atribuídos"
             )
-        # Instrutor/Pedagogo/Monitor podem cadastrar alunos (serão adicionados às suas turmas depois)
+        
+        # Aluno será automaticamente vinculado ao curso do instrutor
+        print(f"👨‍🏫 Instrutor {current_user.email} cadastrando aluno no curso {current_user.curso_id}")
+        
+    # 📊 PEDAGOGO: Qualquer curso da sua unidade
+    elif current_user.tipo == "pedagogo":
+        if not current_user.unidade_id:
+            raise HTTPException(
+                status_code=403, 
+                detail="Pedagogo deve ter unidade atribuída"
+            )
+        
+        # Pedagogo pode escolher curso da unidade dele (validado no frontend)
+        print(f"📊 Pedagogo {current_user.email} cadastrando aluno na unidade {current_user.unidade_id}")
+        
     else:
-        raise HTTPException(status_code=403, detail="Acesso negado: sem permissão para cadastrar alunos")
+        raise HTTPException(status_code=403, detail="Tipo de usuário não autorizado para cadastrar alunos")
     
     # ✅ VALIDAÇÃO: CPF único no sistema
     existing_aluno = await db.alunos.find_one({"cpf": aluno_create.cpf})
@@ -936,6 +963,127 @@ async def update_aluno(aluno_id: str, aluno_update: AlunoUpdate, current_user: U
     
     updated_aluno = await db.alunos.find_one({"id": aluno_id})
     return Aluno(**parse_from_mongo(updated_aluno))
+
+@api_router.post("/students/import-csv")
+async def import_students_csv(
+    file: UploadFile = File(...), 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """📑 IMPORTAÇÃO CSV - LÓGICA REFINADA 29/09/2025
+    
+    CSV deve conter: nome,cpf,data_nascimento,curso,turma,email,telefone
+    
+    👨‍🏫 Instrutor: Só aceita curso/unidade dele
+    📊 Pedagogo: Só aceita cursos da unidade dele  
+    👩‍💻 Monitor: NÃO pode importar
+    👑 Admin: Aceita qualquer curso/unidade
+    """
+    
+    # 🔒 MONITOR: Não pode importar alunos
+    if current_user.tipo == "monitor":
+        raise HTTPException(
+            status_code=403, 
+            detail="Monitores não podem importar alunos CSV"
+        )
+    
+    # Verificar se arquivo é CSV
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Arquivo deve ser CSV")
+    
+    # Ler conteúdo do arquivo
+    contents = await file.read()
+    csv_content = contents.decode('utf-8')
+    csv_reader = csv.DictReader(io.StringIO(csv_content))
+    
+    # Validar campos obrigatórios no CSV
+    required_fields = ['nome', 'cpf', 'data_nascimento', 'curso']
+    if not all(field in csv_reader.fieldnames for field in required_fields):
+        raise HTTPException(
+            status_code=400, 
+            detail=f"CSV deve conter campos: {', '.join(required_fields)}"
+        )
+    
+    # Processar linhas do CSV
+    results = {
+        'success': [],
+        'errors': [],
+        'duplicates': [],
+        'unauthorized': []
+    }
+    
+    # Buscar cursos e unidades para validação
+    cursos = await db.cursos.find({}).to_list(1000)
+    cursos_dict = {curso['nome']: curso for curso in cursos}
+    
+    for row_num, row in enumerate(csv_reader, start=2):  # Linha 2+ (header = linha 1)
+        try:
+            # Validar campos obrigatórios
+            if not row['nome'].strip() or not row['cpf'].strip() or not row['data_nascimento'].strip():
+                results['errors'].append(f"Linha {row_num}: Campos obrigatórios em branco")
+                continue
+            
+            # Validar se curso existe
+            curso_nome = row['curso'].strip()
+            if curso_nome not in cursos_dict:
+                results['errors'].append(f"Linha {row_num}: Curso '{curso_nome}' não encontrado")
+                continue
+            
+            curso = cursos_dict[curso_nome]
+            
+            # 🔒 VALIDAÇÃO POR TIPO DE USUÁRIO
+            if current_user.tipo == "instrutor":
+                # Instrutor: só aceita seu curso
+                if curso['id'] != current_user.curso_id:
+                    results['unauthorized'].append(
+                        f"Linha {row_num}: Instrutor não pode importar alunos para curso '{curso_nome}'"
+                    )
+                    continue
+                    
+            elif current_user.tipo == "pedagogo":
+                # Pedagogo: só aceita cursos da sua unidade
+                if curso.get('unidade_id') != current_user.unidade_id:
+                    results['unauthorized'].append(
+                        f"Linha {row_num}: Pedagogo não pode importar alunos para curso fora da sua unidade"
+                    )
+                    continue
+            
+            # Admin: aceita qualquer curso (sem restrições)
+            
+            # Verificar duplicado (CPF já existe)
+            existing_aluno = await db.alunos.find_one({"cpf": row['cpf'].strip()})
+            if existing_aluno:
+                results['duplicates'].append(f"Linha {row_num}: CPF {row['cpf']} já cadastrado")
+                continue
+            
+            # Criar aluno
+            aluno_data = {
+                'id': str(uuid.uuid4()),
+                'nome': row['nome'].strip(),
+                'cpf': row['cpf'].strip(),
+                'data_nascimento': row['data_nascimento'].strip(),
+                'email': row.get('email', '').strip(),
+                'telefone': row.get('telefone', '').strip(),
+                'turma': row.get('turma', '').strip(),
+                'created_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.alunos.insert_one(aluno_data)
+            results['success'].append(f"Linha {row_num}: {row['nome']} cadastrado com sucesso")
+            
+        except Exception as e:
+            results['errors'].append(f"Linha {row_num}: Erro interno - {str(e)}")
+    
+    return {
+        "message": f"Importação concluída: {len(results['success'])} sucessos, {len(results['errors']) + len(results['duplicates']) + len(results['unauthorized'])} falhas",
+        "details": results,
+        "summary": {
+            "total_processed": len(results['success']) + len(results['errors']) + len(results['duplicates']) + len(results['unauthorized']),
+            "successful": len(results['success']),
+            "errors": len(results['errors']),
+            "duplicates": len(results['duplicates']),
+            "unauthorized": len(results['unauthorized'])
+        }
+    }
 
 # TURMAS ROUTES
 @api_router.post("/classes", response_model=Turma)

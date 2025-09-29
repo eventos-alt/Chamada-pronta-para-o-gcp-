@@ -3050,6 +3050,9 @@ const AlunosManager = () => {
   const [selectedAluno, setSelectedAluno] = useState(null);
   const [dropoutReason, setDropoutReason] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isCsvDialogOpen, setIsCsvDialogOpen] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvImporting, setCsvImporting] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -3331,6 +3334,57 @@ const AlunosManager = () => {
     return labels[status] || status;
   };
 
+  const handleCsvImport = async () => {
+    if (!csvFile) {
+      toast({
+        title: "Arquivo obrigatório",
+        description: "Por favor, selecione um arquivo CSV para importar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCsvImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", csvFile);
+
+      const response = await axios.post(`${API}/students/import-csv`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const result = response.data;
+      
+      // Mostrar resultado detalhado
+      toast({
+        title: "Importação CSV concluída",
+        description: `${result.summary.successful} alunos importados com sucesso. ${result.summary.errors + result.summary.duplicates + result.summary.unauthorized} falhas.`,
+      });
+
+      // Log detalhado no console para debug
+      console.log("📊 Resultado importação CSV:", result);
+      
+      // Atualizar lista de alunos
+      fetchAlunos();
+      
+      // Fechar dialog
+      setIsCsvDialogOpen(false);
+      setCsvFile(null);
+      
+    } catch (error) {
+      console.error("❌ Erro na importação CSV:", error);
+      toast({
+        title: "Erro na importação",
+        description: error.response?.data?.detail || "Erro interno na importação CSV",
+        variant: "destructive",
+      });
+    } finally {
+      setCsvImporting(false);
+    }
+  };
+
   if (loading) return <div>Carregando...</div>;
 
   const { user } = useAuth();
@@ -3349,16 +3403,83 @@ const AlunosManager = () => {
                   })`}
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                onClick={handleOpenDialog}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Aluno
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            {/* Importação CSV - Disponível para Instrutor, Pedagogo e Admin */}
+            {["admin", "instrutor", "pedagogo"].includes(user?.tipo) && (
+              <Dialog open={isCsvDialogOpen} onOpenChange={setIsCsvDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="border-green-600 text-green-600 hover:bg-green-50"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importar CSV
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>📑 Importar Alunos via CSV</DialogTitle>
+                    <DialogDescription>
+                      {user?.tipo === "admin"
+                        ? "Importe alunos de qualquer curso/unidade"
+                        : user?.tipo === "instrutor"
+                        ? "Importe alunos apenas do seu curso"
+                        : "Importe alunos da sua unidade"}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Arquivo CSV</Label>
+                      <Input
+                        type="file"
+                        accept=".csv"
+                        onChange={(e) => setCsvFile(e.target.files[0])}
+                      />
+                    </div>
+                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      <p className="font-medium mb-2">📋 Formato esperado:</p>
+                      <code className="text-xs block mb-2">
+                        nome,cpf,data_nascimento,curso,turma,email,telefone
+                      </code>
+                      <ul className="text-xs space-y-1">
+                        <li>• <strong>nome, cpf, data_nascimento</strong>: obrigatórios</li>
+                        <li>• <strong>curso</strong>: deve existir no sistema</li>
+                        <li>• <strong>turma, email, telefone</strong>: opcionais</li>
+                      </ul>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsCsvDialogOpen(false);
+                          setCsvFile(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={handleCsvImport}
+                        disabled={!csvFile || csvImporting}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {csvImporting ? "Importando..." : "Importar"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={handleOpenDialog}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Novo Aluno
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
@@ -3599,6 +3720,7 @@ const AlunosManager = () => {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
 

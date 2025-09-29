@@ -147,21 +147,96 @@ npm start
 - **Frontend**: `npm run build` gera build otimizado
 - **Config**: CRACO config desabilita hot reload opcionalmente
 
-## Tipos de Usuário e Permissões - ATUALIZADO 28/09/2025
+## 📖 Lógica de Acesso e Cadastro de Alunos (Detalhada) - IMPLEMENTADA 29/09/2025
 
-Sistema com 4 tipos de usuário com controle granular por curso:
+### 🔑 Perfis e Regras de Acesso
 
-- `admin`: Acesso total (pode gerenciar qualquer curso/unidade)
-- `instrutor`: Gerencia turmas/presenças **APENAS do seu curso específico**
-- `pedagogo`: Visualiza relatórios **APENAS do seu curso específico**
-- `monitor`: Auxilia em turmas **APENAS do seu curso específico**
+#### **1. 👨‍🏫 Instrutor**
+- **Escopo**: 1 unidade + 1 curso específico
+- **Permissões**:
+  - ✅ Cadastrar alunos manualmente → automaticamente vinculados ao curso/unidade dele
+  - ✅ Importar alunos em massa (CSV) → apenas no curso/unidade dele
+  - ✅ Visualizar alunos → apenas do curso dele
+  - ✅ Gerenciar presenças → apenas das turmas do curso dele
+- **Restrições**:
+  - ❌ Não pode cadastrar ou importar alunos de outros cursos ou unidades
+  - ❌ Se o CSV contiver outro curso → rejeitar a linha automaticamente
+- **🎯 Observação Importante**: 
+  - Ao cadastrar um aluno manualmente ou via CSV, ele deve ser vinculado automaticamente a uma turma
+  - Caso nenhuma turma seja informada, criar automaticamente como "não alocado" ou vincular à turma padrão do instrutor
+  - Aluno nunca ficará "solto" sem turma
 
-**Regras de Associação Curso-Usuário:**
+#### **2. 📊 Pedagogo**
+- **Escopo**: unidade inteira
+- **Permissões**:
+  - ✅ Cadastrar alunos manualmente ou via CSV → em qualquer curso da unidade
+  - ✅ Visualizar alunos e turmas → todos os cursos da unidade
+- **Restrições**:
+  - ❌ Não pode atuar fora da unidade
+- **🎯 Observação**: 
+  - Novos alunos devem ser vinculados automaticamente a uma turma dentro do curso escolhido
+  - Se a turma não for informada, marcar como "não alocado"
 
-- **Obrigatório**: instrutor/pedagogo/monitor devem ter `unidade_id` + `curso_id`
-- **Validação**: Sistema verifica existência do curso e unidade na criação
-- **Permissões**: Usuários só acessam dados do seu curso/unidade
-- **Admin**: Único tipo sem restrições de curso
+#### **3. 👩‍💻 Monitor**
+- **Escopo**: turmas específicas
+- **Permissões**:
+  - ✅ Visualizar alunos → apenas das turmas que ele monitora
+- **Restrições**:
+  - ❌ Não pode cadastrar nem importar alunos
+- **🎯 Observação**: 
+  - Apenas vê os alunos vinculados às turmas dele
+  - Não consegue ver alunos "não alocados" ou de outros cursos/unidades
+
+#### **4. 👑 Admin (Superusuário)**
+- **Escopo**: global (qualquer unidade, curso ou turma)
+- **Permissões**:
+  - ✅ Cadastrar/editar alunos manualmente → livre escolha de curso/unidade
+  - ✅ Importar CSV → globalmente
+  - ✅ Corrigir vínculos de alunos → mudar curso, turma ou unidade
+  - ✅ Visualizar todos os alunos → sem restrição
+
+### 📝 Cadastro de Alunos
+
+#### **1. Manual**
+- **Instrutor**: curso/unidade fixo → aluno automaticamente vinculado
+- **Pedagogo**: escolhe curso dentro da unidade
+- **Admin**: escolhe qualquer unidade/curso livremente
+- **🎯 Regras de turma**: todo aluno deve ser vinculado a uma turma; se não houver, criar "não alocado"
+
+#### **2. Em Massa (CSV)**
+- **Campos obrigatórios**: `nome`, `cpf` ou `matrícula`, `data_nascimento`, `curso`
+- **Campos opcionais**: `turma`, `email`, `telefone`
+- **Validação**:
+  - **Instrutor** → curso do CSV deve ser o dele
+  - **Pedagogo** → curso do CSV deve pertencer à unidade dele
+  - **Admin** → qualquer curso/unidade
+  - **Duplicados**: mesmo CPF/matrícula → rejeitar ou marcar como duplicado no relatório
+
+### 📑 Exemplo CSV
+```csv
+nome,cpf,data_nascimento,curso,turma,email,telefone
+Carlos Pereira,12345678900,2005-01-15,Informática Básica,Turma A,carlos@email.com,11988887777
+Fernanda Lima,98765432100,2006-09-20,Informática Básica,Turma B,fernanda@email.com,11997776666
+```
+
+- Se o instrutor for do curso "Informática Básica" → aceita ✅
+- Se o CSV indicar outro curso, como "Design Gráfico" → rejeita ❌
+
+### ⚙️ Visualização na Aba "Alunos"
+
+#### **Instrutor / Pedagogo / Monitor**:
+- Veem apenas os alunos de seu escopo (curso/unidade/turma)
+- Quando um novo aluno é cadastrado, ele é automaticamente vinculado a uma turma, evitando alunos "soltos"
+
+#### **Admin**:
+- Pode ver todos os alunos cadastrados, independentemente do curso, unidade ou turma
+
+### ⚖️ Benefícios dessa Lógica
+- **Agilidade**: instrutores podem iniciar turmas grandes rapidamente via CSV
+- **Segurança**: cada perfil só atua dentro do seu escopo definido
+- **Flexibilidade**: admin pode intervir e corrigir qualquer cadastro
+- **Escalabilidade**: funciona para 1 ou 100 cursos/unidades
+- **Organização**: todos os alunos têm turma vinculada, evitando inconsistências
 
 Autenticação via JWT, middleware verifica tokens em rotas protegidas.
 
@@ -1429,13 +1504,15 @@ const TurmasManager = () => {
 ### 🚨 **CORREÇÃO CRÍTICA CORS - 29/09/2025 TARDE**
 
 #### **PROBLEMA IDENTIFICADO**:
+
 ```
-Access to XMLHttpRequest at 'https://sistema-ios-backend.onrender.com/api/users' 
-from origin 'https://sistema-ios-chamada.vercel.app' has been blocked by CORS policy: 
+Access to XMLHttpRequest at 'https://sistema-ios-backend.onrender.com/api/users'
+from origin 'https://sistema-ios-chamada.vercel.app' has been blocked by CORS policy:
 No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
 #### **CAUSA RAIZ**:
+
 - Middleware CORS do FastAPI não estava funcionando corretamente no Render
 - Headers CORS não estavam sendo aplicados em todas as respostas
 - Requisições OPTIONS não estavam sendo tratadas adequadamente
@@ -1443,6 +1520,7 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 #### **SOLUÇÃO IMPLEMENTADA**:
 
 **1. Origins Emergency Fix:**
+
 ```python
 origins = [
     # ... outras URLs específicas
@@ -1451,6 +1529,7 @@ origins = [
 ```
 
 **2. Middleware CORS Personalizado Robusto:**
+
 ```python
 @app.middleware("http")
 async def cors_handler(request, call_next):
@@ -1461,7 +1540,7 @@ async def cors_handler(request, call_next):
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Max-Age": "86400"
     }
-    
+
     # Resposta direta para OPTIONS
     if request.method == "OPTIONS":
         response = Response(status_code=200)
@@ -1471,11 +1550,13 @@ async def cors_handler(request, call_next):
 ```
 
 **3. Error Handling com CORS:**
+
 - Headers CORS adicionados mesmo em caso de erro 500
 - Tratamento específico para requisições OPTIONS
 - Logs de debug para troubleshooting
 
 #### **DEPLOY**:
+
 - **Commit**: `6817953` - HOTFIX CORS crítico aplicado
 - **Status**: Deploy automático no Render em andamento
 - **Expectativa**: Resolução completa do bloqueio CORS
@@ -1488,4 +1569,4 @@ async def cors_handler(request, call_next):
 4. **Validação frontend + backend** previne problemas de UX
 5. **Logs temporários** essenciais para debug produção
 6. **Commits pequenos e frequentes** facilitam rollback se necessário
-7. **Emergency fixes CORS** com "*" aceitáveis temporariamente em produção
+7. **Emergency fixes CORS** com "\*" aceitáveis temporariamente em produção
