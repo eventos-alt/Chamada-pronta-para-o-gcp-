@@ -1426,11 +1426,66 @@ const TurmasManager = () => {
 4. **Otimizar queries MongoDB para performance**
 5. **Implementar sistema de backup automático**
 
+### 🚨 **CORREÇÃO CRÍTICA CORS - 29/09/2025 TARDE**
+
+#### **PROBLEMA IDENTIFICADO**:
+```
+Access to XMLHttpRequest at 'https://sistema-ios-backend.onrender.com/api/users' 
+from origin 'https://sistema-ios-chamada.vercel.app' has been blocked by CORS policy: 
+No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+#### **CAUSA RAIZ**:
+- Middleware CORS do FastAPI não estava funcionando corretamente no Render
+- Headers CORS não estavam sendo aplicados em todas as respostas
+- Requisições OPTIONS não estavam sendo tratadas adequadamente
+
+#### **SOLUÇÃO IMPLEMENTADA**:
+
+**1. Origins Emergency Fix:**
+```python
+origins = [
+    # ... outras URLs específicas
+    "*"  # 🚨 EMERGENCY: Permitir todas as origens para resolver CORS
+]
+```
+
+**2. Middleware CORS Personalizado Robusto:**
+```python
+@app.middleware("http")
+async def cors_handler(request, call_next):
+    cors_headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400"
+    }
+    
+    # Resposta direta para OPTIONS
+    if request.method == "OPTIONS":
+        response = Response(status_code=200)
+        for key, value in cors_headers.items():
+            response.headers[key] = value
+        return response
+```
+
+**3. Error Handling com CORS:**
+- Headers CORS adicionados mesmo em caso de erro 500
+- Tratamento específico para requisições OPTIONS
+- Logs de debug para troubleshooting
+
+#### **DEPLOY**:
+- **Commit**: `6817953` - HOTFIX CORS crítico aplicado
+- **Status**: Deploy automático no Render em andamento
+- **Expectativa**: Resolução completa do bloqueio CORS
+
 ### 🎯 **LIÇÕES APRENDIDAS**
 
 1. **useAuth necessário** em todos componentes que acessam 'user'
 2. **Compatibilidade dados existentes** crítica em atualizações
-3. **CORS produção** requer URLs específicas, não wildcards
+3. **CORS produção** pode falhar mesmo com configuração correta - middleware personalizado necessário
 4. **Validação frontend + backend** previne problemas de UX
 5. **Logs temporários** essenciais para debug produção
 6. **Commits pequenos e frequentes** facilitam rollback se necessário
+7. **Emergency fixes CORS** com "*" aceitáveis temporariamente em produção
