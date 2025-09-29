@@ -1018,15 +1018,29 @@ async def create_chamada(chamada_create: ChamadaCreate, current_user: UserRespon
     elif current_user.tipo != "admin":
         raise HTTPException(status_code=403, detail="Acesso negado")
     
+    # 🕐 Adicionar hora de registro para alunos presentes
+    hora_atual = datetime.now().strftime("%H:%M")
+    presencas_com_hora = {}
+    
+    for aluno_id, dados_presenca in chamada_create.presencas.items():
+        presencas_com_hora[aluno_id] = {
+            "presente": dados_presenca.get("presente", False),
+            "justificativa": dados_presenca.get("justificativa", ""),
+            "atestado_id": dados_presenca.get("atestado_id", ""),
+            # 📝 Registrar hora apenas se estiver presente
+            "hora_registro": hora_atual if dados_presenca.get("presente", False) else ""
+        }
+    
     # Calculate totals
-    total_presentes = sum(1 for p in chamada_create.presencas.values() if p.get("presente", False))
-    total_faltas = len(chamada_create.presencas) - total_presentes
+    total_presentes = sum(1 for p in presencas_com_hora.values() if p.get("presente", False))
+    total_faltas = len(presencas_com_hora) - total_presentes
     
     chamada_dict = prepare_for_mongo(chamada_create.dict())
     chamada_dict.update({
         "instrutor_id": current_user.id,
         "total_presentes": total_presentes,
-        "total_faltas": total_faltas
+        "total_faltas": total_faltas,
+        "presencas": presencas_com_hora  # 🕐 Usar presencas com hora
     })
     
     chamada_obj = Chamada(**chamada_dict)
@@ -1168,21 +1182,176 @@ async def get_attendance_report(
     if export_csv:
         output = io.StringIO()
         writer = csv.writer(output)
-        writer.writerow(["Data", "Turma", "Total Presentes", "Total Faltas", "Observações"])
         
+        # 📊 FORMATO CSV COMPLETO CONFORME ESPECIFICAÇÃO
+        writer.writerow([
+            "Aluno", "CPF", "Matricula", "Turma", "Curso", "Data", 
+            "Hora_Inicio", "Hora_Fim", "Status", "Hora_Registro", 
+            "Professor", "Unidade", "Observacoes"
+        ])
+        
+        # Coletar dados completos para cada chamada
         for chamada in chamadas:
-            writer.writerow([
-                chamada.get("data", ""),
-                chamada.get("turma_id", ""),
-                chamada.get("total_presentes", 0),
-                chamada.get("total_faltas", 0),
-                chamada.get("observacoes_aula", "")
-            ])
+            try:
+                # Buscar dados da turma
+                turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
+                if not turma:
+                    continue
+                
+                # Buscar dados do curso
+                curso = await db.cursos.find_one({"id": turma.get("curso_id")}) if turma.get("curso_id") else None
+                
+                # Buscar dados da unidade
+                unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
+                
+                # Buscar dados do instrutor
+                instrutor = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+                
+                # Dados da chamada
+                data_chamada = chamada.get("data", "")
+                presencas = chamada.get("presencas", {})
+                observacoes_gerais = chamada.get("observacoes", "")
+                
+                # Horários da turma (se disponível)
+                hora_inicio = turma.get("horario_inicio", "08:00")
+                hora_fim = turma.get("horario_fim", "12:00")
+                
+                # Para cada aluno na chamada
+                for aluno_id, dados_presenca in presencas.items():
+                    try:
+                        # Buscar dados completos do aluno
+                        aluno = await db.alunos.find_one({"id": aluno_id})
+                        if not aluno:
+                            continue
+                        
+                        # Determinar status detalhado
+                        presente = dados_presenca.get("presente", False)
+                        justificativa = dados_presenca.get("justificativa", "")
+                        hora_registro = dados_presenca.get("hora_registro", "")
+                        
+                        # Status mais detalhado
+                        if presente:
+                            if hora_registro and hora_registro > hora_inicio:
+                                status = "Atrasado"
+                            else:
+                                status = "Presente"
+                        else:
+                            if justificativa and ("atestado" in justificativa.lower() or "justificada" in justificativa.lower()):
+                                status = "Justificado"
+                            else:
+                                status = "Ausente"
+                        
+                        # Observações combinadas
+                        obs_final = []
+                        if justificativa:
+                            obs_final.append(justificativa)
+                        if observacoes_gerais:
+                            obs_final.append(f"Obs. turma: {observacoes_gerais}")
+                        observacoes_texto = "; ".join(obs_final)
+                        
+                        # Escrever linha do CSV
+                        writer.writerow([
+                            aluno.get("nome", ""),                          # Aluno
+                            aluno.get("cpf", ""),                           # CPF
+                            aluno.get("matricula", aluno.get("id", "")),    # Matricula (usa ID se não tiver)
+                            turma.get("nome", ""),                          # Turma
+                            curso.get("nome", "") if curso else "",         # Curso
+                            data_chamada,                                   # Data
+                            hora_inicio,                                    # Hora_Inicio
+                            hora_fim,                                       # Hora_Fim
+                            status,                                         # Status
+                            hora_registro,                                  # Hora_Registro
+                            instrutor.get("nome", "") if instrutor else "", # Professor
+                            unidade.get("nome", "") if unidade else "",     # Unidade
+                            observacoes_texto                               # Observacoes
+                        ])
+                        
+                    except Exception as e:
+                        print(f"Erro ao processar aluno {aluno_id}: {e}")
+                        continue
+                        
+            except Exception as e:
+                print(f"Erro ao processar chamada {chamada.get('id', 'unknown')}: {e}")
+                continue
         
         output.seek(0)
         return {"csv_data": output.getvalue()}
     
     return [parse_from_mongo(chamada) for chamada in chamadas]
+
+# 🚨 SISTEMA DE NOTIFICAÇÕES - Chamadas Pendentes
+@api_router.get("/notifications/pending-calls")
+async def get_pending_calls(current_user: UserResponse = Depends(get_current_user)):
+    """Verificar chamadas não realizadas para notificar instrutores e admin"""
+    
+    # Data atual
+    hoje = date.today()
+    ontem = hoje - timedelta(days=1)
+    
+    # Query para turmas baseado no tipo de usuário
+    query_turmas = {"ativo": True}
+    
+    if current_user.tipo == "instrutor":
+        query_turmas["instrutor_id"] = current_user.id
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        if current_user.curso_id:
+            query_turmas["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            query_turmas["unidade_id"] = current_user.unidade_id
+    # Admin vê todas as turmas
+    
+    turmas = await db.turmas.find(query_turmas).to_list(1000)
+    chamadas_pendentes = []
+    
+    for turma in turmas:
+        # Verificar se há chamada para hoje
+        chamada_hoje = await db.chamadas.find_one({
+            "turma_id": turma["id"],
+            "data": hoje.isoformat()
+        })
+        
+        # Verificar se há chamada para ontem (caso não tenha sido feita)
+        chamada_ontem = await db.chamadas.find_one({
+            "turma_id": turma["id"],
+            "data": ontem.isoformat()
+        })
+        
+        # Buscar dados do instrutor
+        instrutor = None
+        if turma.get("instrutor_id"):
+            instrutor = await db.usuarios.find_one({"id": turma["instrutor_id"]})
+        
+        instrutor_nome = instrutor.get("nome", "Instrutor não encontrado") if instrutor else "Sem instrutor"
+        
+        # Se não há chamada hoje
+        if not chamada_hoje:
+            chamadas_pendentes.append({
+                "turma_id": turma["id"],
+                "turma_nome": turma["nome"],
+                "instrutor_id": turma.get("instrutor_id"),
+                "instrutor_nome": instrutor_nome,
+                "data_pendente": hoje.isoformat(),
+                "tipo": "hoje",
+                "prioridade": "alta"
+            })
+        
+        # Se não há chamada ontem (notificação crítica)
+        if not chamada_ontem:
+            chamadas_pendentes.append({
+                "turma_id": turma["id"],
+                "turma_nome": turma["nome"],
+                "instrutor_id": turma.get("instrutor_id"),
+                "instrutor_nome": instrutor_nome,
+                "data_pendente": ontem.isoformat(),
+                "tipo": "atrasada",
+                "prioridade": "critica"
+            })
+    
+    return {
+        "total_pendentes": len(chamadas_pendentes),
+        "chamadas_pendentes": chamadas_pendentes,
+        "data_verificacao": hoje.isoformat()
+    }
 
 # DASHBOARD STATS
 @api_router.get("/dashboard/stats")

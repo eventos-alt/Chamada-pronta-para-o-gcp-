@@ -77,6 +77,9 @@ import {
   Filter,
   Search,
   X,
+  Bell,
+  BellRing,
+  AlertTriangle,
 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -433,6 +436,203 @@ const Login = () => {
   );
 };
 
+// 🔔 Componente de Notificações
+const NotificationButton = () => {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Buscar notificações ao montar o componente
+  useEffect(() => {
+    fetchNotifications();
+
+    // Verificar notificações a cada 5 minutos
+    const interval = setInterval(fetchNotifications, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  const fetchNotifications = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/notifications/pending-calls`);
+      setNotifications(response.data.chamadas_pendentes || []);
+    } catch (error) {
+      console.error("Erro ao buscar notificações:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getNotificationCount = () => {
+    return notifications.length;
+  };
+
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "alta":
+        return "text-red-600";
+      case "media":
+        return "text-orange-600";
+      default:
+        return "text-yellow-600";
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case "alta":
+        return "bg-red-100 text-red-800";
+      case "media":
+        return "bg-orange-100 text-orange-800";
+      default:
+        return "bg-yellow-100 text-yellow-800";
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("pt-BR");
+  };
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowDialog(true)}
+        className="relative text-gray-500 hover:text-gray-700"
+        title="Notificações de chamadas pendentes"
+      >
+        {getNotificationCount() > 0 ? (
+          <BellRing className="h-5 w-5" />
+        ) : (
+          <Bell className="h-5 w-5" />
+        )}
+        {getNotificationCount() > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {getNotificationCount()}
+          </span>
+        )}
+      </Button>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              Chamadas Pendentes
+            </DialogTitle>
+            <DialogDescription>
+              {getNotificationCount() === 0
+                ? "Todas as chamadas estão em dia!"
+                : `${getNotificationCount()} turma(s) sem chamada registrada`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-96 overflow-y-auto">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-600">Carregando...</span>
+              </div>
+            ) : getNotificationCount() === 0 ? (
+              <div className="text-center py-8">
+                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                <p className="text-gray-600">Todas as chamadas estão em dia!</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Não há turmas com chamadas pendentes.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {notifications.map((notification, index) => (
+                  <Card key={index} className="border-l-4 border-l-orange-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-semibold text-gray-900">
+                              {notification.turma_nome}
+                            </h4>
+                            <Badge
+                              variant="outline"
+                              className={getPriorityBadge(
+                                notification.prioridade
+                              )}
+                            >
+                              {notification.prioridade === "alta"
+                                ? "Urgente"
+                                : notification.prioridade === "media"
+                                ? "Importante"
+                                : "Pendente"}
+                            </Badge>
+                          </div>
+
+                          <div className="space-y-1 text-sm text-gray-600">
+                            <p>
+                              <strong>Instrutor:</strong>{" "}
+                              {notification.instrutor_nome}
+                            </p>
+                            <p>
+                              <strong>Unidade:</strong>{" "}
+                              {notification.unidade_nome}
+                            </p>
+                            <p>
+                              <strong>Curso:</strong> {notification.curso_nome}
+                            </p>
+                            <p
+                              className={`font-medium ${getPriorityColor(
+                                notification.prioridade
+                              )}`}
+                            >
+                              <strong>Última chamada:</strong>{" "}
+                              {formatDate(notification.data_faltante)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <AlertTriangle
+                          className={`h-5 w-5 ${getPriorityColor(
+                            notification.prioridade
+                          )}`}
+                        />
+                      </div>
+
+                      <p className="text-xs text-gray-500 mt-3 italic">
+                        {notification.motivo}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={fetchNotifications}
+              disabled={loading}
+              size="sm"
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+              />
+              Atualizar
+            </Button>
+
+            <Button onClick={() => setShowDialog(false)}>Fechar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 // Dashboard Component
 const Dashboard = () => {
   const [stats, setStats] = useState({});
@@ -474,6 +674,9 @@ const Dashboard = () => {
               <h1 className="text-xl font-bold text-gray-900">Sistema IOS</h1>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Componente de Notificações */}
+              <NotificationButton />
+
               <Badge variant="outline">
                 {user?.tipo === "admin"
                   ? "Administrador"
@@ -2276,11 +2479,11 @@ const RelatoriosManager = () => {
         if (filtros.data_inicio)
           params.append("data_inicio", filtros.data_inicio);
         if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
-        if (filtros.unidade_id && filtros.unidade_id !== "all") 
+        if (filtros.unidade_id && filtros.unidade_id !== "all")
           params.append("unidade_id", filtros.unidade_id);
-        if (filtros.curso_id && filtros.curso_id !== "all") 
+        if (filtros.curso_id && filtros.curso_id !== "all")
           params.append("curso_id", filtros.curso_id);
-        if (filtros.turma_id && filtros.turma_id !== "all") 
+        if (filtros.turma_id && filtros.turma_id !== "all")
           params.append("turma_id", filtros.turma_id);
         url = `${API}/reports/attendance?${params.toString()}`;
       }
@@ -2435,7 +2638,10 @@ const RelatoriosManager = () => {
               <Select
                 value={filtros.unidade_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, unidade_id: value === "all" ? "" : value })
+                  setFiltros({
+                    ...filtros,
+                    unidade_id: value === "all" ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger className="h-8">
@@ -2456,7 +2662,10 @@ const RelatoriosManager = () => {
               <Select
                 value={filtros.curso_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, curso_id: value === "all" ? "" : value })
+                  setFiltros({
+                    ...filtros,
+                    curso_id: value === "all" ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger className="h-8">
@@ -2477,7 +2686,10 @@ const RelatoriosManager = () => {
               <Select
                 value={filtros.turma_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, turma_id: value === "all" ? "" : value })
+                  setFiltros({
+                    ...filtros,
+                    turma_id: value === "all" ? "" : value,
+                  })
                 }
               >
                 <SelectTrigger className="h-8">
