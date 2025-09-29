@@ -40,14 +40,8 @@ origins = [
     "https://front-end-sistema.vercel.app",
     "https://sistema-ios-frontend.vercel.app",
     "https://sistema-ios-backend.onrender.com",  # 🚀 URL do próprio backend Render
+    "*"  # 🚨 EMERGENCY: Permitir todas as origens para resolver CORS
 ]
-
-# Para produção e desenvolvimento, permitir origens específicas
-if os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT"):
-    # Em produção, adicionar todas as possíveis URLs do Vercel
-    origins.extend([
-        "*",  # Temporariamente permitir todas as origens para debug
-    ])
 
 app.add_middleware(
     CORSMiddleware,
@@ -57,26 +51,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🚀 Middleware personalizado para requisições OPTIONS
+# 🚀 Middleware personalizado CORS - EMERGENCY FIX
 @app.middleware("http")
 async def cors_handler(request, call_next):
-    # Permitir todas as requisições OPTIONS
+    """Middleware personalizado para resolver problemas CORS em produção"""
+    
+    # Headers CORS básicos
+    cors_headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with",
+        "Access-Control-Allow-Credentials": "true",
+        "Access-Control-Max-Age": "86400"
+    }
+    
+    # Resposta direta para OPTIONS
     if request.method == "OPTIONS":
-        response = Response()
-        response.headers["Access-Control-Allow-Origin"] = "*"
-        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "*"
-        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response = Response(status_code=200)
+        for key, value in cors_headers.items():
+            response.headers[key] = value
         return response
     
-    # Para outras requisições, processar normalmente
-    response = await call_next(request)
-    
-    # Adicionar headers CORS na resposta
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    
-    return response
+    try:
+        # Processar requisição normal
+        response = await call_next(request)
+        
+        # Adicionar headers CORS na resposta
+        for key, value in cors_headers.items():
+            response.headers[key] = value
+            
+        return response
+        
+    except Exception as e:
+        # Em caso de erro, ainda retornar headers CORS
+        print(f"❌ Erro no middleware CORS: {e}")
+        response = Response(status_code=500, content=f"Internal Server Error: {str(e)}")
+        for key, value in cors_headers.items():
+            response.headers[key] = value
+        return response
 
 # Log da configuração CORS para debug
 print(f"🔧 CORS configurado para origins: {origins}")
