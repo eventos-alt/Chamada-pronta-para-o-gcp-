@@ -217,6 +217,7 @@ attendances: {id, turma_id, data, presencas{}, instrutor_id, ...}  # ✅ VALIDA�
 **🚀 ÚLTIMA ATUALIZAÇÃO: Interface Contextual para Permissões de Usuário**
 
 **Status do Deploy:**
+
 - ✅ Frontend: Build compilado com sucesso (146.46 kB)
 - ✅ Backend: Importação e validação sem erros
 - ✅ Integração: Sistema completo funcional
@@ -236,13 +237,14 @@ const AlunosManager = () => {
       <CardHeader>
         <CardTitle>Gerenciamento de Alunos</CardTitle>
         <CardDescription>
-          {user?.tipo === "admin" 
+          {user?.tipo === "admin"
             ? "Gerencie todos os alunos cadastrados no sistema"
-            : `Gerencie alunos das suas turmas (${user?.curso_nome || "seu curso"})`
-          }
+            : `Gerencie alunos das suas turmas (${
+                user?.curso_nome || "seu curso"
+              })`}
         </CardDescription>
       </CardHeader>
-      
+
       {/* Card de permissões para não-admin */}
       {user?.tipo !== "admin" && (
         <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
@@ -251,10 +253,19 @@ const AlunosManager = () => {
             <span className="text-sm font-medium">Suas Permissões:</span>
           </div>
           <div className="mt-2 text-sm text-orange-700">
-            <p>• <strong>Tipo:</strong> Instrutor/Pedagogo/Monitor</p>
-            <p>• <strong>Unidade:</strong> Nome da Unidade</p>
-            <p>• <strong>Curso:</strong> Nome do Curso</p>
-            <p>• <strong>Permissão:</strong> Criar e gerenciar alunos apenas das suas turmas</p>
+            <p>
+              • <strong>Tipo:</strong> Instrutor/Pedagogo/Monitor
+            </p>
+            <p>
+              • <strong>Unidade:</strong> Nome da Unidade
+            </p>
+            <p>
+              • <strong>Curso:</strong> Nome do Curso
+            </p>
+            <p>
+              • <strong>Permissão:</strong> Criar e gerenciar alunos apenas das
+              suas turmas
+            </p>
           </div>
         </div>
       )}
@@ -406,20 +417,32 @@ app.add_middleware(
 
 ```javascript
 // Frontend: Card de permissões contextual para não-admin
-{user?.tipo !== "admin" && (
-  <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-    <div className="flex items-center gap-2 text-orange-800">
-      <Info className="h-4 w-4" />
-      <span className="text-sm font-medium">Suas Permissões:</span>
+{
+  user?.tipo !== "admin" && (
+    <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+      <div className="flex items-center gap-2 text-orange-800">
+        <Info className="h-4 w-4" />
+        <span className="text-sm font-medium">Suas Permissões:</span>
+      </div>
+      <div className="mt-2 text-sm text-orange-700">
+        <p>
+          • <strong>Tipo:</strong>{" "}
+          {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}
+        </p>
+        <p>
+          • <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
+        </p>
+        <p>
+          • <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
+        </p>
+        <p>
+          • <strong>Permissão:</strong> Criar e gerenciar alunos apenas das suas
+          turmas
+        </p>
+      </div>
     </div>
-    <div className="mt-2 text-sm text-orange-700">
-      <p>• <strong>Tipo:</strong> {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}</p>
-      <p>• <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}</p>
-      <p>• <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}</p>
-      <p>• <strong>Permissão:</strong> Criar e gerenciar alunos apenas das suas turmas</p>
-    </div>
-  </div>
-)}
+  );
+}
 
 // ✅ Resultado: Interface contextual mostra escopo de permissões
 // ✅ Design: Cores IOS (laranja/branco) para feedback visual

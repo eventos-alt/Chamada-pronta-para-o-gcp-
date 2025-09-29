@@ -691,6 +691,10 @@ const ChamadaManager = () => {
   const [observacoes, setObservacoes] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingAlunos, setLoadingAlunos] = useState(false);
+  const [isAtestadoChamadaDialogOpen, setIsAtestadoChamadaDialogOpen] =
+    useState(false);
+  const [selectedAlunoAtestado, setSelectedAlunoAtestado] = useState(null);
+  const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -767,6 +771,62 @@ const ChamadaManager = () => {
         justificativa,
       },
     }));
+  };
+
+  const handleUploadAtestadoChamada = (aluno) => {
+    setSelectedAlunoAtestado(aluno);
+    setSelectedFileAtestado(null);
+    setIsAtestadoChamadaDialogOpen(true);
+  };
+
+  const submitAtestadoChamada = async () => {
+    if (!selectedFileAtestado) {
+      toast({
+        title: "Arquivo obrigatório",
+        description: "Por favor, selecione um arquivo de atestado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFileAtestado);
+      formData.append("aluno_id", selectedAlunoAtestado.id);
+      formData.append("tipo", "atestado_medico");
+
+      const response = await axios.post(`${API}/upload/atestado`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Atualizar a presença com o ID do atestado
+      setPresencas((prev) => ({
+        ...prev,
+        [selectedAlunoAtestado.id]: {
+          ...prev[selectedAlunoAtestado.id],
+          atestado_id: response.data.id,
+          justificativa: "Falta justificada com atestado médico",
+        },
+      }));
+
+      toast({
+        title: "Atestado enviado",
+        description: `Atestado médico de ${selectedAlunoAtestado.nome} foi registrado na chamada.`,
+      });
+
+      setIsAtestadoChamadaDialogOpen(false);
+      setSelectedAlunoAtestado(null);
+      setSelectedFileAtestado(null);
+    } catch (error) {
+      console.error("Error uploading atestado:", error);
+      toast({
+        title: "Erro ao enviar atestado",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSalvarChamada = async () => {
@@ -981,6 +1041,7 @@ const ChamadaManager = () => {
                             variant="outline"
                             size="sm"
                             className="w-full"
+                            onClick={() => handleUploadAtestadoChamada(aluno)}
                           >
                             <Upload className="h-4 w-4 mr-2" />
                             Upload Atestado
@@ -1020,6 +1081,49 @@ const ChamadaManager = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Dialog para upload de atestado na chamada */}
+      <Dialog
+        open={isAtestadoChamadaDialogOpen}
+        onOpenChange={setIsAtestadoChamadaDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Atestado Médico</DialogTitle>
+            <DialogDescription>
+              Anexar atestado médico para {selectedAlunoAtestado?.nome}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Arquivo do atestado *</Label>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => setSelectedFileAtestado(e.target.files[0])}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAtestadoChamadaDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={submitAtestadoChamada}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Anexar Atestado
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
@@ -2056,6 +2160,7 @@ const TurmasManager = () => {
 // 📊 RELATÓRIOS DINÂMICOS - Atualizados Automaticamente
 const RelatoriosManager = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -2089,6 +2194,44 @@ const RelatoriosManager = () => {
     }
   };
 
+  const downloadFrequencyReport = async () => {
+    try {
+      const response = await axios.get(
+        `${API}/reports/attendance?export_csv=true`
+      );
+
+      // Criar arquivo CSV e fazer download
+      const csvData = response.data.csv_data;
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute(
+          "download",
+          `relatorio_frequencia_${new Date().toISOString().split("T")[0]}.csv`
+        );
+        link.style.visibility = "hidden";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      toast({
+        title: "Relatório exportado com sucesso!",
+        description: "O arquivo CSV foi baixado para seu computador.",
+      });
+    } catch (error) {
+      console.error("Error downloading report:", error);
+      toast({
+        title: "Erro ao exportar relatório",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -2111,9 +2254,20 @@ const RelatoriosManager = () => {
             <BarChart3 className="h-5 w-5 mr-2" />
             Estatísticas das Minhas Turmas
           </div>
-          <div className="flex items-center text-sm text-gray-500">
-            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-            Atualizado automaticamente
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={downloadFrequencyReport}
+              variant="outline"
+              size="sm"
+              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              Exportar CSV
+            </Button>
+            <div className="flex items-center text-sm text-gray-500">
+              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+              Atualizado automaticamente
+            </div>
           </div>
         </CardTitle>
         <CardDescription>
@@ -2289,6 +2443,11 @@ const AlunosManager = () => {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAluno, setEditingAluno] = useState(null);
+  const [isDropoutDialogOpen, setIsDropoutDialogOpen] = useState(false);
+  const [isAtestadoDialogOpen, setIsAtestadoDialogOpen] = useState(false);
+  const [selectedAluno, setSelectedAluno] = useState(null);
+  const [dropoutReason, setDropoutReason] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -2411,6 +2570,100 @@ const AlunosManager = () => {
     setEditingAluno(null);
     resetForm();
     setIsDialogOpen(true);
+  };
+
+  const handleMarkAsDropout = (aluno) => {
+    setSelectedAluno(aluno);
+    setDropoutReason("");
+    setIsDropoutDialogOpen(true);
+  };
+
+  const handleUploadAtestado = (aluno) => {
+    setSelectedAluno(aluno);
+    setSelectedFile(null);
+    setIsAtestadoDialogOpen(true);
+  };
+
+  const submitDropout = async () => {
+    if (!dropoutReason.trim()) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, informe o motivo da desistência.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/dropouts`, {
+        aluno_id: selectedAluno.id,
+        motivo: dropoutReason,
+        data_desistencia: new Date().toISOString().split("T")[0],
+      });
+
+      // Atualizar status do aluno para desistente
+      await axios.put(`${API}/students/${selectedAluno.id}`, {
+        ...selectedAluno,
+        status: "desistente",
+      });
+
+      toast({
+        title: "Desistência registrada",
+        description: `${selectedAluno.nome} foi marcado como desistente.`,
+      });
+
+      fetchAlunos();
+      setIsDropoutDialogOpen(false);
+      setSelectedAluno(null);
+      setDropoutReason("");
+    } catch (error) {
+      console.error("Error marking as dropout:", error);
+      toast({
+        title: "Erro ao registrar desistência",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const submitAtestado = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "Arquivo obrigatório",
+        description: "Por favor, selecione um arquivo de atestado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("aluno_id", selectedAluno.id);
+      formData.append("tipo", "atestado_medico");
+
+      await axios.post(`${API}/upload/atestado`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      toast({
+        title: "Atestado enviado",
+        description: `Atestado médico de ${selectedAluno.nome} foi registrado.`,
+      });
+
+      setIsAtestadoDialogOpen(false);
+      setSelectedAluno(null);
+      setSelectedFile(null);
+    } catch (error) {
+      console.error("Error uploading atestado:", error);
+      toast({
+        title: "Erro ao enviar atestado",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusColor = (status) => {
@@ -2790,6 +3043,26 @@ const AlunosManager = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {aluno.status === "ativo" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMarkAsDropout(aluno)}
+                          title="Registrar desistência"
+                          className="text-red-600 border-red-600 hover:bg-red-50"
+                        >
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUploadAtestado(aluno)}
+                        title="Upload atestado médico"
+                        className="text-green-600 border-green-600 hover:bg-green-50"
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -2798,6 +3071,86 @@ const AlunosManager = () => {
           </Table>
         </div>
       </CardContent>
+
+      {/* Dialog para registrar desistência */}
+      <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar Desistência</DialogTitle>
+            <DialogDescription>
+              Registrar a desistência de {selectedAluno?.nome}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Motivo da desistência *</Label>
+              <Textarea
+                value={dropoutReason}
+                onChange={(e) => setDropoutReason(e.target.value)}
+                placeholder="Descreva o motivo da desistência..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDropoutDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={submitDropout}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Registrar Desistência
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para upload de atestado */}
+      <Dialog
+        open={isAtestadoDialogOpen}
+        onOpenChange={setIsAtestadoDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Atestado Médico</DialogTitle>
+            <DialogDescription>
+              Enviar atestado médico para {selectedAluno?.nome}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Arquivo do atestado *</Label>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAtestadoDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={submitAtestado}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Enviar Atestado
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
