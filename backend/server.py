@@ -883,7 +883,24 @@ async def get_alunos(
         return []
         
     alunos = await db.alunos.find(query).skip(skip).limit(limit).to_list(limit)
-    return [Aluno(**parse_from_mongo(aluno)) for aluno in alunos]
+    
+    # ✅ CORREÇÃO 422: Tratamento seguro de dados de alunos
+    result_alunos = []
+    for aluno in alunos:
+        try:
+            parsed_aluno = parse_from_mongo(aluno)
+            # Garantir campos obrigatórios para compatibilidade
+            if 'data_nascimento' not in parsed_aluno or parsed_aluno['data_nascimento'] is None:
+                parsed_aluno['data_nascimento'] = None  # Garantir campo existe
+            
+            aluno_obj = Aluno(**parsed_aluno)
+            result_alunos.append(aluno_obj)
+        except Exception as e:
+            # Log do erro mas não quebra a listagem
+            print(f"⚠️ Erro ao processar aluno {aluno.get('id', 'SEM_ID')}: {e}")
+            continue
+    
+    return result_alunos
 
 @api_router.put("/students/{aluno_id}", response_model=Aluno)
 async def update_aluno(aluno_id: str, aluno_update: AlunoUpdate, current_user: UserResponse = Depends(get_current_user)):
