@@ -890,41 +890,83 @@ async def get_alunos(
     if status:
         query["status"] = status
     
-    # ✅ FILTROS POR TIPO DE USUÁRIO
+    # 👁️ FILTROS POR TIPO DE USUÁRIO - LÓGICA DETALHADA 29/09/2025
     if current_user.tipo == "admin":
-        # Admin vê todos os alunos
+        # 👑 Admin: vê todos os alunos de todas as unidades, cursos e turmas
+        print("👑 Admin visualizando todos os alunos")
         pass
-    elif current_user.tipo in ["instrutor", "pedagogo", "monitor"]:
-        # ✅ NOVA LÓGICA: Instrutor vê todos os alunos (pode gerenciar alunos do curso)
-        # Pedagogo/Monitor vêem alunos das turmas do curso/unidade
-        if current_user.curso_id and current_user.unidade_id:
-            if current_user.tipo == "instrutor":
-                # Instrutor pode ver todos os alunos para poder gerenciá-los
-                # (não precisam estar em turmas específicas)
-                pass  # Não adiciona filtro adicional - vê todos alunos
-            else:
-                # Pedagogo/Monitor vêem apenas alunos das turmas do curso/unidade
-                turmas_usuario = await db.turmas.find({
-                    "curso_id": current_user.curso_id,
-                    "unidade_id": current_user.unidade_id,
-                    "ativo": True
-                }).to_list(1000)
-                
-                # Coletar IDs de todos os alunos das turmas relevantes
-                aluno_ids = set()
-                for turma in turmas_usuario:
-                    aluno_ids.update(turma.get("alunos_ids", []))
-                
-                if aluno_ids:
-                    query["id"] = {"$in": list(aluno_ids)}
-                else:
-                    # Se não há alunos nas turmas, retornar lista vazia
-                    return []
+        
+    elif current_user.tipo == "instrutor":
+        # 👨‍🏫 Instrutor: vê apenas alunos do curso específico dele dentro da unidade
+        if not current_user.curso_id or not current_user.unidade_id:
+            print("❌ Instrutor sem curso/unidade definidos")
+            return []
+            
+        # Buscar turmas do curso do instrutor
+        turmas_instrutor = await db.turmas.find({
+            "curso_id": current_user.curso_id,
+            "unidade_id": current_user.unidade_id,
+            "ativo": True
+        }).to_list(1000)
+        
+        # Coletar IDs de todos os alunos das turmas do curso
+        aluno_ids = set()
+        for turma in turmas_instrutor:
+            aluno_ids.update(turma.get("alunos_ids", []))
+        
+        if aluno_ids:
+            query["id"] = {"$in": list(aluno_ids)}
+            print(f"👨‍🏫 Instrutor vendo {len(aluno_ids)} alunos do curso {current_user.curso_id}")
         else:
-            # Se usuário não tem curso/unidade, não pode ver alunos
+            print("👨‍🏫 Instrutor: nenhum aluno nas turmas do curso")
+            return []
+            
+    elif current_user.tipo == "pedagogo":
+        # 📊 Pedagogo: vê todos os cursos da unidade
+        if not current_user.unidade_id:
+            print("❌ Pedagogo sem unidade definida")
+            return []
+            
+        # Buscar todas as turmas da unidade
+        turmas_unidade = await db.turmas.find({
+            "unidade_id": current_user.unidade_id,
+            "ativo": True
+        }).to_list(1000)
+        
+        # Coletar IDs de todos os alunos da unidade
+        aluno_ids = set()
+        for turma in turmas_unidade:
+            aluno_ids.update(turma.get("alunos_ids", []))
+        
+        if aluno_ids:
+            query["id"] = {"$in": list(aluno_ids)}
+            print(f"📊 Pedagogo vendo {len(aluno_ids)} alunos da unidade {current_user.unidade_id}")
+        else:
+            print("📊 Pedagogo: nenhum aluno nas turmas da unidade")
+            return []
+            
+    elif current_user.tipo == "monitor":
+        # 👩‍💻 Monitor: vê apenas alunos das turmas que ele monitora
+        # Buscar turmas onde o monitor está designado
+        turmas_monitor = await db.turmas.find({
+            "monitor_id": current_user.id,
+            "ativo": True
+        }).to_list(1000)
+        
+        # Coletar IDs dos alunos das turmas monitoradas
+        aluno_ids = set()
+        for turma in turmas_monitor:
+            aluno_ids.update(turma.get("alunos_ids", []))
+        
+        if aluno_ids:
+            query["id"] = {"$in": list(aluno_ids)}
+            print(f"👩‍💻 Monitor vendo {len(aluno_ids)} alunos das turmas monitoradas")
+        else:
+            print("👩‍💻 Monitor: nenhum aluno nas turmas monitoradas")
             return []
     else:
         # Outros tipos de usuário não podem ver alunos
+        print(f"❌ Tipo de usuário {current_user.tipo} não autorizado")
         return []
         
     print(f"🔍 Query final para alunos: {query}")
@@ -1008,12 +1050,20 @@ async def import_students_csv(
         'success': [],
         'errors': [],
         'duplicates': [],
-        'unauthorized': []
+        'unauthorized': [],
+        'warnings': []  # Para alunos sem turma definida
     }
     
-    # Buscar cursos e unidades para validação
+    # Buscar cursos e turmas para validação
     cursos = await db.cursos.find({}).to_list(1000)
     cursos_dict = {curso['nome']: curso for curso in cursos}
+    
+    # Buscar turmas do usuário para validação de permissões
+    turmas = await db.turmas.find({}).to_list(1000)
+    turmas_dict = {}
+    for turma in turmas:
+        key = f"{turma.get('curso_id', '')}_{turma['nome']}"
+        turmas_dict[key] = turma
     
     for row_num, row in enumerate(csv_reader, start=2):  # Linha 2+ (header = linha 1)
         try:
@@ -1055,6 +1105,40 @@ async def import_students_csv(
                 results['duplicates'].append(f"Linha {row_num}: CPF {row['cpf']} já cadastrado")
                 continue
             
+            # 🎯 LÓGICA DE TURMA
+            turma_nome = row.get('turma', '').strip()
+            turma_id = None
+            status_turma = "nao_alocado"  # Default para alunos sem turma
+            
+            if turma_nome:
+                # Buscar turma específica do curso
+                turma_key = f"{curso['id']}_{turma_nome}"
+                if turma_key in turmas_dict:
+                    turma_id = turmas_dict[turma_key]['id']
+                    status_turma = "alocado"
+                else:
+                    # Turma não existe - criar automaticamente se usuário tem permissão
+                    if current_user.tipo in ["admin", "instrutor"]:
+                        # Criar turma automaticamente
+                        nova_turma = {
+                            'id': str(uuid.uuid4()),
+                            'nome': turma_nome,
+                            'curso_id': curso['id'],
+                            'unidade_id': curso.get('unidade_id', current_user.unidade_id),
+                            'instrutor_id': current_user.id if current_user.tipo == "instrutor" else None,
+                            'alunos_ids': [],
+                            'ativa': True,
+                            'created_at': datetime.now(timezone.utc).isoformat()
+                        }
+                        await db.turmas.insert_one(nova_turma)
+                        turma_id = nova_turma['id']
+                        status_turma = "alocado"
+                        results['warnings'].append(f"Linha {row_num}: Turma '{turma_nome}' criada automaticamente")
+                    else:
+                        results['warnings'].append(f"Linha {row_num}: Turma '{turma_nome}' não existe - aluno será marcado como 'não alocado'")
+            else:
+                results['warnings'].append(f"Linha {row_num}: Sem turma definida - aluno será marcado como 'não alocado'")
+            
             # Criar aluno
             aluno_data = {
                 'id': str(uuid.uuid4()),
@@ -1063,11 +1147,23 @@ async def import_students_csv(
                 'data_nascimento': row['data_nascimento'].strip(),
                 'email': row.get('email', '').strip(),
                 'telefone': row.get('telefone', '').strip(),
-                'turma': row.get('turma', '').strip(),
+                'curso_id': curso['id'],
+                'turma_id': turma_id,
+                'status_turma': status_turma,
+                'status': 'ativo',
                 'created_at': datetime.now(timezone.utc).isoformat()
             }
             
+            # Inserir aluno no banco
             await db.alunos.insert_one(aluno_data)
+            
+            # Se turma existe, adicionar aluno à lista de alunos da turma
+            if turma_id:
+                await db.turmas.update_one(
+                    {"id": turma_id},
+                    {"$addToSet": {"alunos_ids": aluno_data['id']}}
+                )
+            
             results['success'].append(f"Linha {row_num}: {row['nome']} cadastrado com sucesso")
             
         except Exception as e:
@@ -1081,7 +1177,8 @@ async def import_students_csv(
             "successful": len(results['success']),
             "errors": len(results['errors']),
             "duplicates": len(results['duplicates']),
-            "unauthorized": len(results['unauthorized'])
+            "unauthorized": len(results['unauthorized']),
+            "warnings": len(results['warnings'])
         }
     }
 

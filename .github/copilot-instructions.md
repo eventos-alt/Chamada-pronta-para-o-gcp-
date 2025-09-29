@@ -152,6 +152,7 @@ npm start
 ### 🔑 Perfis e Regras de Acesso
 
 #### **1. 👨‍🏫 Instrutor**
+
 - **Escopo**: 1 unidade + 1 curso específico
 - **Permissões**:
   - ✅ Cadastrar alunos manualmente → automaticamente vinculados ao curso/unidade dele
@@ -161,33 +162,36 @@ npm start
 - **Restrições**:
   - ❌ Não pode cadastrar ou importar alunos de outros cursos ou unidades
   - ❌ Se o CSV contiver outro curso → rejeitar a linha automaticamente
-- **🎯 Observação Importante**: 
+- **🎯 Observação Importante**:
   - Ao cadastrar um aluno manualmente ou via CSV, ele deve ser vinculado automaticamente a uma turma
   - Caso nenhuma turma seja informada, criar automaticamente como "não alocado" ou vincular à turma padrão do instrutor
   - Aluno nunca ficará "solto" sem turma
 
 #### **2. 📊 Pedagogo**
+
 - **Escopo**: unidade inteira
 - **Permissões**:
   - ✅ Cadastrar alunos manualmente ou via CSV → em qualquer curso da unidade
   - ✅ Visualizar alunos e turmas → todos os cursos da unidade
 - **Restrições**:
   - ❌ Não pode atuar fora da unidade
-- **🎯 Observação**: 
+- **🎯 Observação**:
   - Novos alunos devem ser vinculados automaticamente a uma turma dentro do curso escolhido
   - Se a turma não for informada, marcar como "não alocado"
 
 #### **3. 👩‍💻 Monitor**
+
 - **Escopo**: turmas específicas
 - **Permissões**:
   - ✅ Visualizar alunos → apenas das turmas que ele monitora
 - **Restrições**:
   - ❌ Não pode cadastrar nem importar alunos
-- **🎯 Observação**: 
+- **🎯 Observação**:
   - Apenas vê os alunos vinculados às turmas dele
   - Não consegue ver alunos "não alocados" ou de outros cursos/unidades
 
 #### **4. 👑 Admin (Superusuário)**
+
 - **Escopo**: global (qualquer unidade, curso ou turma)
 - **Permissões**:
   - ✅ Cadastrar/editar alunos manualmente → livre escolha de curso/unidade
@@ -198,12 +202,14 @@ npm start
 ### 📝 Cadastro de Alunos
 
 #### **1. Manual**
+
 - **Instrutor**: curso/unidade fixo → aluno automaticamente vinculado
 - **Pedagogo**: escolhe curso dentro da unidade
 - **Admin**: escolhe qualquer unidade/curso livremente
 - **🎯 Regras de turma**: todo aluno deve ser vinculado a uma turma; se não houver, criar "não alocado"
 
 #### **2. Em Massa (CSV)**
+
 - **Campos obrigatórios**: `nome`, `cpf` ou `matrícula`, `data_nascimento`, `curso`
 - **Campos opcionais**: `turma`, `email`, `telefone`
 - **Validação**:
@@ -213,6 +219,7 @@ npm start
   - **Duplicados**: mesmo CPF/matrícula → rejeitar ou marcar como duplicado no relatório
 
 ### 📑 Exemplo CSV
+
 ```csv
 nome,cpf,data_nascimento,curso,turma,email,telefone
 Carlos Pereira,12345678900,2005-01-15,Informática Básica,Turma A,carlos@email.com,11988887777
@@ -225,13 +232,16 @@ Fernanda Lima,98765432100,2006-09-20,Informática Básica,Turma B,fernanda@email
 ### ⚙️ Visualização na Aba "Alunos"
 
 #### **Instrutor / Pedagogo / Monitor**:
+
 - Veem apenas os alunos de seu escopo (curso/unidade/turma)
 - Quando um novo aluno é cadastrado, ele é automaticamente vinculado a uma turma, evitando alunos "soltos"
 
 #### **Admin**:
+
 - Pode ver todos os alunos cadastrados, independentemente do curso, unidade ou turma
 
 ### ⚖️ Benefícios dessa Lógica
+
 - **Agilidade**: instrutores podem iniciar turmas grandes rapidamente via CSV
 - **Segurança**: cada perfil só atua dentro do seu escopo definido
 - **Flexibilidade**: admin pode intervir e corrigir qualquer cadastro
@@ -466,27 +476,154 @@ const handleRemoveAlunoFromTurma = async (alunoId) => {
 // ✅ Para Monitor: Apenas alunos do seu curso/unidade
 ```
 
-### 🔧 **CORREÇÕES CRÍTICAS DE PRODUÇÃO - 28/09/2025**
+### 🔧 **SISTEMA COMPLETO DE CONTROLE DE ACESSO E TURMAS - 30/09/2025**
 
-#### **1. CORS Policy Error - RESOLVIDO**
+#### **1. Sistema de Importação CSV com Lógica de Turmas - IMPLEMENTADO** ✅
+
+**Backend (`/api/students/import-csv`):**
 
 ```python
-# Backend: Configuração CORS para Vercel
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # Desenvolvimento
-        "https://front-end-sistema-qbl0lhxig-jesielamarojunior-makers-projects.vercel.app",
-        "https://front-end-sistema.vercel.app",
-        "https://sistema-ios-frontend.vercel.app"
-    ],
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
-)
+# ✅ VALIDAÇÃO RIGOROSA POR TIPO DE USUÁRIO
+if current_user.tipo == "instrutor":
+    # Instrutor: só aceita seu curso
+    if curso['id'] != current_user.curso_id:
+        results['unauthorized'].append(f"Instrutor não pode importar para curso '{curso_nome}'")
+        
+elif current_user.tipo == "pedagogo":
+    # Pedagogo: só aceita cursos da sua unidade
+    if curso.get('unidade_id') != current_user.unidade_id:
+        results['unauthorized'].append(f"Pedagogo não pode importar fora da sua unidade")
 
-# ❌ Erro antes: Access-Control-Allow-Origin header not present
-# ✅ Agora: Frontend Vercel acessa backend Render sem problemas
+# ✅ LÓGICA INTELIGENTE DE TURMAS
+if turma_nome:
+    if turma_existe:
+        turma_id = turma_existente['id']
+        status_turma = "alocado"
+    else:
+        # CRIAR TURMA AUTOMATICAMENTE (instrutor/admin)
+        if current_user.tipo in ["admin", "instrutor"]:
+            nova_turma = criar_turma_automatica()
+            results['warnings'].append(f"Turma '{turma_nome}' criada automaticamente")
+        else:
+            results['warnings'].append(f"Turma '{turma_nome}' não existe - aluno será 'não alocado'")
+else:
+    status_turma = "nao_alocado"  # Sem turma definida
+
+# ✅ RETORNO DETALHADO
+return {
+    "summary": {
+        "successful": 15,      # Alunos importados com sucesso
+        "errors": 2,          # Erros de validação
+        "duplicates": 1,      # CPFs já existentes
+        "unauthorized": 3,    # Fora do escopo do usuário
+        "warnings": 5         # Turmas criadas ou alunos não alocados
+    }
+}
 ```
+
+**Frontend (Dialog CSV Melhorado):**
+
+```javascript
+// ✅ INTERFACE CONTEXTUAL POR TIPO DE USUÁRIO
+<DialogDescription>
+  {user?.tipo === "admin" 
+    ? "Importe alunos de qualquer curso/unidade" 
+    : user?.tipo === "instrutor" 
+    ? "Importe alunos apenas do seu curso" 
+    : "Importe alunos da sua unidade"}
+</DialogDescription>
+
+// ✅ FORMATO CSV DOCUMENTADO
+<code className="text-xs">
+  nome,cpf,data_nascimento,curso,turma,email,telefone
+</code>
+
+// ✅ VALIDAÇÃO E FEEDBACK DETALHADO
+const result = await axios.post(`${API}/students/import-csv`, formData);
+toast({
+  title: "Importação CSV concluída",
+  description: `${result.summary.successful} sucessos, ${result.summary.errors} falhas`
+});
+```
+
+#### **2. Card de Permissões Contextual - IMPLEMENTADO** ✅
+
+**Interface Inteligente:**
+
+```javascript
+// ✅ CARD DE PERMISSÕES DETALHADO
+{user?.tipo !== "admin" && (
+  <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+    <div className="flex items-center gap-2 text-orange-800">
+      <Info className="h-4 w-4" />
+      <span className="text-sm font-medium">Suas Permissões:</span>
+    </div>
+    <div className="mt-2 text-sm text-orange-700">
+      <p>• <strong>Escopo:</strong> {
+        user?.tipo === "instrutor" ? "Alunos do seu curso específico" :
+        user?.tipo === "pedagogo" ? "Todos os alunos da sua unidade" :
+        "Alunos das turmas que você monitora"
+      }</p>
+      <p>• <strong>CSV:</strong> {
+        user?.tipo === "instrutor" ? "Pode importar apenas do seu curso" :
+        user?.tipo === "pedagogo" ? "Pode importar de qualquer curso da unidade" :
+        "Não pode importar (apenas visualizar)"
+      }</p>
+      
+      {/* DICAS ESPECÍFICAS PARA INSTRUTORES */}
+      {user?.tipo === "instrutor" && (
+        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+          <p className="font-medium">💡 Dicas para Instrutores:</p>
+          <p>• Turmas inexistentes no CSV serão criadas automaticamente</p>
+          <p>• Alunos sem turma definida ficarão como "não alocado"</p>
+          <p>• Você pode gerenciar alunos entre suas turmas</p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+```
+
+#### **3. CORS Policy Emergency Fix - RESOLVIDO PERMANENTEMENTE** ✅
+
+**Configuração Robusta:**
+
+```python
+# ✅ CORS MIDDLEWARE PERSONALIZADO + ORIGINS ESPECÍFICAS
+origins = [
+    "http://localhost:3000",  # Desenvolvimento
+    "https://sistema-ios-chamada.vercel.app",  # Produção principal
+    "*"  # Emergency fallback para casos críticos
+]
+
+@app.middleware("http")
+async def cors_handler(request, call_next):
+    cors_headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "accept, authorization, content-type",
+        "Access-Control-Max-Age": "86400"
+    }
+    
+    # Resposta direta para OPTIONS
+    if request.method == "OPTIONS":
+        response = Response(status_code=200)
+        for key, value in cors_headers.items():
+            response.headers[key] = value
+        return response
+    
+    # Headers CORS em todas as respostas
+    response = await call_next(request)
+    for key, value in cors_headers.items():
+        response.headers[key] = value
+    return response
+```
+
+**Status de Deploy Atual:**
+- ✅ **Backend**: https://sistema-ios-backend.onrender.com
+- ✅ **Frontend**: https://sistema-ios-chamada.vercel.app  
+- ✅ **CORS**: Funcionando sem bloqueios
+- ✅ **MongoDB**: Conectado e estável
 
 #### **4. Interface Contextual para Permissões - IMPLEMENTADO 28/09/2025**
 

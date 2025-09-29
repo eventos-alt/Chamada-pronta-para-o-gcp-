@@ -3349,35 +3349,45 @@ const AlunosManager = () => {
       const formData = new FormData();
       formData.append("file", csvFile);
 
-      const response = await axios.post(`${API}/students/import-csv`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await axios.post(
+        `${API}/students/import-csv`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       const result = response.data;
-      
+
       // Mostrar resultado detalhado
       toast({
         title: "Importação CSV concluída",
-        description: `${result.summary.successful} alunos importados com sucesso. ${result.summary.errors + result.summary.duplicates + result.summary.unauthorized} falhas.`,
+        description: `${
+          result.summary.successful
+        } alunos importados com sucesso. ${
+          result.summary.errors +
+          result.summary.duplicates +
+          result.summary.unauthorized
+        } falhas.`,
       });
 
       // Log detalhado no console para debug
       console.log("📊 Resultado importação CSV:", result);
-      
+
       // Atualizar lista de alunos
       fetchAlunos();
-      
+
       // Fechar dialog
       setIsCsvDialogOpen(false);
       setCsvFile(null);
-      
     } catch (error) {
       console.error("❌ Erro na importação CSV:", error);
       toast({
         title: "Erro na importação",
-        description: error.response?.data?.detail || "Erro interno na importação CSV",
+        description:
+          error.response?.data?.detail || "Erro interno na importação CSV",
         variant: "destructive",
       });
     } finally {
@@ -3442,9 +3452,16 @@ const AlunosManager = () => {
                         nome,cpf,data_nascimento,curso,turma,email,telefone
                       </code>
                       <ul className="text-xs space-y-1">
-                        <li>• <strong>nome, cpf, data_nascimento</strong>: obrigatórios</li>
-                        <li>• <strong>curso</strong>: deve existir no sistema</li>
-                        <li>• <strong>turma, email, telefone</strong>: opcionais</li>
+                        <li>
+                          • <strong>nome, cpf, data_nascimento</strong>:
+                          obrigatórios
+                        </li>
+                        <li>
+                          • <strong>curso</strong>: deve existir no sistema
+                        </li>
+                        <li>
+                          • <strong>turma, email, telefone</strong>: opcionais
+                        </li>
                       </ul>
                     </div>
                     <div className="flex justify-end gap-2">
@@ -3469,7 +3486,7 @@ const AlunosManager = () => {
                 </DialogContent>
               </Dialog>
             )}
-            
+
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -3480,251 +3497,254 @@ const AlunosManager = () => {
                   Novo Aluno
                 </Button>
               </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingAluno
-                    ? "Atualize os dados do aluno"
-                    : "Preencha os dados para cadastrar um novo aluno"}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Campos Obrigatórios - Destacados */}
-                <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">
-                    📋 Cadastro do aluno
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="nome"
-                        className="text-blue-700 font-medium"
-                      >
-                        Nome Completo *
-                      </Label>
-                      <Input
-                        id="nome"
-                        value={formData.nome}
-                        onChange={(e) =>
-                          setFormData({ ...formData, nome: e.target.value })
-                        }
-                        placeholder="Ex: João Silva Santos"
-                        className="border-blue-300 focus:border-blue-500"
-                        required
-                      />
-                    </div>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {editingAluno
+                      ? "Atualize os dados do aluno"
+                      : "Preencha os dados para cadastrar um novo aluno"}
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Campos Obrigatórios - Destacados */}
+                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-3">
+                      📋 Cadastro do aluno
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="nome"
+                          className="text-blue-700 font-medium"
+                        >
+                          Nome Completo *
+                        </Label>
+                        <Input
+                          id="nome"
+                          value={formData.nome}
+                          onChange={(e) =>
+                            setFormData({ ...formData, nome: e.target.value })
+                          }
+                          placeholder="Ex: João Silva Santos"
+                          className="border-blue-300 focus:border-blue-500"
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="idade"
-                        className="text-blue-700 font-medium"
-                      >
-                        Idade
-                      </Label>
-                      <Input
-                        id="idade"
-                        type="number"
-                        value={formData.idade}
-                        onChange={(e) =>
-                          setFormData({ ...formData, idade: e.target.value })
-                        }
-                        placeholder="Ex: 25"
-                        min="1"
-                        max="120"
-                        className="border-blue-300 focus:border-blue-500"
-                        required
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="idade"
+                          className="text-blue-700 font-medium"
+                        >
+                          Idade
+                        </Label>
+                        <Input
+                          id="idade"
+                          type="number"
+                          value={formData.idade}
+                          onChange={(e) =>
+                            setFormData({ ...formData, idade: e.target.value })
+                          }
+                          placeholder="Ex: 25"
+                          min="1"
+                          max="120"
+                          className="border-blue-300 focus:border-blue-500"
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="cpf"
-                        className="text-blue-700 font-medium"
-                      >
-                        CPF *
-                      </Label>
-                      <Input
-                        id="cpf"
-                        value={formData.cpf}
-                        onChange={(e) =>
-                          setFormData({ ...formData, cpf: e.target.value })
-                        }
-                        placeholder="000.000.000-00"
-                        className="border-blue-300 focus:border-blue-500"
-                        required
-                      />
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="cpf"
+                          className="text-blue-700 font-medium"
+                        >
+                          CPF *
+                        </Label>
+                        <Input
+                          id="cpf"
+                          value={formData.cpf}
+                          onChange={(e) =>
+                            setFormData({ ...formData, cpf: e.target.value })
+                          }
+                          placeholder="000.000.000-00"
+                          className="border-blue-300 focus:border-blue-500"
+                          required
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Campos Complementares */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700">
-                    📄 Informações Complementares
-                  </h3>
+                  {/* Campos Complementares */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-700">
+                      📄 Informações Complementares
+                    </h3>
 
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="rg">RG</Label>
-                      <Input
-                        id="rg"
-                        value={formData.rg}
-                        onChange={(e) =>
-                          setFormData({ ...formData, rg: e.target.value })
-                        }
-                        placeholder="00.000.000-0"
-                      />
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="rg">RG</Label>
+                        <Input
+                          id="rg"
+                          value={formData.rg}
+                          onChange={(e) =>
+                            setFormData({ ...formData, rg: e.target.value })
+                          }
+                          placeholder="00.000.000-0"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="data_nascimento">
+                          Data de Nascimento *
+                        </Label>
+                        <Input
+                          id="data_nascimento"
+                          type="date"
+                          value={formData.data_nascimento}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              data_nascimento: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Gênero</Label>
+                        <Select
+                          value={formData.genero}
+                          onValueChange={(value) =>
+                            setFormData({ ...formData, genero: value })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="masculino">Masculino</SelectItem>
+                            <SelectItem value="feminino">Feminino</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                            <SelectItem value="nao_informado">
+                              Não informado
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="telefone">Telefone</Label>
+                        <Input
+                          id="telefone"
+                          value={formData.telefone}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              telefone: e.target.value,
+                            })
+                          }
+                          placeholder="(11) 99999-9999"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                          placeholder="aluno@email.com"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="data_nascimento">
-                        Data de Nascimento *
-                      </Label>
+                      <Label htmlFor="endereco">Endereço Completo</Label>
                       <Input
-                        id="data_nascimento"
-                        type="date"
-                        value={formData.data_nascimento}
+                        id="endereco"
+                        value={formData.endereco}
+                        onChange={(e) =>
+                          setFormData({ ...formData, endereco: e.target.value })
+                        }
+                        placeholder="Rua, número, bairro, cidade, CEP"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="nome_responsavel">
+                          Nome do Responsável
+                        </Label>
+                        <Input
+                          id="nome_responsavel"
+                          value={formData.nome_responsavel}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              nome_responsavel: e.target.value,
+                            })
+                          }
+                          placeholder="Para menores de idade"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="telefone_responsavel">
+                          Telefone do Responsável
+                        </Label>
+                        <Input
+                          id="telefone_responsavel"
+                          value={formData.telefone_responsavel}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              telefone_responsavel: e.target.value,
+                            })
+                          }
+                          placeholder="(11) 99999-9999"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="observacoes">Observações</Label>
+                      <Textarea
+                        id="observacoes"
+                        value={formData.observacoes}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            data_nascimento: e.target.value,
+                            observacoes: e.target.value,
                           })
                         }
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Gênero</Label>
-                      <Select
-                        value={formData.genero}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, genero: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="masculino">Masculino</SelectItem>
-                          <SelectItem value="feminino">Feminino</SelectItem>
-                          <SelectItem value="outro">Outro</SelectItem>
-                          <SelectItem value="nao_informado">
-                            Não informado
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone">Telefone</Label>
-                      <Input
-                        id="telefone"
-                        value={formData.telefone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, telefone: e.target.value })
-                        }
-                        placeholder="(11) 99999-9999"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        placeholder="aluno@email.com"
+                        placeholder="Observações sobre o aluno..."
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="endereco">Endereço Completo</Label>
-                    <Input
-                      id="endereco"
-                      value={formData.endereco}
-                      onChange={(e) =>
-                        setFormData({ ...formData, endereco: e.target.value })
-                      }
-                      placeholder="Rua, número, bairro, cidade, CEP"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nome_responsavel">
-                        Nome do Responsável
-                      </Label>
-                      <Input
-                        id="nome_responsavel"
-                        value={formData.nome_responsavel}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            nome_responsavel: e.target.value,
-                          })
-                        }
-                        placeholder="Para menores de idade"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone_responsavel">
-                        Telefone do Responsável
-                      </Label>
-                      <Input
-                        id="telefone_responsavel"
-                        value={formData.telefone_responsavel}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            telefone_responsavel: e.target.value,
-                          })
-                        }
-                        placeholder="(11) 99999-9999"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="observacoes">Observações</Label>
-                    <Textarea
-                      id="observacoes"
-                      value={formData.observacoes}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          observacoes: e.target.value,
-                        })
-                      }
-                      placeholder="Observações sobre o aluno..."
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingAluno ? "Atualizar Aluno" : "Cadastrar Aluno"}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {editingAluno ? "Atualizar Aluno" : "Cadastrar Aluno"}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </CardHeader>
 
-      {/* Contexto de Permissões para Não-Admin */}
+      {/* Card de Permissões para Usuários Não-Admin */}
       {user?.tipo !== "admin" && (
         <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-center gap-2 text-orange-800">
@@ -3743,9 +3763,31 @@ const AlunosManager = () => {
               • <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
             </p>
             <p>
-              • <strong>Permissão:</strong> Criar e gerenciar alunos apenas das
-              suas turmas
+              • <strong>Escopo:</strong>{" "}
+              {user?.tipo === "instrutor"
+                ? "Alunos do seu curso específico"
+                : user?.tipo === "pedagogo"
+                ? "Todos os alunos da sua unidade"
+                : "Alunos das turmas que você monitora"}
             </p>
+            <p>
+              • <strong>CSV:</strong>{" "}
+              {user?.tipo === "instrutor"
+                ? "Pode importar apenas do seu curso"
+                : user?.tipo === "pedagogo"
+                ? "Pode importar de qualquer curso da unidade"
+                : "Não pode importar (apenas visualizar)"}
+            </p>
+            {user?.tipo === "instrutor" && (
+              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                <p className="font-medium">💡 Dicas para Instrutores:</p>
+                <p>
+                  • Turmas inexistentes no CSV serão criadas automaticamente
+                </p>
+                <p>• Alunos sem turma definida ficarão como "não alocado"</p>
+                <p>• Você pode gerenciar alunos entre suas turmas</p>
+              </div>
+            )}
           </div>
         </div>
       )}
