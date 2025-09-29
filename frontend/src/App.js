@@ -2176,15 +2176,41 @@ const RelatoriosManager = () => {
     turma_id: "",
   });
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Estados para os dropdowns dos filtros
+  const [unidades, setUnidades] = useState([]);
+  const [cursos, setCursos] = useState([]);
+  const [turmas, setTurmas] = useState([]);
 
   useEffect(() => {
     fetchDynamicStats();
+    
+    // Carregar dados para os filtros se for admin
+    if (user?.tipo === 'admin') {
+      fetchFilterData();
+    }
 
     // 🔄 AUTO-REFRESH: Atualizar relatórios a cada 30 segundos
     const interval = setInterval(fetchDynamicStats, 30000);
 
     return () => clearInterval(interval);
   }, [user]);
+
+  const fetchFilterData = async () => {
+    try {
+      const [unidadesRes, cursosRes, turmasRes] = await Promise.all([
+        axios.get(`${API}/units`),
+        axios.get(`${API}/courses`),
+        axios.get(`${API}/classes`)
+      ]);
+      
+      setUnidades(unidadesRes.data);
+      setCursos(cursosRes.data);
+      setTurmas(turmasRes.data);
+    } catch (error) {
+      console.error("Erro ao carregar dados dos filtros:", error);
+    }
+  };
 
   const fetchDynamicStats = async (customFilters = null) => {
     try {
@@ -2482,7 +2508,27 @@ const RelatoriosManager = () => {
         </div>
       )}
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Verificar se há dados após filtros */}
+        {stats && stats.total_alunos === 0 && user?.tipo === 'admin' && (
+          <div className="text-center py-8">
+            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <h3 className="text-lg font-medium text-gray-600 mb-2">
+              Nenhum dado encontrado
+            </h3>
+            <p className="text-gray-500 mb-4">
+              Os filtros aplicados não retornaram nenhum resultado. 
+              Tente ajustar os critérios ou limpar os filtros.
+            </p>
+            <Button onClick={limparFiltros} variant="outline">
+              <X className="h-4 w-4 mr-2" />
+              Limpar Filtros
+            </Button>
+          </div>
+        )}
+        
+        {/* Dados normais */}
+        {(!stats || stats.total_alunos > 0 || user?.tipo !== 'admin') && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
           <Card>
             <CardHeader>
@@ -2637,7 +2683,8 @@ const RelatoriosManager = () => {
               </CardContent>
             </Card>
           )}
-        </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
