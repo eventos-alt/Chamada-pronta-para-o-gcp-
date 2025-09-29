@@ -1146,9 +1146,45 @@ async def get_attendance_report(
 ):
     query = {}
     
-    # Filtro por turma específica
+    # 🔒 FILTROS DE PERMISSÃO POR TIPO DE USUÁRIO
+    if current_user.tipo == "instrutor":
+        # Instrutor só pode ver suas próprias turmas
+        turmas_instrutor = await db.turmas.find({"instrutor_id": current_user.id}).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_instrutor]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            # Se não tem turmas, retorna vazio
+            return [] if not export_csv else {"csv_data": ""}
+            
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        # Pedagogo/Monitor só vê turmas do seu curso/unidade
+        turmas_query = {}
+        if current_user.curso_id:
+            turmas_query["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            turmas_query["unidade_id"] = current_user.unidade_id
+            
+        turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_permitidas]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            # Se não tem turmas permitidas, retorna vazio
+            return [] if not export_csv else {"csv_data": ""}
+    
+    # Filtro por turma específica (aplicado após filtros de permissão)
     if turma_id:
-        query["turma_id"] = turma_id
+        if "turma_id" in query:
+            # Se já há filtro de permissão, verifica se a turma específica está permitida
+            if isinstance(query["turma_id"], dict) and "$in" in query["turma_id"]:
+                if turma_id not in query["turma_id"]["$in"]:
+                    raise HTTPException(status_code=403, detail="Acesso negado a esta turma")
+            query["turma_id"] = turma_id
+        else:
+            query["turma_id"] = turma_id
     
     # Filtros para admin: unidade e curso
     if current_user.tipo == "admin":

@@ -7,8 +7,9 @@
 O sistema agora gera relatórios CSV completos com todos os campos necessários para gestão acadêmica:
 
 **Campos incluídos:**
+
 - **Aluno**: Nome completo do estudante
-- **CPF**: Documento do aluno  
+- **CPF**: Documento do aluno
 - **Matricula**: Número de matrícula (ou ID se não houver)
 - **Turma**: Nome da turma (ex: "1ºB Informática")
 - **Curso**: Nome do curso/disciplina
@@ -26,6 +27,7 @@ O sistema agora gera relatórios CSV completos com todos os campos necessários 
 Sistema proativo que monitora chamadas pendentes:
 
 **Funcionalidades:**
+
 - ✅ Notificação no header do sistema (ícone de sino)
 - ✅ Contador de chamadas pendentes em tempo real
 - ✅ Verificação automática a cada 5 minutos
@@ -33,6 +35,7 @@ Sistema proativo que monitora chamadas pendentes:
 - ✅ Filtros por tipo de usuário (Admin vê tudo, Instrutor só suas turmas)
 
 **Critérios de notificação:**
+
 - **Alta prioridade**: Chamadas não feitas há 2+ dias
 - **Média prioridade**: Chamadas não feitas ontem
 - **Baixa prioridade**: Chamadas não feitas hoje
@@ -63,6 +66,7 @@ python export_attendance_csv.py
 ```
 
 **Saída do script:**
+
 ```
 🚀 Sistema de Exportação CSV - IOS
 ==================================================
@@ -85,10 +89,12 @@ python export_attendance_csv.py
 ### Sistema de Notificações
 
 1. **Visualização**: Ícone de sino no header
+
    - 🔔 Sino normal: Sem pendências
    - 🔔 Sino com badge vermelho: Tem pendências
 
 2. **Detalhes**: Clique no sino para ver:
+
    - Lista de turmas com chamadas pendentes
    - Nível de prioridade de cada pendência
    - Informações completas (instrutor, unidade, curso)
@@ -101,16 +107,19 @@ python export_attendance_csv.py
 ### Backend (server.py)
 
 **Endpoint CSV Aprimorado:**
+
 ```python
 GET /api/reports/attendance?export_csv=true
 ```
 
 **Novo Endpoint de Notificações:**
+
 ```python
 GET /api/notifications/pending-calls
 ```
 
 **Melhorias na Chamada:**
+
 - Registro automático de hora para alunos presentes
 - Status inteligente (Presente, Atrasado, Ausente, Justificado)
 - Validação de permissões por curso/unidade
@@ -118,6 +127,7 @@ GET /api/notifications/pending-calls
 ### Frontend (App.js)
 
 **Componente NotificationButton:**
+
 - Polling automático a cada 5 minutos
 - Dialog modal com lista detalhada
 - Badges de prioridade coloridos
@@ -136,16 +146,19 @@ Carlos Lima,444.555.666-04,2023004,1ºB Informática,Desenvolvimento Web,2025-09
 ## 🔄 Fluxo de Trabalho Completo
 
 ### Para Administradores:
+
 1. **Monitoramento**: Recebe notificações de todas as turmas pendentes
 2. **Relatórios**: Pode exportar CSV completo de qualquer período
 3. **Gestão**: Acompanha performance de instrutores via notificações
 
 ### Para Instrutores:
+
 1. **Chamada**: Sistema registra automaticamente hora de presença
 2. **Alertas**: Recebe notificações apenas das suas turmas pendentes
 3. **Relatórios**: Pode exportar CSV das suas turmas
 
 ### Para Pedagogos/Monitores:
+
 1. **Acompanhamento**: Vê notificações do seu curso/unidade
 2. **Relatórios**: Acesso a dados do seu escopo de trabalho
 3. **Suporte**: Pode auxiliar instrutores com base nas notificações
@@ -163,6 +176,7 @@ Carlos Lima,444.555.666-04,2023004,1ºB Informática,Desenvolvimento Web,2025-09
 ## 🚀 Deploy e Produção
 
 As alterações são compatíveis com o deploy atual:
+
 - **Backend**: Endpoints adicionais, sem breaking changes
 - **Frontend**: Novos componentes, interface existente intacta
 - **Banco**: Utiliza dados existentes, campos opcionais para compatibilidade
