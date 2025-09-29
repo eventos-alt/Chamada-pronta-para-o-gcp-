@@ -1123,16 +1123,45 @@ async def get_desistentes(
 @api_router.get("/reports/attendance")
 async def get_attendance_report(
     turma_id: Optional[str] = None,
+    unidade_id: Optional[str] = None,
+    curso_id: Optional[str] = None,
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
     export_csv: bool = False,
     current_user: UserResponse = Depends(get_current_user)
 ):
     query = {}
+    
+    # Filtro por turma específica
     if turma_id:
         query["turma_id"] = turma_id
+    
+    # Filtros para admin: unidade e curso
+    if current_user.tipo == "admin":
+        if unidade_id or curso_id:
+            # Buscar turmas que atendem aos critérios
+            turmas_query = {}
+            if unidade_id:
+                turmas_query["unidade_id"] = unidade_id
+            if curso_id:
+                turmas_query["curso_id"] = curso_id
+                
+            turmas = await db.turmas.find(turmas_query).to_list(1000)
+            turmas_ids = [turma["id"] for turma in turmas]
+            
+            if turmas_ids:
+                query["turma_id"] = {"$in": turmas_ids}
+            else:
+                # Se não há turmas que atendem aos critérios, retorna vazio
+                return [] if not export_csv else {"csv_data": ""}
+    
+    # Filtro por data
     if data_inicio and data_fim:
         query["data"] = {"$gte": data_inicio.isoformat(), "$lte": data_fim.isoformat()}
+    elif data_inicio:
+        query["data"] = {"$gte": data_inicio.isoformat()}
+    elif data_fim:
+        query["data"] = {"$lte": data_fim.isoformat()}
     
     chamadas = await db.chamadas.find(query).to_list(1000)
     
@@ -1379,14 +1408,30 @@ async def create_sample_data():
 
 # RELATÓRIOS DINÂMICOS - ENDPOINT COMPLETO
 @api_router.get("/reports/teacher-stats")
-async def get_dynamic_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
-    """📊 RELATÓRIOS DINÂMICOS: Estatísticas completas e atualizadas automaticamente"""
+async def get_dynamic_teacher_stats(
+    unidade_id: Optional[str] = None,
+    curso_id: Optional[str] = None,
+    turma_id: Optional[str] = None,
+    data_inicio: Optional[date] = None,
+    data_fim: Optional[date] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """📊 RELATÓRIOS DINÂMICOS: Estatísticas completas e atualizadas automaticamente com filtros para admin"""
     if current_user.tipo not in ["instrutor", "pedagogo", "monitor", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso restrito")
     
-    # 🎯 Filtrar turmas baseado no tipo de usuário
+    # 🎯 Filtrar turmas baseado no tipo de usuário e filtros
     query_turmas = {"ativo": True}
-    if current_user.tipo == "instrutor":
+    
+    if current_user.tipo == "admin":
+        # Admin pode usar filtros
+        if unidade_id:
+            query_turmas["unidade_id"] = unidade_id
+        if curso_id:
+            query_turmas["curso_id"] = curso_id
+        if turma_id:
+            query_turmas["id"] = turma_id
+    elif current_user.tipo == "instrutor":
         query_turmas["instrutor_id"] = current_user.id
     elif current_user.tipo in ["pedagogo", "monitor"]:
         if current_user.curso_id:
@@ -1420,8 +1465,18 @@ async def get_dynamic_teacher_stats(current_user: UserResponse = Depends(get_cur
         alunos = await db.alunos.find({"id": {"$in": aluno_ids}}).to_list(1000)
         
         for aluno in alunos:
-            # Contar presenças e faltas do aluno nesta turma
-            chamadas = await db.chamadas.find({"turma_id": turma["id"]}).to_list(1000)
+            # Contar presenças e faltas do aluno nesta turma com filtro de data
+            query_chamadas = {"turma_id": turma["id"]}
+            
+            # Aplicar filtro de data se fornecido
+            if data_inicio and data_fim:
+                query_chamadas["data"] = {"$gte": data_inicio.isoformat(), "$lte": data_fim.isoformat()}
+            elif data_inicio:
+                query_chamadas["data"] = {"$gte": data_inicio.isoformat()}
+            elif data_fim:
+                query_chamadas["data"] = {"$lte": data_fim.isoformat()}
+            
+            chamadas = await db.chamadas.find(query_chamadas).to_list(1000)
             
             total_aulas = len(chamadas)
             presencas = 0

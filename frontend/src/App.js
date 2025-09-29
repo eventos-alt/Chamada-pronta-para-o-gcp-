@@ -74,6 +74,9 @@ import {
   Copy,
   RefreshCw,
   Info,
+  Filter,
+  Search,
+  X,
 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -2164,6 +2167,16 @@ const RelatoriosManager = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
+  // 🔍 FILTROS AVANÇADOS PARA ADMIN
+  const [filtros, setFiltros] = useState({
+    data_inicio: "",
+    data_fim: "",
+    unidade_id: "",
+    curso_id: "",
+    turma_id: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
   useEffect(() => {
     fetchDynamicStats();
 
@@ -2173,10 +2186,35 @@ const RelatoriosManager = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  const fetchDynamicStats = async () => {
+  const fetchDynamicStats = async (customFilters = null) => {
     try {
-      // 🎯 NOVO ENDPOINT: Relatórios dinâmicos para todos os tipos de usuário
-      const response = await axios.get(`${API}/reports/teacher-stats`);
+      // 🎯 FILTROS: Aplicar filtros se for admin e filtros estiverem definidos
+      let url = `${API}/reports/teacher-stats`;
+      const filtersToUse = customFilters || filtros;
+
+      if (
+        user?.tipo === "admin" &&
+        (filtersToUse.data_inicio ||
+          filtersToUse.data_fim ||
+          filtersToUse.unidade_id ||
+          filtersToUse.curso_id ||
+          filtersToUse.turma_id)
+      ) {
+        const params = new URLSearchParams();
+        if (filtersToUse.data_inicio)
+          params.append("data_inicio", filtersToUse.data_inicio);
+        if (filtersToUse.data_fim)
+          params.append("data_fim", filtersToUse.data_fim);
+        if (filtersToUse.unidade_id)
+          params.append("unidade_id", filtersToUse.unidade_id);
+        if (filtersToUse.curso_id)
+          params.append("curso_id", filtersToUse.curso_id);
+        if (filtersToUse.turma_id)
+          params.append("turma_id", filtersToUse.turma_id);
+        url += `?${params.toString()}`;
+      }
+
+      const response = await axios.get(url);
       setStats(response.data);
     } catch (error) {
       console.error("Error fetching dynamic stats:", error);
@@ -2196,9 +2234,29 @@ const RelatoriosManager = () => {
 
   const downloadFrequencyReport = async () => {
     try {
-      const response = await axios.get(
-        `${API}/reports/attendance?export_csv=true`
-      );
+      // 🎯 FILTROS: Aplicar filtros no download CSV se for admin
+      let url = `${API}/reports/attendance?export_csv=true`;
+
+      if (
+        user?.tipo === "admin" &&
+        (filtros.data_inicio ||
+          filtros.data_fim ||
+          filtros.unidade_id ||
+          filtros.curso_id ||
+          filtros.turma_id)
+      ) {
+        const params = new URLSearchParams();
+        params.append("export_csv", "true");
+        if (filtros.data_inicio)
+          params.append("data_inicio", filtros.data_inicio);
+        if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
+        if (filtros.unidade_id) params.append("unidade_id", filtros.unidade_id);
+        if (filtros.curso_id) params.append("curso_id", filtros.curso_id);
+        if (filtros.turma_id) params.append("turma_id", filtros.turma_id);
+        url = `${API}/reports/attendance?${params.toString()}`;
+      }
+
+      const response = await axios.get(url);
 
       // Criar arquivo CSV e fazer download
       const csvData = response.data.csv_data;
@@ -2208,10 +2266,17 @@ const RelatoriosManager = () => {
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
-        link.setAttribute(
-          "download",
-          `relatorio_frequencia_${new Date().toISOString().split("T")[0]}.csv`
-        );
+
+        // Nome do arquivo com filtros aplicados
+        let fileName = `relatorio_frequencia_${
+          new Date().toISOString().split("T")[0]
+        }`;
+        if (filtros.data_inicio && filtros.data_fim) {
+          fileName += `_${filtros.data_inicio}_a_${filtros.data_fim}`;
+        }
+        fileName += ".csv";
+
+        link.setAttribute("download", fileName);
         link.style.visibility = "hidden";
         document.body.appendChild(link);
         link.click();
@@ -2230,6 +2295,26 @@ const RelatoriosManager = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // 🔍 Função para aplicar filtros
+  const aplicarFiltros = () => {
+    setLoading(true);
+    fetchDynamicStats(filtros);
+  };
+
+  // 🧹 Função para limpar filtros
+  const limparFiltros = () => {
+    const filtrosVazios = {
+      data_inicio: "",
+      data_fim: "",
+      unidade_id: "",
+      curso_id: "",
+      turma_id: "",
+    };
+    setFiltros(filtrosVazios);
+    setLoading(true);
+    fetchDynamicStats(filtrosVazios);
   };
 
   if (loading) {
@@ -2252,9 +2337,22 @@ const RelatoriosManager = () => {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
             <BarChart3 className="h-5 w-5 mr-2" />
-            Estatísticas das Minhas Turmas
+            {user?.tipo === "admin"
+              ? "Relatórios Gerais"
+              : "Estatísticas das Minhas Turmas"}
           </div>
           <div className="flex items-center gap-2">
+            {user?.tipo === "admin" && (
+              <Button
+                onClick={() => setShowFilters(!showFilters)}
+                variant="outline"
+                size="sm"
+                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+              >
+                <Filter className="h-4 w-4 mr-1" />
+                Filtros
+              </Button>
+            )}
             <Button
               onClick={downloadFrequencyReport}
               variant="outline"
@@ -2271,10 +2369,118 @@ const RelatoriosManager = () => {
           </div>
         </CardTitle>
         <CardDescription>
-          Visualize índices de presença e faltas dos seus alunos - Dados em
-          tempo real
+          {user?.tipo === "admin"
+            ? "Visualize relatórios completos com filtros avançados - Dados em tempo real"
+            : "Visualize índices de presença e faltas dos seus alunos - Dados em tempo real"}
         </CardDescription>
       </CardHeader>
+
+      {/* 🔍 FILTROS AVANÇADOS PARA ADMIN */}
+      {user?.tipo === "admin" && showFilters && (
+        <div className="mx-6 mb-4 p-4 bg-gray-50 border rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Data Início</Label>
+              <Input
+                type="date"
+                value={filtros.data_inicio}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, data_inicio: e.target.value })
+                }
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Data Fim</Label>
+              <Input
+                type="date"
+                value={filtros.data_fim}
+                onChange={(e) =>
+                  setFiltros({ ...filtros, data_fim: e.target.value })
+                }
+                className="h-8"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Unidade</Label>
+              <Select
+                value={filtros.unidade_id}
+                onValueChange={(value) =>
+                  setFiltros({ ...filtros, unidade_id: value })
+                }
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as Unidades</SelectItem>
+                  {unidades.map((unidade) => (
+                    <SelectItem key={unidade.id} value={unidade.id}>
+                      {unidade.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Curso</Label>
+              <Select
+                value={filtros.curso_id}
+                onValueChange={(value) =>
+                  setFiltros({ ...filtros, curso_id: value })
+                }
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os Cursos</SelectItem>
+                  {cursos.map((curso) => (
+                    <SelectItem key={curso.id} value={curso.id}>
+                      {curso.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Turma</Label>
+              <Select
+                value={filtros.turma_id}
+                onValueChange={(value) =>
+                  setFiltros({ ...filtros, turma_id: value })
+                }
+              >
+                <SelectTrigger className="h-8">
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todas as Turmas</SelectItem>
+                  {turmas.map((turma) => (
+                    <SelectItem key={turma.id} value={turma.id}>
+                      {turma.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button
+              onClick={aplicarFiltros}
+              size="sm"
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <Search className="h-4 w-4 mr-1" />
+              Aplicar Filtros
+            </Button>
+            <Button onClick={limparFiltros} variant="outline" size="sm">
+              <X className="h-4 w-4 mr-1" />
+              Limpar
+            </Button>
+          </div>
+        </div>
+      )}
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
