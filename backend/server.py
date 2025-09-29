@@ -897,28 +897,33 @@ async def get_alunos(
         pass
         
     elif current_user.tipo == "instrutor":
-        # 👨‍🏫 Instrutor: vê apenas alunos do curso específico dele dentro da unidade
+        # 👨‍🏫 INSTRUTOR: VÊ APENAS ALUNOS DAS SUAS TURMAS ESPECÍFICAS
         if not current_user.curso_id or not current_user.unidade_id:
             print("❌ Instrutor sem curso/unidade definidos")
             return []
             
-        # Buscar turmas do curso do instrutor
+        # Buscar APENAS turmas onde este instrutor é o responsável
         turmas_instrutor = await db.turmas.find({
+            "instrutor_id": current_user.id,  # 🔒 CRÍTICO: Apenas turmas DELE
             "curso_id": current_user.curso_id,
             "unidade_id": current_user.unidade_id,
             "ativo": True
         }).to_list(1000)
         
-        # Coletar IDs de todos os alunos das turmas do curso
+        print(f"🔍 Instrutor {current_user.email} tem {len(turmas_instrutor)} turmas")
+        
+        # Coletar IDs apenas dos alunos das SUAS turmas
         aluno_ids = set()
         for turma in turmas_instrutor:
-            aluno_ids.update(turma.get("alunos_ids", []))
+            turma_alunos = turma.get("alunos_ids", [])
+            aluno_ids.update(turma_alunos)
+            print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
         
         if aluno_ids:
             query["id"] = {"$in": list(aluno_ids)}
-            print(f"👨‍🏫 Instrutor vendo {len(aluno_ids)} alunos do curso {current_user.curso_id}")
+            print(f"👨‍🏫 Instrutor vendo {len(aluno_ids)} alunos das SUAS turmas")
         else:
-            print("👨‍🏫 Instrutor: nenhum aluno nas turmas do curso")
+            print("👨‍🏫 Instrutor: nenhum aluno nas suas turmas específicas")
             return []
             
     elif current_user.tipo == "pedagogo":
@@ -946,17 +951,21 @@ async def get_alunos(
             return []
             
     elif current_user.tipo == "monitor":
-        # 👩‍💻 Monitor: vê apenas alunos das turmas que ele monitora
-        # Buscar turmas onde o monitor está designado
+        # 👩‍💻 MONITOR: VÊ APENAS ALUNOS DAS TURMAS QUE ELE MONITORA
+        # Buscar turmas onde este monitor está designado
         turmas_monitor = await db.turmas.find({
-            "monitor_id": current_user.id,
+            "monitor_id": current_user.id,  # 🔒 ESPECÍFICO: Apenas turmas dele
             "ativo": True
         }).to_list(1000)
         
-        # Coletar IDs dos alunos das turmas monitoradas
+        print(f"🔍 Monitor {current_user.email} monitora {len(turmas_monitor)} turmas")
+        
+        # Coletar IDs apenas dos alunos das turmas que ele monitora
         aluno_ids = set()
         for turma in turmas_monitor:
-            aluno_ids.update(turma.get("alunos_ids", []))
+            turma_alunos = turma.get("alunos_ids", [])
+            aluno_ids.update(turma_alunos)
+            print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
         
         if aluno_ids:
             query["id"] = {"$in": list(aluno_ids)}
@@ -1005,6 +1014,63 @@ async def update_aluno(aluno_id: str, aluno_update: AlunoUpdate, current_user: U
     
     updated_aluno = await db.alunos.find_one({"id": aluno_id})
     return Aluno(**parse_from_mongo(updated_aluno))
+
+@api_router.post("/students/cleanup-orphans")
+async def cleanup_orphan_students(current_user: UserResponse = Depends(get_current_user)):
+    """🧹 LIMPEZA DE ALUNOS ÓRFÃOS - Remove alunos não vinculados a turmas
+    
+    🚨 APENAS ADMIN pode executar esta operação
+    Remove alunos que não estão em nenhuma turma ativa
+    """
+    check_admin_permission(current_user)
+    
+    print(f"🧹 Iniciando limpeza de alunos órfãos por {current_user.email}")
+    
+    # Buscar todas as turmas ativas
+    turmas_ativas = await db.turmas.find({"ativo": True}).to_list(10000)
+    
+    # Coletar todos os IDs de alunos que estão em turmas
+    alunos_em_turmas = set()
+    for turma in turmas_ativas:
+        alunos_em_turmas.update(turma.get("alunos_ids", []))
+    
+    print(f"📊 {len(alunos_em_turmas)} alunos estão vinculados a turmas ativas")
+    
+    # Buscar alunos órfãos (não estão em alunos_em_turmas)
+    query_orfaos = {
+        "ativo": True,
+        "id": {"$nin": list(alunos_em_turmas)}
+    }
+    
+    alunos_orfaos = await db.alunos.find(query_orfaos).to_list(10000)
+    print(f"🚨 {len(alunos_orfaos)} alunos órfãos encontrados")
+    
+    if not alunos_orfaos:
+        return {
+            "message": "Nenhum aluno órfão encontrado",
+            "orphans_found": 0,
+            "orphans_removed": 0
+        }
+    
+    # Log dos alunos que serão removidos
+    orphan_names = [aluno.get("nome", "SEM_NOME") for aluno in alunos_orfaos]
+    print(f"📝 Alunos órfãos: {', '.join(orphan_names[:10])}{'...' if len(orphan_names) > 10 else ''}")
+    
+    # Marcar alunos órfãos como inativos (soft delete)
+    orphan_ids = [aluno["id"] for aluno in alunos_orfaos]
+    result = await db.alunos.update_many(
+        {"id": {"$in": orphan_ids}},
+        {"$set": {"ativo": False, "removed_reason": "orphan_cleanup", "removed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    print(f"✅ {result.modified_count} alunos órfãos marcados como inativos")
+    
+    return {
+        "message": f"Limpeza concluída: {result.modified_count} alunos órfãos removidos",
+        "orphans_found": len(alunos_orfaos),
+        "orphans_removed": result.modified_count,
+        "orphan_names": orphan_names[:20]  # Máximo 20 nomes no retorno
+    }
 
 @api_router.post("/students/import-csv")
 async def import_students_csv(

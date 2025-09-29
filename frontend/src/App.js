@@ -3395,6 +3395,39 @@ const AlunosManager = () => {
     }
   };
 
+  const handleCleanupOrphans = async () => {
+    const confirmCleanup = window.confirm(
+      "🚨 ATENÇÃO: Esta operação irá remover todos os alunos que não estão vinculados a nenhuma turma ativa.\n\nEsta ação não pode ser desfeita. Deseja continuar?"
+    );
+
+    if (!confirmCleanup) return;
+
+    try {
+      console.log("🧹 Iniciando limpeza de alunos órfãos...");
+      
+      const response = await axios.post(`${API}/students/cleanup-orphans`);
+      const result = response.data;
+
+      console.log("✅ Resultado da limpeza:", result);
+
+      toast({
+        title: "Limpeza concluída",
+        description: `${result.orphans_removed} alunos órfãos foram removidos do sistema.`,
+      });
+
+      // Atualizar lista de alunos
+      fetchAlunos();
+
+    } catch (error) {
+      console.error("❌ Erro na limpeza de órfãos:", error);
+      toast({
+        title: "Erro na limpeza",
+        description: error.response?.data?.detail || "Erro interno na limpeza de alunos órfãos",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) return <div>Carregando...</div>;
 
   const { user } = useAuth();
@@ -3414,6 +3447,18 @@ const AlunosManager = () => {
             </CardDescription>
           </div>
           <div className="flex gap-2">
+            {/* Limpeza de Alunos Órfãos - Apenas Admin */}
+            {user?.tipo === "admin" && (
+              <Button
+                onClick={handleCleanupOrphans}
+                variant="outline"
+                className="border-red-600 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Limpar Órfãos
+              </Button>
+            )}
+
             {/* Importação CSV - Disponível para Instrutor, Pedagogo e Admin */}
             {["admin", "instrutor", "pedagogo"].includes(user?.tipo) && (
               <Dialog open={isCsvDialogOpen} onOpenChange={setIsCsvDialogOpen}>
