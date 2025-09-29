@@ -1924,11 +1924,16 @@ const TurmasManager = () => {
   };
 
   const resetForm = () => {
+    // ✅ AUTO-PREENCHIMENTO: Para não-admin, pré-preencher unidade e instrutor
+    const defaultUnidadeId = user?.tipo !== "admin" ? (user?.unidade_id || "") : "";
+    const defaultInstrutorId = user?.tipo !== "admin" ? (user?.id || "") : "";
+    const defaultCursoId = user?.tipo !== "admin" ? (user?.curso_id || "") : "";
+    
     setFormData({
       nome: "",
-      unidade_id: "",
-      curso_id: "",
-      instrutor_id: "",
+      unidade_id: defaultUnidadeId,
+      curso_id: defaultCursoId,
+      instrutor_id: defaultInstrutorId,
       data_inicio: "",
       data_fim: "",
       horario_inicio: "",
@@ -2090,67 +2095,97 @@ const TurmasManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Unidade ({unidades.length} disponíveis)</Label>
-                    <Select
-                      value={formData.unidade_id}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, unidade_id: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a unidade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {unidades.map((unidade) => (
-                          <SelectItem key={unidade.id} value={unidade.id}>
-                            {unidade.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>
+                      Unidade {user?.tipo === "admin" ? `(${unidades.length} disponíveis)` : "(Sua unidade)"}
+                    </Label>
+                    {user?.tipo === "admin" ? (
+                      <Select
+                        value={formData.unidade_id}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, unidade_id: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a unidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unidades.map((unidade) => (
+                            <SelectItem key={unidade.id} value={unidade.id}>
+                              {unidade.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={unidades.find(u => u.id === formData.unidade_id)?.nome || user?.unidade_nome || "Sua unidade"}
+                        readOnly
+                        className="bg-gray-50 cursor-not-allowed"
+                      />
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Curso ({cursos.length} disponíveis)</Label>
-                    <Select
-                      value={formData.curso_id}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, curso_id: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o curso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cursos.map((curso) => (
-                          <SelectItem key={curso.id} value={curso.id}>
-                            {curso.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>
+                      Curso {user?.tipo === "admin" ? `(${cursos.length} disponíveis)` : "(Seu curso)"}
+                    </Label>
+                    {user?.tipo === "admin" ? (
+                      <Select
+                        value={formData.curso_id}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, curso_id: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o curso" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {cursos.map((curso) => (
+                            <SelectItem key={curso.id} value={curso.id}>
+                              {curso.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        value={cursos.find(c => c.id === formData.curso_id)?.nome || user?.curso_nome || "Seu curso"}
+                        readOnly
+                        className="bg-gray-50 cursor-not-allowed"
+                      />
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Instrutor ({usuarios.length} disponíveis)</Label>
-                  <Select
-                    value={formData.instrutor_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, instrutor_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o instrutor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {usuarios.map((usuario) => (
-                        <SelectItem key={usuario.id} value={usuario.id}>
-                          {usuario.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>
+                    Instrutor {user?.tipo === "admin" ? `(${usuarios.length} disponíveis)` : "(Você)"}
+                  </Label>
+                  {user?.tipo === "admin" ? (
+                    <Select
+                      value={formData.instrutor_id}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, instrutor_id: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o instrutor" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {usuarios.map((usuario) => (
+                          <SelectItem key={usuario.id} value={usuario.id}>
+                            {usuario.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      value={user?.nome || "Você"}
+                      readOnly
+                      className="bg-gray-50 cursor-not-allowed"
+                    />
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
