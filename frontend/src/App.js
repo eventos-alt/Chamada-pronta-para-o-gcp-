@@ -864,27 +864,60 @@ const Dashboard = () => {
 
         {/* Management Tabs */}
         <Tabs defaultValue="turmas" className="w-full">
-          <TabsList
-            className={`grid w-full ${
-              user?.tipo === "admin" ? "grid-cols-6" : "grid-cols-4"
-            }`}
-          >
-            <TabsTrigger value="turmas">Turmas</TabsTrigger>
-            <TabsTrigger value="chamada">Chamada</TabsTrigger>
+          <TabsList className="flex flex-wrap w-full justify-center gap-1 h-auto p-1">
+            <TabsTrigger
+              value="turmas"
+              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+            >
+              Turmas
+            </TabsTrigger>
+            <TabsTrigger
+              value="chamada"
+              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+            >
+              Chamada
+            </TabsTrigger>
 
             {/* 🎯 ALUNOS: Disponível para instrutores, pedagogos, monitores e admin */}
             {["admin", "instrutor", "pedagogo", "monitor"].includes(
               user?.tipo
-            ) && <TabsTrigger value="alunos">Alunos</TabsTrigger>}
+            ) && (
+              <TabsTrigger
+                value="alunos"
+                className="flex-1 min-w-0 text-sm whitespace-nowrap"
+              >
+                Alunos
+              </TabsTrigger>
+            )}
 
             {user?.tipo === "admin" && (
               <>
-                <TabsTrigger value="unidades">Unidades</TabsTrigger>
-                <TabsTrigger value="cursos">Cursos</TabsTrigger>
-                <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+                <TabsTrigger
+                  value="unidades"
+                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                >
+                  Unidades
+                </TabsTrigger>
+                <TabsTrigger
+                  value="cursos"
+                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                >
+                  Cursos
+                </TabsTrigger>
+                <TabsTrigger
+                  value="usuarios"
+                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                >
+                  Usuários
+                </TabsTrigger>
               </>
             )}
-            <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
+            <TabsTrigger
+              value="relatorios"
+              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+            >
+              Relatórios
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="turmas">
