@@ -3053,6 +3053,7 @@ const AlunosManager = () => {
   const [isCsvDialogOpen, setIsCsvDialogOpen] = useState(false);
   const [csvFile, setCsvFile] = useState(null);
   const [csvImporting, setCsvImporting] = useState(false);
+  const [turmas, setTurmas] = useState([]);
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -3066,11 +3067,13 @@ const AlunosManager = () => {
     nome_responsavel: "",
     telefone_responsavel: "",
     observacoes: "",
+    turma_id: "", // ✅ Campo turma adicionado
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchAlunos();
+    fetchTurmas();
   }, []);
 
   const fetchAlunos = async () => {
@@ -3095,6 +3098,22 @@ const AlunosManager = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTurmas = async () => {
+    try {
+      console.log("🔍 Buscando turmas...");
+      const response = await axios.get(`${API}/classes`);
+      console.log("✅ Turmas recebidas:", response.data.length, "turmas");
+      setTurmas(response.data);
+    } catch (error) {
+      console.error("❌ Erro ao buscar turmas:", error);
+      toast({
+        title: "Erro ao carregar turmas",
+        description: "Não foi possível carregar a lista de turmas",
+        variant: "destructive",
+      });
     }
   };
 
@@ -3137,11 +3156,31 @@ const AlunosManager = () => {
           description: "As informações do aluno foram atualizadas.",
         });
       } else {
-        await axios.post(`${API}/students`, formData);
-        toast({
-          title: "Aluno criado com sucesso!",
-          description: "O novo aluno foi adicionado ao sistema.",
-        });
+        const response = await axios.post(`${API}/students`, formData);
+        const novoAlunoId = response.data.id;
+        
+        // Se turma foi selecionada, adicionar aluno à turma
+        if (formData.turma_id) {
+          try {
+            await axios.put(`${API}/classes/${formData.turma_id}/students/${novoAlunoId}`);
+            toast({
+              title: "Aluno criado e alocado com sucesso!",
+              description: "O aluno foi adicionado ao sistema e à turma selecionada.",
+            });
+          } catch (turmaError) {
+            console.error("Erro ao adicionar aluno à turma:", turmaError);
+            toast({
+              title: "Aluno criado, mas erro na alocação",
+              description: "Aluno criado com sucesso, mas não foi possível adicioná-lo à turma. Faça isso manualmente.",
+              variant: "destructive",
+            });
+          }
+        } else {
+          toast({
+            title: "Aluno criado com sucesso!",
+            description: "O novo aluno foi adicionado ao sistema (sem turma específica).",
+          });
+        }
       }
 
       setIsDialogOpen(false);
@@ -3171,6 +3210,7 @@ const AlunosManager = () => {
       nome_responsavel: "",
       telefone_responsavel: "",
       observacoes: "",
+      turma_id: "", // ✅ Campo turma resetado
     });
   };
 
@@ -3620,6 +3660,39 @@ const AlunosManager = () => {
                           required
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Campo Turma - Entre Obrigatórios e Complementares */}
+                  <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
+                    <h3 className="text-lg font-semibold text-green-800 mb-3">
+                      🎯 Alocação em Turma
+                    </h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="turma_id" className="text-green-700 font-medium">
+                        Turma (Opcional)
+                      </Label>
+                      <Select
+                        value={formData.turma_id}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, turma_id: value })
+                        }
+                      >
+                        <SelectTrigger className="border-green-300 focus:border-green-500">
+                          <SelectValue placeholder="Selecione uma turma ou deixe em branco" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Sem turma (não alocado)</SelectItem>
+                          {turmas.map((turma) => (
+                            <SelectItem key={turma.id} value={turma.id}>
+                              {turma.nome} - {turma.curso_nome || "Curso não informado"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-green-600">
+                        💡 Você pode deixar sem turma e alocar depois, ou selecionar uma turma específica
+                      </p>
                     </div>
                   </div>
 
