@@ -185,6 +185,7 @@ class Curso(BaseModel):
     carga_horaria: int
     categoria: Optional[str] = None
     pre_requisitos: Optional[str] = None
+    dias_aula: List[str] = ["segunda", "terca", "quarta", "quinta"]  # 📅 Dias de aula padrão
     ativo: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -194,6 +195,7 @@ class CursoCreate(BaseModel):
     carga_horaria: int
     categoria: Optional[str] = None
     pre_requisitos: Optional[str] = None
+    dias_aula: List[str] = ["segunda", "terca", "quarta", "quinta"]  # 📅 Dias de aula
 
 class CursoUpdate(BaseModel):
     nome: Optional[str] = None
@@ -201,6 +203,7 @@ class CursoUpdate(BaseModel):
     carga_horaria: Optional[int] = None
     categoria: Optional[str] = None
     pre_requisitos: Optional[str] = None
+    dias_aula: Optional[List[str]] = None  # 📅 Dias de aula
 
 class Aluno(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1315,14 +1318,33 @@ async def get_attendance_report(
     
     return [parse_from_mongo(chamada) for chamada in chamadas]
 
-# 🚨 SISTEMA DE NOTIFICAÇÕES - Chamadas Pendentes
+# � Função auxiliar para verificar dias de aula
+def eh_dia_de_aula(data_verificar: date, dias_aula: List[str]) -> bool:
+    """Verifica se uma data específica é dia de aula baseado na configuração do curso"""
+    dias_semana = {
+        0: "segunda",
+        1: "terca", 
+        2: "quarta",
+        3: "quinta", 
+        4: "sexta",
+        5: "sabado",
+        6: "domingo"
+    }
+    
+    dia_da_semana = data_verificar.weekday()
+    nome_dia = dias_semana.get(dia_da_semana, "")
+    
+    return nome_dia in dias_aula
+
+# �🚨 SISTEMA DE NOTIFICAÇÕES - Chamadas Pendentes (Personalizado por Curso)
 @api_router.get("/notifications/pending-calls")
 async def get_pending_calls(current_user: UserResponse = Depends(get_current_user)):
-    """Verificar chamadas não realizadas para notificar instrutores e admin"""
+    """Verificar chamadas não realizadas baseado nos dias de aula do curso"""
     
     # Data atual
     hoje = date.today()
     ontem = hoje - timedelta(days=1)
+    anteontem = hoje - timedelta(days=2)
     
     # Query para turmas baseado no tipo de usuário
     query_turmas = {"ativo": True}
@@ -1340,48 +1362,85 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
     chamadas_pendentes = []
     
     for turma in turmas:
-        # Verificar se há chamada para hoje
-        chamada_hoje = await db.chamadas.find_one({
-            "turma_id": turma["id"],
-            "data": hoje.isoformat()
-        })
-        
-        # Verificar se há chamada para ontem (caso não tenha sido feita)
-        chamada_ontem = await db.chamadas.find_one({
-            "turma_id": turma["id"],
-            "data": ontem.isoformat()
-        })
-        
-        # Buscar dados do instrutor
-        instrutor = None
-        if turma.get("instrutor_id"):
-            instrutor = await db.usuarios.find_one({"id": turma["instrutor_id"]})
-        
-        instrutor_nome = instrutor.get("nome", "Instrutor não encontrado") if instrutor else "Sem instrutor"
-        
-        # Se não há chamada hoje
-        if not chamada_hoje:
-            chamadas_pendentes.append({
-                "turma_id": turma["id"],
-                "turma_nome": turma["nome"],
-                "instrutor_id": turma.get("instrutor_id"),
-                "instrutor_nome": instrutor_nome,
-                "data_pendente": hoje.isoformat(),
-                "tipo": "hoje",
-                "prioridade": "alta"
-            })
-        
-        # Se não há chamada ontem (notificação crítica)
-        if not chamada_ontem:
-            chamadas_pendentes.append({
-                "turma_id": turma["id"],
-                "turma_nome": turma["nome"],
-                "instrutor_id": turma.get("instrutor_id"),
-                "instrutor_nome": instrutor_nome,
-                "data_pendente": ontem.isoformat(),
-                "tipo": "atrasada",
-                "prioridade": "critica"
-            })
+        try:
+            # 📅 Buscar dados do curso para verificar dias de aula
+            curso = await db.cursos.find_one({"id": turma.get("curso_id")})
+            dias_aula = curso.get("dias_aula", ["segunda", "terca", "quarta", "quinta"]) if curso else ["segunda", "terca", "quarta", "quinta"]
+            
+            # Buscar dados do instrutor, unidade e curso
+            instrutor = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+            unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
+            
+            instrutor_nome = instrutor.get("nome", "Instrutor não encontrado") if instrutor else "Sem instrutor"
+            unidade_nome = unidade.get("nome", "Unidade não encontrada") if unidade else "Sem unidade"
+            curso_nome = curso.get("nome", "Curso não encontrado") if curso else "Sem curso"
+            
+            # 📅 HOJE: Verificar se hoje é dia de aula e se tem chamada
+            if eh_dia_de_aula(hoje, dias_aula):
+                chamada_hoje = await db.chamadas.find_one({
+                    "turma_id": turma["id"],
+                    "data": hoje.isoformat()
+                })
+                
+                if not chamada_hoje:
+                    chamadas_pendentes.append({
+                        "turma_id": turma["id"],
+                        "turma_nome": turma["nome"],
+                        "instrutor_id": turma.get("instrutor_id"),
+                        "instrutor_nome": instrutor_nome,
+                        "unidade_nome": unidade_nome,
+                        "curso_nome": curso_nome,
+                        "data_faltante": hoje.isoformat(),
+                        "prioridade": "alta",
+                        "motivo": f"Chamada não realizada hoje ({hoje.strftime('%d/%m/%Y')})",
+                        "dias_aula": dias_aula
+                    })
+            
+            # 📅 ONTEM: Verificar se ontem era dia de aula e se tem chamada
+            if eh_dia_de_aula(ontem, dias_aula):
+                chamada_ontem = await db.chamadas.find_one({
+                    "turma_id": turma["id"],
+                    "data": ontem.isoformat()
+                })
+                
+                if not chamada_ontem:
+                    chamadas_pendentes.append({
+                        "turma_id": turma["id"],
+                        "turma_nome": turma["nome"],
+                        "instrutor_id": turma.get("instrutor_id"),
+                        "instrutor_nome": instrutor_nome,
+                        "unidade_nome": unidade_nome,
+                        "curso_nome": curso_nome,
+                        "data_faltante": ontem.isoformat(),
+                        "prioridade": "media",
+                        "motivo": f"Chamada não realizada ontem ({ontem.strftime('%d/%m/%Y')})",
+                        "dias_aula": dias_aula
+                    })
+            
+            # 📅 ANTEONTEM: Verificar se anteontem era dia de aula e se tem chamada
+            if eh_dia_de_aula(anteontem, dias_aula):
+                chamada_anteontem = await db.chamadas.find_one({
+                    "turma_id": turma["id"],
+                    "data": anteontem.isoformat()
+                })
+                
+                if not chamada_anteontem:
+                    chamadas_pendentes.append({
+                        "turma_id": turma["id"],
+                        "turma_nome": turma["nome"],
+                        "instrutor_id": turma.get("instrutor_id"),
+                        "instrutor_nome": instrutor_nome,
+                        "unidade_nome": unidade_nome,
+                        "curso_nome": curso_nome,
+                        "data_faltante": anteontem.isoformat(),
+                        "prioridade": "baixa",
+                        "motivo": f"Chamada não realizada em {anteontem.strftime('%d/%m/%Y')}",
+                        "dias_aula": dias_aula
+                    })
+                    
+        except Exception as e:
+            print(f"Erro ao processar turma {turma.get('id', 'unknown')}: {e}")
+            continue
     
     return {
         "total_pendentes": len(chamadas_pendentes),
@@ -1389,42 +1448,177 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
         "data_verificacao": hoje.isoformat()
     }
 
-# DASHBOARD STATS
+# 📊 DASHBOARD PERSONALIZADO POR USUÁRIO
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_user)):
-    # Basic counts
-    total_unidades = await db.unidades.count_documents({"ativo": True})
-    total_cursos = await db.cursos.count_documents({"ativo": True})
-    total_alunos = await db.alunos.count_documents({"ativo": True})
-    total_turmas = await db.turmas.count_documents({"ativo": True})
-    
-    # Advanced stats
-    alunos_ativos = await db.alunos.count_documents({"status": "ativo"})
-    alunos_desistentes = await db.alunos.count_documents({"status": "desistente"})
-    
-    # Recent activity
     hoje = date.today()
-    chamadas_hoje = await db.chamadas.count_documents({"data": hoje.isoformat()})
-    
-    # Attendance stats for current month
     primeiro_mes = hoje.replace(day=1)
-    chamadas_mes = await db.chamadas.find({"data": {"$gte": primeiro_mes.isoformat()}}).to_list(1000)
     
-    total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
-    total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+    if current_user.tipo == "admin":
+        # 👑 ADMIN: Visão geral completa
+        total_unidades = await db.unidades.count_documents({"ativo": True})
+        total_cursos = await db.cursos.count_documents({"ativo": True})
+        total_alunos = await db.alunos.count_documents({"ativo": True})
+        total_turmas = await db.turmas.count_documents({"ativo": True})
+        
+        alunos_ativos = await db.alunos.count_documents({"status": "ativo"})
+        alunos_desistentes = await db.alunos.count_documents({"status": "desistente"})
+        chamadas_hoje = await db.chamadas.count_documents({"data": hoje.isoformat()})
+        
+        # Stats mensais
+        chamadas_mes = await db.chamadas.find({"data": {"$gte": primeiro_mes.isoformat()}}).to_list(1000)
+        total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
+        total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+        
+        return {
+            "total_unidades": total_unidades,
+            "total_cursos": total_cursos,
+            "total_alunos": total_alunos,
+            "total_turmas": total_turmas,
+            "alunos_ativos": alunos_ativos,
+            "alunos_desistentes": alunos_desistentes,
+            "chamadas_hoje": chamadas_hoje,
+            "presencas_mes": total_presencas_mes,
+            "faltas_mes": total_faltas_mes,
+            "taxa_presenca_mes": round((total_presencas_mes / (total_presencas_mes + total_faltas_mes) * 100) if (total_presencas_mes + total_faltas_mes) > 0 else 0, 1)
+        }
     
-    return {
-        "total_unidades": total_unidades,
-        "total_cursos": total_cursos,
-        "total_alunos": total_alunos,
-        "total_turmas": total_turmas,
-        "alunos_ativos": alunos_ativos,
-        "alunos_desistentes": alunos_desistentes,
-        "chamadas_hoje": chamadas_hoje,
-        "presencas_mes": total_presencas_mes,
-        "faltas_mes": total_faltas_mes,
-        "taxa_presenca_mes": round((total_presencas_mes / (total_presencas_mes + total_faltas_mes) * 100) if (total_presencas_mes + total_faltas_mes) > 0 else 0, 1)
-    }
+    elif current_user.tipo == "instrutor":
+        # 👨‍🏫 INSTRUTOR: Apenas suas turmas
+        minhas_turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(1000)
+        turmas_ids = [turma["id"] for turma in minhas_turmas]
+        
+        # Contar alunos únicos das suas turmas
+        alunos_unicos = set()
+        alunos_ativos = 0
+        alunos_desistentes = 0
+        
+        for turma in minhas_turmas:
+            for aluno_id in turma.get("alunos_ids", []):
+                alunos_unicos.add(aluno_id)
+                # Buscar status do aluno
+                aluno = await db.alunos.find_one({"id": aluno_id})
+                if aluno:
+                    if aluno.get("status") == "ativo":
+                        alunos_ativos += 1
+                    elif aluno.get("status") == "desistente":
+                        alunos_desistentes += 1
+        
+        # Chamadas do instrutor
+        chamadas_hoje = await db.chamadas.count_documents({
+            "turma_id": {"$in": turmas_ids},
+            "data": hoje.isoformat()
+        })
+        
+        # Stats mensais das suas turmas
+        chamadas_mes = await db.chamadas.find({
+            "turma_id": {"$in": turmas_ids},
+            "data": {"$gte": primeiro_mes.isoformat()}
+        }).to_list(1000)
+        
+        total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
+        total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+        
+        # Buscar dados do curso do instrutor
+        curso_nome = "Seu Curso"
+        unidade_nome = "Sua Unidade"
+        
+        if current_user.curso_id:
+            curso = await db.cursos.find_one({"id": current_user.curso_id})
+            if curso:
+                curso_nome = curso.get("nome", "Seu Curso")
+        
+        if current_user.unidade_id:
+            unidade = await db.unidades.find_one({"id": current_user.unidade_id})
+            if unidade:
+                unidade_nome = unidade.get("nome", "Sua Unidade")
+        
+        return {
+            "total_unidades": 1,  # Sua unidade
+            "total_cursos": 1,    # Seu curso
+            "total_alunos": len(alunos_unicos),
+            "total_turmas": len(minhas_turmas),
+            "alunos_ativos": alunos_ativos,
+            "alunos_desistentes": alunos_desistentes,
+            "chamadas_hoje": chamadas_hoje,
+            "presencas_mes": total_presencas_mes,
+            "faltas_mes": total_faltas_mes,
+            "taxa_presenca_mes": round((total_presencas_mes / (total_presencas_mes + total_faltas_mes) * 100) if (total_presencas_mes + total_faltas_mes) > 0 else 0, 1),
+            "curso_nome": curso_nome,
+            "unidade_nome": unidade_nome,
+            "tipo_usuario": "Instrutor"
+        }
+    
+    elif current_user.tipo in ["pedagogo", "monitor"]:
+        # 👩‍🎓 PEDAGOGO/MONITOR: Turmas do seu curso/unidade
+        query_turmas = {"ativo": True}
+        if current_user.curso_id:
+            query_turmas["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            query_turmas["unidade_id"] = current_user.unidade_id
+        
+        turmas_permitidas = await db.turmas.find(query_turmas).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_permitidas]
+        
+        # Contar alunos únicos das turmas permitidas
+        alunos_unicos = set()
+        alunos_ativos = 0
+        alunos_desistentes = 0
+        
+        for turma in turmas_permitidas:
+            for aluno_id in turma.get("alunos_ids", []):
+                alunos_unicos.add(aluno_id)
+                aluno = await db.alunos.find_one({"id": aluno_id})
+                if aluno:
+                    if aluno.get("status") == "ativo":
+                        alunos_ativos += 1
+                    elif aluno.get("status") == "desistente":
+                        alunos_desistentes += 1
+        
+        # Chamadas das turmas permitidas
+        chamadas_hoje = await db.chamadas.count_documents({
+            "turma_id": {"$in": turmas_ids},
+            "data": hoje.isoformat()
+        })
+        
+        # Stats mensais
+        chamadas_mes = await db.chamadas.find({
+            "turma_id": {"$in": turmas_ids},
+            "data": {"$gte": primeiro_mes.isoformat()}
+        }).to_list(1000)
+        
+        total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
+        total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+        
+        # Buscar dados do curso/unidade
+        curso_nome = "Seu Curso"
+        unidade_nome = "Sua Unidade"
+        
+        if current_user.curso_id:
+            curso = await db.cursos.find_one({"id": current_user.curso_id})
+            if curso:
+                curso_nome = curso.get("nome", "Seu Curso")
+        
+        if current_user.unidade_id:
+            unidade = await db.unidades.find_one({"id": current_user.unidade_id})
+            if unidade:
+                unidade_nome = unidade.get("nome", "Sua Unidade")
+        
+        return {
+            "total_unidades": 1,  # Sua unidade
+            "total_cursos": 1,    # Seu curso
+            "total_alunos": len(alunos_unicos),
+            "total_turmas": len(turmas_permitidas),
+            "alunos_ativos": alunos_ativos,
+            "alunos_desistentes": alunos_desistentes,
+            "chamadas_hoje": chamadas_hoje,
+            "presencas_mes": total_presencas_mes,
+            "faltas_mes": total_faltas_mes,
+            "taxa_presenca_mes": round((total_presencas_mes / (total_presencas_mes + total_faltas_mes) * 100) if (total_presencas_mes + total_faltas_mes) > 0 else 0, 1),
+            "curso_nome": curso_nome,
+            "unidade_nome": unidade_nome,
+            "tipo_usuario": current_user.tipo.title()
+        }
 
 # MIGRAÇÃO DE DADOS - Corrigir alunos sem data_nascimento
 @api_router.post("/migrate/fix-students")

@@ -703,13 +703,39 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* 📊 Dashboard Personalizado por Usuário */}
+        {user?.tipo !== "admin" && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <Shield className="h-6 w-6 text-blue-600" />
+              <div>
+                <h3 className="font-semibold text-gray-900">
+                  {stats.tipo_usuario || user?.tipo?.charAt(0).toUpperCase() + user?.tipo?.slice(1)}
+                </h3>
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span>
+                    <Building2 className="h-4 w-4 inline mr-1" />
+                    {stats.unidade_nome || "Sua unidade"}
+                  </span>
+                  <span>
+                    <BookOpen className="h-4 w-4 inline mr-1" />
+                    {stats.curso_nome || "Seu curso"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="stats-card">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Unidades</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {user?.tipo === "admin" ? "Unidades" : "Sua Unidade"}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_unidades || 0}
                   </p>
@@ -723,7 +749,9 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Cursos</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {user?.tipo === "admin" ? "Cursos" : "Seu Curso"}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_cursos || 0}
                   </p>
@@ -737,7 +765,9 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Turmas</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {user?.tipo === "admin" ? "Turmas" : user?.tipo === "instrutor" ? "Minhas Turmas" : "Turmas do Curso"}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_turmas || 0}
                   </p>
@@ -751,7 +781,9 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Alunos</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    {user?.tipo === "admin" ? "Alunos" : user?.tipo === "instrutor" ? "Meus Alunos" : "Alunos do Curso"}
+                  </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_alunos || 0}
                   </p>
@@ -3931,6 +3963,7 @@ const CursosManager = () => {
     carga_horaria: "",
     categoria: "",
     pre_requisitos: "",
+    dias_aula: ["segunda", "terca", "quarta", "quinta"], // 📅 Dias de aula padrão
   });
   const { toast } = useToast();
 
@@ -3991,6 +4024,7 @@ const CursosManager = () => {
       carga_horaria: "",
       categoria: "",
       pre_requisitos: "",
+      dias_aula: ["segunda", "terca", "quarta", "quinta"], // 📅 Resetar dias padrão
     });
   };
 
@@ -4002,6 +4036,7 @@ const CursosManager = () => {
       carga_horaria: curso.carga_horaria.toString(),
       categoria: curso.categoria || "",
       pre_requisitos: curso.pre_requisitos || "",
+      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // 📅 Carregar dias de aula
     });
     setIsDialogOpen(true);
   };
@@ -4106,6 +4141,52 @@ const CursosManager = () => {
                     min="1"
                     required
                   />
+                </div>
+
+                {/* 📅 Campo Dias de Aula */}
+                <div className="space-y-2">
+                  <Label>Dias de Aula</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { key: "segunda", label: "Segunda" },
+                      { key: "terca", label: "Terça" },
+                      { key: "quarta", label: "Quarta" },
+                      { key: "quinta", label: "Quinta" },
+                      { key: "sexta", label: "Sexta" },
+                      { key: "sabado", label: "Sábado" },
+                    ].map((dia) => (
+                      <div key={dia.key} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={dia.key}
+                          checked={formData.dias_aula.includes(dia.key)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({
+                                ...formData,
+                                dias_aula: [...formData.dias_aula, dia.key],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                dias_aula: formData.dias_aula.filter(
+                                  (d) => d !== dia.key
+                                ),
+                              });
+                            }
+                          }}
+                        />
+                        <Label
+                          htmlFor={dia.key}
+                          className="text-sm font-normal cursor-pointer"
+                        >
+                          {dia.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Selecione os dias da semana em que o curso tem aulas
+                  </p>
                 </div>
 
                 <div className="space-y-2">
