@@ -2171,12 +2171,12 @@ const RelatoriosManager = () => {
   const [filtros, setFiltros] = useState({
     data_inicio: "",
     data_fim: "",
-    unidade_id: "",
-    curso_id: "",
-    turma_id: "",
+    unidade_id: "all",
+    curso_id: "all",
+    turma_id: "all",
   });
   const [showFilters, setShowFilters] = useState(false);
-  
+
   // Estados para os dropdowns dos filtros
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
@@ -2184,9 +2184,9 @@ const RelatoriosManager = () => {
 
   useEffect(() => {
     fetchDynamicStats();
-    
+
     // Carregar dados para os filtros se for admin
-    if (user?.tipo === 'admin') {
+    if (user?.tipo === "admin") {
       fetchFilterData();
     }
 
@@ -2201,9 +2201,9 @@ const RelatoriosManager = () => {
       const [unidadesRes, cursosRes, turmasRes] = await Promise.all([
         axios.get(`${API}/units`),
         axios.get(`${API}/courses`),
-        axios.get(`${API}/classes`)
+        axios.get(`${API}/classes`),
       ]);
-      
+
       setUnidades(unidadesRes.data);
       setCursos(cursosRes.data);
       setTurmas(turmasRes.data);
@@ -2222,20 +2222,20 @@ const RelatoriosManager = () => {
         user?.tipo === "admin" &&
         (filtersToUse.data_inicio ||
           filtersToUse.data_fim ||
-          filtersToUse.unidade_id ||
-          filtersToUse.curso_id ||
-          filtersToUse.turma_id)
+          (filtersToUse.unidade_id && filtersToUse.unidade_id !== "all") ||
+          (filtersToUse.curso_id && filtersToUse.curso_id !== "all") ||
+          (filtersToUse.turma_id && filtersToUse.turma_id !== "all"))
       ) {
         const params = new URLSearchParams();
         if (filtersToUse.data_inicio)
           params.append("data_inicio", filtersToUse.data_inicio);
         if (filtersToUse.data_fim)
           params.append("data_fim", filtersToUse.data_fim);
-        if (filtersToUse.unidade_id)
+        if (filtersToUse.unidade_id && filtersToUse.unidade_id !== "all")
           params.append("unidade_id", filtersToUse.unidade_id);
-        if (filtersToUse.curso_id)
+        if (filtersToUse.curso_id && filtersToUse.curso_id !== "all")
           params.append("curso_id", filtersToUse.curso_id);
-        if (filtersToUse.turma_id)
+        if (filtersToUse.turma_id && filtersToUse.turma_id !== "all")
           params.append("turma_id", filtersToUse.turma_id);
         url += `?${params.toString()}`;
       }
@@ -2267,18 +2267,21 @@ const RelatoriosManager = () => {
         user?.tipo === "admin" &&
         (filtros.data_inicio ||
           filtros.data_fim ||
-          filtros.unidade_id ||
-          filtros.curso_id ||
-          filtros.turma_id)
+          (filtros.unidade_id && filtros.unidade_id !== "all") ||
+          (filtros.curso_id && filtros.curso_id !== "all") ||
+          (filtros.turma_id && filtros.turma_id !== "all"))
       ) {
         const params = new URLSearchParams();
         params.append("export_csv", "true");
         if (filtros.data_inicio)
           params.append("data_inicio", filtros.data_inicio);
         if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
-        if (filtros.unidade_id) params.append("unidade_id", filtros.unidade_id);
-        if (filtros.curso_id) params.append("curso_id", filtros.curso_id);
-        if (filtros.turma_id) params.append("turma_id", filtros.turma_id);
+        if (filtros.unidade_id && filtros.unidade_id !== "all") 
+          params.append("unidade_id", filtros.unidade_id);
+        if (filtros.curso_id && filtros.curso_id !== "all") 
+          params.append("curso_id", filtros.curso_id);
+        if (filtros.turma_id && filtros.turma_id !== "all") 
+          params.append("turma_id", filtros.turma_id);
         url = `${API}/reports/attendance?${params.toString()}`;
       }
 
@@ -2334,9 +2337,9 @@ const RelatoriosManager = () => {
     const filtrosVazios = {
       data_inicio: "",
       data_fim: "",
-      unidade_id: "",
-      curso_id: "",
-      turma_id: "",
+      unidade_id: "all",
+      curso_id: "all",
+      turma_id: "all",
     };
     setFiltros(filtrosVazios);
     setLoading(true);
@@ -2430,16 +2433,16 @@ const RelatoriosManager = () => {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Unidade</Label>
               <Select
-                value={filtros.unidade_id}
+                value={filtros.unidade_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, unidade_id: value })
+                  setFiltros({ ...filtros, unidade_id: value === "all" ? "" : value })
                 }
               >
                 <SelectTrigger className="h-8">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as Unidades</SelectItem>
+                  <SelectItem value="all">Todas as Unidades</SelectItem>
                   {unidades.map((unidade) => (
                     <SelectItem key={unidade.id} value={unidade.id}>
                       {unidade.nome}
@@ -2451,16 +2454,16 @@ const RelatoriosManager = () => {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Curso</Label>
               <Select
-                value={filtros.curso_id}
+                value={filtros.curso_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, curso_id: value })
+                  setFiltros({ ...filtros, curso_id: value === "all" ? "" : value })
                 }
               >
                 <SelectTrigger className="h-8">
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os Cursos</SelectItem>
+                  <SelectItem value="all">Todos os Cursos</SelectItem>
                   {cursos.map((curso) => (
                     <SelectItem key={curso.id} value={curso.id}>
                       {curso.nome}
@@ -2472,16 +2475,16 @@ const RelatoriosManager = () => {
             <div className="space-y-2">
               <Label className="text-sm font-medium">Turma</Label>
               <Select
-                value={filtros.turma_id}
+                value={filtros.turma_id || "all"}
                 onValueChange={(value) =>
-                  setFiltros({ ...filtros, turma_id: value })
+                  setFiltros({ ...filtros, turma_id: value === "all" ? "" : value })
                 }
               >
                 <SelectTrigger className="h-8">
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as Turmas</SelectItem>
+                  <SelectItem value="all">Todas as Turmas</SelectItem>
                   {turmas.map((turma) => (
                     <SelectItem key={turma.id} value={turma.id}>
                       {turma.nome}
@@ -2509,15 +2512,15 @@ const RelatoriosManager = () => {
       )}
       <CardContent>
         {/* Verificar se há dados após filtros */}
-        {stats && stats.total_alunos === 0 && user?.tipo === 'admin' && (
+        {stats && stats.total_alunos === 0 && user?.tipo === "admin" && (
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <h3 className="text-lg font-medium text-gray-600 mb-2">
               Nenhum dado encontrado
             </h3>
             <p className="text-gray-500 mb-4">
-              Os filtros aplicados não retornaram nenhum resultado. 
-              Tente ajustar os critérios ou limpar os filtros.
+              Os filtros aplicados não retornaram nenhum resultado. Tente
+              ajustar os critérios ou limpar os filtros.
             </p>
             <Button onClick={limparFiltros} variant="outline">
               <X className="h-4 w-4 mr-2" />
@@ -2525,164 +2528,168 @@ const RelatoriosManager = () => {
             </Button>
           </div>
         )}
-        
+
         {/* Dados normais */}
-        {(!stats || stats.total_alunos > 0 || user?.tipo !== 'admin') && (
+        {(!stats || stats.total_alunos > 0 || user?.tipo !== "admin") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-green-600">
-                Maiores Presenças
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.maiores_presencas &&
-                stats.maiores_presencas.length > 0 ? (
-                  stats.maiores_presencas.map((aluno, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{aluno.nome}</p>
-                        <p className="text-sm text-gray-500">{aluno.turma}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-green-600">
-                          {aluno.taxa_presenca}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {aluno.aulas_presentes}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum dado de presença disponível ainda</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 🔴 MAIORES FALTAS - Dados Dinâmicos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg text-red-600">
-                Maiores Faltas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.maiores_faltas && stats.maiores_faltas.length > 0 ? (
-                  stats.maiores_faltas.map((aluno, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center p-3 bg-red-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{aluno.nome}</p>
-                        <p className="text-sm text-gray-500">{aluno.turma}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-red-600">
-                          {aluno.taxa_presenca}
-                        </p>
-                        <p className="text-xs text-gray-500">{aluno.faltas}</p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum dado de falta disponível ainda</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 📊 RESUMO GERAL - Dados Dinâmicos */}
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg">
-                Resumo Geral das Suas Turmas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">
-                    {stats.taxa_media_presenca || "0%"}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    Taxa Média de Presença
-                  </p>
-                </div>
-
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">
-                    {stats.total_alunos || 0}
-                  </p>
-                  <p className="text-sm text-gray-600">Total de Alunos</p>
-                </div>
-
-                <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {stats.alunos_em_risco || 0}
-                  </p>
-                  <p className="text-sm text-gray-600">Alunos em Risco</p>
-                </div>
-
-                <div className="text-center p-4 bg-red-50 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">
-                    {stats.desistentes || 0}
-                  </p>
-                  <p className="text-sm text-gray-600">Desistentes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 📋 RESUMO POR TURMA - NOVO */}
-          {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
-            <Card className="md:col-span-2">
+            {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Resumo por Turma</CardTitle>
+                <CardTitle className="text-lg text-green-600">
+                  Maiores Presenças
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {stats.resumo_turmas.map((turma, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <h4 className="font-medium text-lg mb-2">{turma.nome}</h4>
-                      <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="space-y-3">
+                  {stats.maiores_presencas &&
+                  stats.maiores_presencas.length > 0 ? (
+                    stats.maiores_presencas.map((aluno, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
+                      >
                         <div>
-                          <p className="text-gray-600">Alunos</p>
-                          <p className="font-bold">{turma.total_alunos}</p>
+                          <p className="font-medium">{aluno.nome}</p>
+                          <p className="text-sm text-gray-500">{aluno.turma}</p>
                         </div>
-                        <div>
-                          <p className="text-gray-600">Taxa Média</p>
-                          <p className="font-bold text-blue-600">
-                            {turma.taxa_media}%
+                        <div className="text-right">
+                          <p className="font-bold text-green-600">
+                            {aluno.taxa_presenca}
                           </p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Em Risco</p>
-                          <p className="font-bold text-yellow-600">
-                            {turma.alunos_risco}
+                          <p className="text-xs text-gray-500">
+                            {aluno.aulas_presentes}
                           </p>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum dado de presença disponível ainda</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
-          )}
+
+            {/* 🔴 MAIORES FALTAS - Dados Dinâmicos */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg text-red-600">
+                  Maiores Faltas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {stats.maiores_faltas && stats.maiores_faltas.length > 0 ? (
+                    stats.maiores_faltas.map((aluno, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-red-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{aluno.nome}</p>
+                          <p className="text-sm text-gray-500">{aluno.turma}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-red-600">
+                            {aluno.taxa_presenca}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {aluno.faltas}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>Nenhum dado de falta disponível ainda</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 📊 RESUMO GERAL - Dados Dinâmicos */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Resumo Geral das Suas Turmas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {stats.taxa_media_presenca || "0%"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Taxa Média de Presença
+                    </p>
+                  </div>
+
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">
+                      {stats.total_alunos || 0}
+                    </p>
+                    <p className="text-sm text-gray-600">Total de Alunos</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {stats.alunos_em_risco || 0}
+                    </p>
+                    <p className="text-sm text-gray-600">Alunos em Risco</p>
+                  </div>
+
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <p className="text-2xl font-bold text-red-600">
+                      {stats.desistentes || 0}
+                    </p>
+                    <p className="text-sm text-gray-600">Desistentes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 📋 RESUMO POR TURMA - NOVO */}
+            {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">Resumo por Turma</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {stats.resumo_turmas.map((turma, index) => (
+                      <div key={index} className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-lg mb-2">
+                          {turma.nome}
+                        </h4>
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <p className="text-gray-600">Alunos</p>
+                            <p className="font-bold">{turma.total_alunos}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Taxa Média</p>
+                            <p className="font-bold text-blue-600">
+                              {turma.taxa_media}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Em Risco</p>
+                            <p className="font-bold text-yellow-600">
+                              {turma.alunos_risco}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
       </CardContent>
