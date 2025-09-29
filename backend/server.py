@@ -2087,42 +2087,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 🔍 ENDPOINT DEBUG TEMPORÁRIO - REMOVER APÓS DEBUG
-@api_router.get("/debug/students-sample")
-async def debug_students_sample(current_user: UserResponse = Depends(get_current_user)):
-    """TEMPORÁRIO: Debug dos primeiros 3 alunos para verificar estrutura"""
-    query = {"ativo": True}
-    
-    alunos = await db.alunos.find(query).limit(3).to_list(3)
-    debug_info = {
-        "total_found": len(alunos),
-        "samples": []
-    }
-    
-    for i, aluno in enumerate(alunos):
-        try:
-            parsed_aluno = parse_from_mongo(aluno)
-            if 'data_nascimento' not in parsed_aluno or parsed_aluno['data_nascimento'] is None:
-                parsed_aluno['data_nascimento'] = None
-            
-            aluno_obj = Aluno(**parsed_aluno)
-            debug_info["samples"].append({
-                "index": i,
-                "processed_ok": True,
-                "name": aluno_obj.nome,
-                "data_nascimento": aluno_obj.data_nascimento,
-                "fields_count": len(aluno_obj.dict())
-            })
-        except Exception as e:
-            debug_info["samples"].append({
-                "index": i,
-                "processed_ok": False,
-                "error": str(e),
-                "raw_data_keys": list(aluno.keys())
-            })
-    
-    return debug_info
-
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

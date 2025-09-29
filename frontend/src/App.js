@@ -2983,10 +2983,24 @@ const AlunosManager = () => {
 
   const fetchAlunos = async () => {
     try {
+      console.log("🔍 Buscando alunos...");
       const response = await axios.get(`${API}/students`);
+      console.log("✅ Alunos recebidos:", response.data.length, "alunos");
       setAlunos(response.data);
     } catch (error) {
-      console.error("Error fetching alunos:", error);
+      console.error("❌ Erro ao buscar alunos:", error);
+      console.error("Status:", error.response?.status);
+      console.error("Mensagem:", error.response?.data);
+
+      // Mostrar erro para o usuário
+      toast({
+        title: "Erro ao carregar alunos",
+        description: `Erro ${error.response?.status || "desconhecido"}: ${
+          error.response?.data?.detail ||
+          "Não foi possível carregar a lista de alunos"
+        }`,
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -2994,6 +3008,35 @@ const AlunosManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ VALIDAÇÃO: Campos obrigatórios
+    if (!formData.nome.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Nome completo é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.cpf.trim()) {
+      toast({
+        title: "Campo obrigatório",
+        description: "CPF é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.data_nascimento) {
+      toast({
+        title: "Campo obrigatório",
+        description: "Data de nascimento é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (editingAluno) {
         await axios.put(`${API}/students/${editingAluno.id}`, formData);
@@ -3328,7 +3371,7 @@ const AlunosManager = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="data_nascimento">
-                        Data de Nascimento
+                        Data de Nascimento *
                       </Label>
                       <Input
                         id="data_nascimento"
