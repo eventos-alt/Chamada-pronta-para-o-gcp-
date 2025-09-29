@@ -488,7 +488,7 @@ if current_user.tipo == "instrutor":
     # Instrutor: só aceita seu curso
     if curso['id'] != current_user.curso_id:
         results['unauthorized'].append(f"Instrutor não pode importar para curso '{curso_nome}'")
-        
+
 elif current_user.tipo == "pedagogo":
     # Pedagogo: só aceita cursos da sua unidade
     if curso.get('unidade_id') != current_user.unidade_id:
@@ -526,10 +526,10 @@ return {
 ```javascript
 // ✅ INTERFACE CONTEXTUAL POR TIPO DE USUÁRIO
 <DialogDescription>
-  {user?.tipo === "admin" 
-    ? "Importe alunos de qualquer curso/unidade" 
-    : user?.tipo === "instrutor" 
-    ? "Importe alunos apenas do seu curso" 
+  {user?.tipo === "admin"
+    ? "Importe alunos de qualquer curso/unidade"
+    : user?.tipo === "instrutor"
+    ? "Importe alunos apenas do seu curso"
     : "Importe alunos da sua unidade"}
 </DialogDescription>
 
@@ -552,36 +552,44 @@ toast({
 
 ```javascript
 // ✅ CARD DE PERMISSÕES DETALHADO
-{user?.tipo !== "admin" && (
-  <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-    <div className="flex items-center gap-2 text-orange-800">
-      <Info className="h-4 w-4" />
-      <span className="text-sm font-medium">Suas Permissões:</span>
+{
+  user?.tipo !== "admin" && (
+    <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+      <div className="flex items-center gap-2 text-orange-800">
+        <Info className="h-4 w-4" />
+        <span className="text-sm font-medium">Suas Permissões:</span>
+      </div>
+      <div className="mt-2 text-sm text-orange-700">
+        <p>
+          • <strong>Escopo:</strong>{" "}
+          {user?.tipo === "instrutor"
+            ? "Alunos do seu curso específico"
+            : user?.tipo === "pedagogo"
+            ? "Todos os alunos da sua unidade"
+            : "Alunos das turmas que você monitora"}
+        </p>
+        <p>
+          • <strong>CSV:</strong>{" "}
+          {user?.tipo === "instrutor"
+            ? "Pode importar apenas do seu curso"
+            : user?.tipo === "pedagogo"
+            ? "Pode importar de qualquer curso da unidade"
+            : "Não pode importar (apenas visualizar)"}
+        </p>
+
+        {/* DICAS ESPECÍFICAS PARA INSTRUTORES */}
+        {user?.tipo === "instrutor" && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+            <p className="font-medium">💡 Dicas para Instrutores:</p>
+            <p>• Turmas inexistentes no CSV serão criadas automaticamente</p>
+            <p>• Alunos sem turma definida ficarão como "não alocado"</p>
+            <p>• Você pode gerenciar alunos entre suas turmas</p>
+          </div>
+        )}
+      </div>
     </div>
-    <div className="mt-2 text-sm text-orange-700">
-      <p>• <strong>Escopo:</strong> {
-        user?.tipo === "instrutor" ? "Alunos do seu curso específico" :
-        user?.tipo === "pedagogo" ? "Todos os alunos da sua unidade" :
-        "Alunos das turmas que você monitora"
-      }</p>
-      <p>• <strong>CSV:</strong> {
-        user?.tipo === "instrutor" ? "Pode importar apenas do seu curso" :
-        user?.tipo === "pedagogo" ? "Pode importar de qualquer curso da unidade" :
-        "Não pode importar (apenas visualizar)"
-      }</p>
-      
-      {/* DICAS ESPECÍFICAS PARA INSTRUTORES */}
-      {user?.tipo === "instrutor" && (
-        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
-          <p className="font-medium">💡 Dicas para Instrutores:</p>
-          <p>• Turmas inexistentes no CSV serão criadas automaticamente</p>
-          <p>• Alunos sem turma definida ficarão como "não alocado"</p>
-          <p>• Você pode gerenciar alunos entre suas turmas</p>
-        </div>
-      )}
-    </div>
-  </div>
-)}
+  );
+}
 ```
 
 #### **3. CORS Policy Emergency Fix - RESOLVIDO PERMANENTEMENTE** ✅
@@ -604,14 +612,14 @@ async def cors_handler(request, call_next):
         "Access-Control-Allow-Headers": "accept, authorization, content-type",
         "Access-Control-Max-Age": "86400"
     }
-    
+
     # Resposta direta para OPTIONS
     if request.method == "OPTIONS":
         response = Response(status_code=200)
         for key, value in cors_headers.items():
             response.headers[key] = value
         return response
-    
+
     # Headers CORS em todas as respostas
     response = await call_next(request)
     for key, value in cors_headers.items():
@@ -620,8 +628,9 @@ async def cors_handler(request, call_next):
 ```
 
 **Status de Deploy Atual:**
+
 - ✅ **Backend**: https://sistema-ios-backend.onrender.com
-- ✅ **Frontend**: https://sistema-ios-chamada.vercel.app  
+- ✅ **Frontend**: https://sistema-ios-chamada.vercel.app
 - ✅ **CORS**: Funcionando sem bloqueios
 - ✅ **MongoDB**: Conectado e estável
 

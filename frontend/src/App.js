@@ -3404,7 +3404,7 @@ const AlunosManager = () => {
 
     try {
       console.log("🧹 Iniciando limpeza de alunos órfãos...");
-      
+
       const response = await axios.post(`${API}/students/cleanup-orphans`);
       const result = response.data;
 
@@ -3417,12 +3417,13 @@ const AlunosManager = () => {
 
       // Atualizar lista de alunos
       fetchAlunos();
-
     } catch (error) {
       console.error("❌ Erro na limpeza de órfãos:", error);
       toast({
         title: "Erro na limpeza",
-        description: error.response?.data?.detail || "Erro interno na limpeza de alunos órfãos",
+        description:
+          error.response?.data?.detail ||
+          "Erro interno na limpeza de alunos órfãos",
         variant: "destructive",
       });
     }
