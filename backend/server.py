@@ -843,6 +843,10 @@ async def get_alunos(
 ):
     """🎯 LISTAGEM DE ALUNOS: Filtrada por permissões do usuário"""
     
+    print(f"🔍 Buscando alunos para usuário: {current_user.email} (tipo: {current_user.tipo})")
+    print(f"   Curso ID: {current_user.curso_id}")
+    print(f"   Unidade ID: {current_user.unidade_id}")
+    
     query = {"ativo": True}
     if status:
         query["status"] = status
@@ -852,29 +856,31 @@ async def get_alunos(
         # Admin vê todos os alunos
         pass
     elif current_user.tipo in ["instrutor", "pedagogo", "monitor"]:
-        # Buscar alunos que estão nas turmas do curso/unidade do usuário
+        # ✅ NOVA LÓGICA: Instrutor vê todos os alunos (pode gerenciar alunos do curso)
+        # Pedagogo/Monitor vêem alunos das turmas do curso/unidade
         if current_user.curso_id and current_user.unidade_id:
-            # Buscar turmas do curso e unidade do usuário
-            turmas_usuario = await db.turmas.find({
-                "curso_id": current_user.curso_id,
-                "unidade_id": current_user.unidade_id,
-                "ativo": True
-            }).to_list(1000)
-            
-            # Se for instrutor, filtrar apenas suas turmas
             if current_user.tipo == "instrutor":
-                turmas_usuario = [t for t in turmas_usuario if t.get("instrutor_id") == current_user.id]
-            
-            # Coletar IDs de todos os alunos das turmas relevantes
-            aluno_ids = set()
-            for turma in turmas_usuario:
-                aluno_ids.update(turma.get("alunos_ids", []))
-            
-            if aluno_ids:
-                query["id"] = {"$in": list(aluno_ids)}
+                # Instrutor pode ver todos os alunos para poder gerenciá-los
+                # (não precisam estar em turmas específicas)
+                pass  # Não adiciona filtro adicional - vê todos alunos
             else:
-                # Se não há alunos nas turmas, retornar lista vazia
-                return []
+                # Pedagogo/Monitor vêem apenas alunos das turmas do curso/unidade
+                turmas_usuario = await db.turmas.find({
+                    "curso_id": current_user.curso_id,
+                    "unidade_id": current_user.unidade_id,
+                    "ativo": True
+                }).to_list(1000)
+                
+                # Coletar IDs de todos os alunos das turmas relevantes
+                aluno_ids = set()
+                for turma in turmas_usuario:
+                    aluno_ids.update(turma.get("alunos_ids", []))
+                
+                if aluno_ids:
+                    query["id"] = {"$in": list(aluno_ids)}
+                else:
+                    # Se não há alunos nas turmas, retornar lista vazia
+                    return []
         else:
             # Se usuário não tem curso/unidade, não pode ver alunos
             return []
@@ -882,7 +888,9 @@ async def get_alunos(
         # Outros tipos de usuário não podem ver alunos
         return []
         
+    print(f"🔍 Query final para alunos: {query}")
     alunos = await db.alunos.find(query).skip(skip).limit(limit).to_list(limit)
+    print(f"📊 Total de alunos encontrados: {len(alunos)}")
     
     # ✅ CORREÇÃO 422: Tratamento seguro de dados de alunos
     result_alunos = []

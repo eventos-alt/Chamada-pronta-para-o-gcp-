@@ -3312,7 +3312,7 @@ const AlunosManager = () => {
                         htmlFor="idade"
                         className="text-blue-700 font-medium"
                       >
-                        Idade *
+                        Idade
                       </Label>
                       <Input
                         id="idade"
