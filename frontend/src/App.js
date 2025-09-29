@@ -3158,27 +3158,32 @@ const AlunosManager = () => {
       } else {
         const response = await axios.post(`${API}/students`, formData);
         const novoAlunoId = response.data.id;
-        
-        // Se turma foi selecionada, adicionar aluno à turma
-        if (formData.turma_id) {
+
+        // Se turma foi selecionada (e não é "sem_turma"), adicionar aluno à turma
+        if (formData.turma_id && formData.turma_id !== "sem_turma") {
           try {
-            await axios.put(`${API}/classes/${formData.turma_id}/students/${novoAlunoId}`);
+            await axios.put(
+              `${API}/classes/${formData.turma_id}/students/${novoAlunoId}`
+            );
             toast({
               title: "Aluno criado e alocado com sucesso!",
-              description: "O aluno foi adicionado ao sistema e à turma selecionada.",
+              description:
+                "O aluno foi adicionado ao sistema e à turma selecionada.",
             });
           } catch (turmaError) {
             console.error("Erro ao adicionar aluno à turma:", turmaError);
             toast({
               title: "Aluno criado, mas erro na alocação",
-              description: "Aluno criado com sucesso, mas não foi possível adicioná-lo à turma. Faça isso manualmente.",
+              description:
+                "Aluno criado com sucesso, mas não foi possível adicioná-lo à turma. Faça isso manualmente.",
               variant: "destructive",
             });
           }
         } else {
           toast({
             title: "Aluno criado com sucesso!",
-            description: "O novo aluno foi adicionado ao sistema (sem turma específica).",
+            description:
+              "O novo aluno foi adicionado ao sistema (sem turma específica).",
           });
         }
       }
@@ -3669,7 +3674,10 @@ const AlunosManager = () => {
                       🎯 Alocação em Turma
                     </h3>
                     <div className="space-y-2">
-                      <Label htmlFor="turma_id" className="text-green-700 font-medium">
+                      <Label
+                        htmlFor="turma_id"
+                        className="text-green-700 font-medium"
+                      >
                         Turma (Opcional)
                       </Label>
                       <Select
@@ -3682,16 +3690,20 @@ const AlunosManager = () => {
                           <SelectValue placeholder="Selecione uma turma ou deixe em branco" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Sem turma (não alocado)</SelectItem>
+                          <SelectItem value="sem_turma">
+                            Sem turma (não alocado)
+                          </SelectItem>
                           {turmas.map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
-                              {turma.nome} - {turma.curso_nome || "Curso não informado"}
+                              {turma.nome} -{" "}
+                              {turma.curso_nome || "Curso não informado"}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-green-600">
-                        💡 Você pode deixar sem turma e alocar depois, ou selecionar uma turma específica
+                        💡 Você pode deixar sem turma e alocar depois, ou
+                        selecionar uma turma específica
                       </p>
                     </div>
                   </div>

@@ -874,6 +874,10 @@ async def create_aluno(aluno_create: AlunoCreate, current_user: UserResponse = D
     mongo_data["created_by_name"] = current_user.nome  # Nome do usuário que criou
     mongo_data["created_by_type"] = current_user.tipo  # Tipo do usuário que criou
     
+    print(f"🔍 Criando aluno '{aluno_create.nome}' por {current_user.nome} (ID: {current_user.id})")
+    print(f"   created_by: {mongo_data['created_by']}")
+    print(f"   created_by_name: {mongo_data['created_by_name']}")
+    
     await db.alunos.insert_one(mongo_data)
     
     return aluno_obj
