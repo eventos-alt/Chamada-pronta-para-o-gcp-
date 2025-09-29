@@ -710,7 +710,8 @@ const Dashboard = () => {
               <Shield className="h-6 w-6 text-blue-600" />
               <div>
                 <h3 className="font-semibold text-gray-900">
-                  {stats.tipo_usuario || user?.tipo?.charAt(0).toUpperCase() + user?.tipo?.slice(1)}
+                  {stats.tipo_usuario ||
+                    user?.tipo?.charAt(0).toUpperCase() + user?.tipo?.slice(1)}
                 </h3>
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <span>
@@ -766,7 +767,11 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin" ? "Turmas" : user?.tipo === "instrutor" ? "Minhas Turmas" : "Turmas do Curso"}
+                    {user?.tipo === "admin"
+                      ? "Turmas"
+                      : user?.tipo === "instrutor"
+                      ? "Minhas Turmas"
+                      : "Turmas do Curso"}
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_turmas || 0}
@@ -782,7 +787,11 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin" ? "Alunos" : user?.tipo === "instrutor" ? "Meus Alunos" : "Alunos do Curso"}
+                    {user?.tipo === "admin"
+                      ? "Alunos"
+                      : user?.tipo === "instrutor"
+                      ? "Meus Alunos"
+                      : "Alunos do Curso"}
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total_alunos || 0}
@@ -4155,7 +4164,10 @@ const CursosManager = () => {
                       { key: "sexta", label: "Sexta" },
                       { key: "sabado", label: "Sábado" },
                     ].map((dia) => (
-                      <div key={dia.key} className="flex items-center space-x-2">
+                      <div
+                        key={dia.key}
+                        className="flex items-center space-x-2"
+                      >
                         <Checkbox
                           id={dia.key}
                           checked={formData.dias_aula.includes(dia.key)}

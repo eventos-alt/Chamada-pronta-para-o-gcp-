@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Query
+from fastapi.responses import Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -34,22 +35,52 @@ origins = [
     "http://localhost",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://*.vercel.app",
-    "https://*.railway.app",
-    "https://seu-frontend.vercel.app"
+    "https://sistema-ios-chamada.vercel.app",  # 🎯 URL específica do Vercel
+    "https://front-end-sistema-qbl0lhxig-jesielamarojunior-makers-projects.vercel.app",
+    "https://front-end-sistema.vercel.app",
+    "https://sistema-ios-frontend.vercel.app",
+    "https://sistema-ios-backend.onrender.com",  # 🚀 URL do próprio backend Render
 ]
 
-# Para produção, usar variável de ambiente
-if os.environ.get("RAILWAY_ENVIRONMENT"):
-    origins.append("*")  # Railway permite qualquer origem em produção
+# Para produção e desenvolvimento, permitir origens específicas
+if os.environ.get("RENDER") or os.environ.get("RAILWAY_ENVIRONMENT"):
+    # Em produção, adicionar todas as possíveis URLs do Vercel
+    origins.extend([
+        "*",  # Temporariamente permitir todas as origens para debug
+    ])
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# 🚀 Middleware personalizado para requisições OPTIONS
+@app.middleware("http")
+async def cors_handler(request, call_next):
+    # Permitir todas as requisições OPTIONS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        return response
+    
+    # Para outras requisições, processar normalmente
+    response = await call_next(request)
+    
+    # Adicionar headers CORS na resposta
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
+    return response
+
+# Log da configuração CORS para debug
+print(f"🔧 CORS configurado para origins: {origins}")
+print(f"🌍 Ambiente: RENDER={os.environ.get('RENDER')}, RAILWAY={os.environ.get('RAILWAY_ENVIRONMENT')}")
 
 # -------------------------
 # MongoDB connection
@@ -88,7 +119,24 @@ api_router = APIRouter(prefix="/api")
 
 @api_router.get("/ping")
 async def ping():
-    return {"message": "Backend funcionando!"}
+    return {
+        "message": "Backend funcionando!",
+        "cors_origins": origins,
+        "render_env": os.environ.get("RENDER"),
+        "railway_env": os.environ.get("RAILWAY_ENVIRONMENT"),
+        "timestamp": datetime.now().isoformat()
+    }
+
+@api_router.get("/cors-test")
+async def cors_test():
+    """Endpoint específico para testar CORS"""
+    return {
+        "status": "CORS working",
+        "message": "Se você consegue ver esta mensagem, o CORS está funcionando!",
+        "frontend_allowed": "https://sistema-ios-chamada.vercel.app",
+        "all_origins": origins,
+        "timestamp": datetime.now().isoformat()
+    }
 
 # -------------------------
 # Configuração JWT
