@@ -50,6 +50,7 @@ import {
   UserX,
   Calendar,
   FileText,
+  Upload,
   Download,
   LogOut,
   Plus,
