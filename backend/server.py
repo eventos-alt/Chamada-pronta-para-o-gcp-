@@ -1444,6 +1444,55 @@ async def remove_aluno_from_turma(turma_id: str, aluno_id: str, current_user: Us
     
     return {"message": "Aluno removido da turma"}
 
+@api_router.delete("/classes/{turma_id}")
+async def delete_turma(turma_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """🗑️ DELETAR TURMA - Apenas Admin pode deletar turmas"""
+    
+    # 🔒 VERIFICAÇÃO: Apenas admin pode deletar turmas
+    if current_user.tipo != "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="Apenas administradores podem deletar turmas"
+        )
+    
+    # Verificar se turma existe
+    turma = await db.turmas.find_one({"id": turma_id})
+    if not turma:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    
+    # ⚠️ VERIFICAÇÃO: Turma tem alunos matriculados?
+    if turma.get('alunos_ids') and len(turma.get('alunos_ids', [])) > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Não é possível deletar turma com {len(turma['alunos_ids'])} aluno(s) matriculado(s). Remova os alunos primeiro."
+        )
+    
+    # 🔍 VERIFICAÇÃO: Turma tem chamadas registradas?
+    chamadas_count = await db.chamadas.count_documents({"turma_id": turma_id})
+    if chamadas_count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Não é possível deletar turma com {chamadas_count} chamada(s) registrada(s). Histórico de presença será perdido."
+        )
+    
+    # 🗑️ DELETAR TURMA
+    result = await db.turmas.delete_one({"id": turma_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=500, detail="Erro ao deletar turma")
+    
+    print(f"🗑️ Admin {current_user.nome} deletou turma: {turma.get('nome', 'SEM_NOME')} (ID: {turma_id})")
+    
+    return {
+        "message": f"Turma '{turma.get('nome', 'SEM_NOME')}' deletada com sucesso",
+        "turma_deletada": {
+            "id": turma_id,
+            "nome": turma.get('nome'),
+            "curso_nome": turma.get('curso_nome', 'N/A'),
+            "instrutor_nome": turma.get('instrutor_nome', 'N/A')
+        }
+    }
+
 # CHAMADA ROUTES
 @api_router.post("/attendance", response_model=Chamada)
 async def create_chamada(chamada_create: ChamadaCreate, current_user: UserResponse = Depends(get_current_user)):

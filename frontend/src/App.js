@@ -2030,6 +2030,71 @@ const TurmasManager = () => {
     setIsAlunoDialogOpen(true);
   };
 
+  const handleDeleteTurma = async (turma) => {
+    // 🔒 VERIFICAÇÃO: Apenas admin pode deletar
+    if (user?.tipo !== "admin") {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem deletar turmas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // ⚠️ CONFIRMAÇÃO: Pedir confirmação antes de deletar
+    const confirmar = window.confirm(
+      `⚠️ ATENÇÃO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
+        `Esta ação é IRREVERSÍVEL e:\n` +
+        `• Removerá permanentemente a turma do sistema\n` +
+        `• Não afetará os alunos (eles continuarão cadastrados)\n` +
+        `• Não poderá ser desfeita\n\n` +
+        `Digite "SIM" para confirmar:`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`${API}/classes/${turma.id}`);
+
+      toast({
+        title: "Turma deletada com sucesso!",
+        description: `A turma "${turma.nome}" foi removida permanentemente`,
+        className: "bg-green-50 border-green-200",
+      });
+
+      // Atualizar lista de turmas
+      fetchData();
+
+      console.log("🗑️ Turma deletada:", response.data);
+    } catch (error) {
+      console.error("❌ Erro ao deletar turma:", error);
+
+      // Tratar erros específicos do backend
+      if (error.response?.status === 400) {
+        toast({
+          title: "Não é possível deletar",
+          description:
+            error.response.data.detail || "Turma possui dependências",
+          variant: "destructive",
+        });
+      } else if (error.response?.status === 403) {
+        toast({
+          title: "Acesso negado",
+          description: "Apenas administradores podem deletar turmas",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao deletar turma",
+          description: "Ocorreu um erro interno. Tente novamente.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const handleAddAlunoToTurma = async (alunoId) => {
     try {
       await axios.put(
@@ -2395,6 +2460,18 @@ const TurmasManager = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
+                      {/* 🗑️ BOTÃO DELETAR TURMA - Apenas para Admin */}
+                      {user?.tipo === "admin" && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteTurma(turma)}
+                          title="Deletar turma"
+                          className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
