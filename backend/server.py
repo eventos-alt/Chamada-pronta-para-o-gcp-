@@ -906,46 +906,17 @@ async def get_alunos(
         pass
         
     elif current_user.tipo == "instrutor":
-        # 👨‍🏫 INSTRUTOR: VÊ ALUNOS DAS SUAS TURMAS + ALUNOS QUE ELE CRIOU
-        if not current_user.curso_id or not current_user.unidade_id:
-            print("❌ Instrutor sem curso/unidade definidos")
-            return []
-            
-        # 1. Buscar turmas onde este instrutor é o responsável
-        turmas_instrutor = await db.turmas.find({
-            "instrutor_id": current_user.id,  # 🔒 CRÍTICO: Apenas turmas DELE
-            "curso_id": current_user.curso_id,
-            "unidade_id": current_user.unidade_id,
-            "ativo": True
-        }).to_list(1000)
+        # 👨‍🏫 INSTRUTOR: VÊ TODOS OS ALUNOS QUE ELE CRIOU (independente de turma)
+        # LÓGICA SIMPLIFICADA: Instrutor cadastra → pode ver → depois enturma
         
-        print(f"🔍 Instrutor {current_user.email} tem {len(turmas_instrutor)} turmas")
+        print(f"🔍 Buscando alunos criados pelo instrutor {current_user.email}")
         
-        # 2. Coletar IDs dos alunos das SUAS turmas
-        aluno_ids_turmas = set()
-        for turma in turmas_instrutor:
-            turma_alunos = turma.get("alunos_ids", [])
-            aluno_ids_turmas.update(turma_alunos)
-            print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
+        # BUSCA SIMPLES: Apenas alunos criados por este instrutor
+        query["created_by"] = current_user.id
         
-        # 3. Buscar alunos criados por este instrutor (mesmo sem turma)
-        alunos_criados = await db.alunos.find({
-            "created_by": current_user.id,
-            "ativo": True
-        }).to_list(1000)
-        
-        aluno_ids_criados = {aluno["id"] for aluno in alunos_criados}
-        print(f"🔍 Instrutor criou {len(aluno_ids_criados)} alunos")
-        
-        # 4. UNIÃO: alunos das turmas + alunos criados por ele
-        todos_aluno_ids = aluno_ids_turmas.union(aluno_ids_criados)
-        
-        if todos_aluno_ids:
-            query["id"] = {"$in": list(todos_aluno_ids)}
-            print(f"👨‍🏫 Instrutor vendo {len(todos_aluno_ids)} alunos total (turmas + criados por ele)")
-        else:
-            print("👨‍🏫 Instrutor: nenhum aluno nas suas turmas ou criado por ele")
-            return []
+        # Contar para log
+        count = await db.alunos.count_documents(query)
+        print(f"�‍🏫 Instrutor {current_user.email} vê {count} alunos que ele criou")
             
     elif current_user.tipo == "pedagogo":
         # 📊 Pedagogo: vê todos os cursos da unidade
