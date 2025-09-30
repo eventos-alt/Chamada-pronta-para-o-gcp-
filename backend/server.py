@@ -1238,8 +1238,15 @@ async def import_students_csv(
                 'turma_id': turma_id,
                 'status_turma': status_turma,
                 'status': 'ativo',
+                'created_by': current_user.id,  # ID do usuário que importou
+                'created_by_name': current_user.nome,  # Nome do usuário que importou
+                'created_by_type': current_user.tipo,  # Tipo do usuário que importou
                 'created_at': datetime.now(timezone.utc).isoformat()
             }
+            
+            print(f"🔍 CSV Import - Criando aluno: {row['nome']}")
+            print(f"   created_by: {aluno_data['created_by']}")
+            print(f"   created_by_name: {aluno_data['created_by_name']}")
             
             # Inserir aluno no banco
             await db.alunos.insert_one(aluno_data)
