@@ -3484,32 +3484,40 @@ const AlunosManager = () => {
       const result = response.data;
 
       // Mostrar resultado detalhado
-      const totalFailures = result.summary.errors + result.summary.duplicates + result.summary.unauthorized;
-      
+      const totalFailures =
+        result.summary.errors +
+        result.summary.duplicates +
+        result.summary.unauthorized;
+
       if (result.summary.successful === 0 && totalFailures > 0) {
         // ⚠️ NENHUM ALUNO IMPORTADO - Mostrar erros detalhados
         const errorDetails = [
           ...result.details.errors,
           ...result.details.duplicates,
           ...result.details.unauthorized,
-          ...result.details.warnings
-        ].join('\n');
-        
-        alert(`❌ NENHUM ALUNO FOI IMPORTADO\n\n` +
-              `${totalFailures} falhas encontradas:\n\n` +
-              `${errorDetails}\n\n` +
-              `💡 DICAS:\n` +
-              `• Verifique se o curso "${user?.curso_nome || 'seu curso'}" existe exatamente como digitado\n` +
-              `• Datas devem estar no formato YYYY-MM-DD (ex: 2005-03-15)\n` +
-              `• CPF deve ter 11 dígitos\n` +
-              `• Campos nome, cpf e data_nascimento são obrigatórios\n\n` +
-              `Clique em "Baixar Modelo CSV" para ver um exemplo correto.`);
+          ...result.details.warnings,
+        ].join("\n");
+
+        alert(
+          `❌ NENHUM ALUNO FOI IMPORTADO\n\n` +
+            `${totalFailures} falhas encontradas:\n\n` +
+            `${errorDetails}\n\n` +
+            `💡 DICAS:\n` +
+            `• Verifique se o curso "${
+              user?.curso_nome || "seu curso"
+            }" existe exatamente como digitado\n` +
+            `• Datas devem estar no formato YYYY-MM-DD (ex: 2005-03-15)\n` +
+            `• CPF deve ter 11 dígitos\n` +
+            `• Campos nome, cpf e data_nascimento são obrigatórios\n\n` +
+            `Clique em "Baixar Modelo CSV" para ver um exemplo correto.`
+        );
       } else {
         // ✅ IMPORTAÇÃO PARCIAL OU TOTAL
         toast({
           title: "Importação CSV concluída",
           description: `${result.summary.successful} alunos importados com sucesso. ${totalFailures} falhas.`,
-          className: result.summary.successful > 0 ? "bg-green-50 border-green-200" : ""
+          className:
+            result.summary.successful > 0 ? "bg-green-50 border-green-200" : "",
         });
       }
 
@@ -3538,31 +3546,122 @@ const AlunosManager = () => {
   const handleDownloadModeloCsv = () => {
     // 📥 DOWNLOAD MODELO CSV - Gerar arquivo de exemplo
     const modeloData = [
-      ['nome', 'cpf', 'data_nascimento', 'curso', 'turma', 'email', 'telefone'],
-      ['João da Silva', '12345678901', '2005-05-15', user?.curso_nome || 'Informática Básica', 'Turma A', 'joao@email.com', '11999887766'],
-      ['Maria Santos', '98765432100', '2006-08-20', user?.curso_nome || 'Informática Básica', 'Turma A', 'maria@email.com', '11988776655'],
-      ['Pedro Oliveira', '45678912300', '2007-12-10', user?.curso_nome || 'Informática Básica', 'Turma B', 'pedro@email.com', '11977665544']
+      ["nome", "cpf", "data_nascimento", "curso", "turma", "email", "telefone"],
+      [
+        "João da Silva",
+        "12345678901",
+        "2005-05-15",
+        user?.curso_nome || "Informática Básica",
+        "Turma A",
+        "joao@email.com",
+        "11999887766",
+      ],
+      [
+        "Maria Santos",
+        "98765432100",
+        "2006-08-20",
+        user?.curso_nome || "Informática Básica",
+        "Turma A",
+        "maria@email.com",
+        "11988776655",
+      ],
+      [
+        "Pedro Oliveira",
+        "45678912300",
+        "2007-12-10",
+        user?.curso_nome || "Informática Básica",
+        "Turma B",
+        "pedro@email.com",
+        "11977665544",
+      ],
     ];
 
     // Converter para CSV
-    const csvContent = modeloData.map(row => row.join(',')).join('\n');
-    
+    const csvContent = modeloData.map((row) => row.join(",")).join("\n");
+
     // Criar blob e download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `modelo_alunos_${user?.curso_nome || 'exemplo'}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `modelo_alunos_${user?.curso_nome || "exemplo"}.csv`
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     toast({
       title: "Modelo CSV baixado",
       description: "Use este arquivo como exemplo para importar seus alunos",
-      className: "bg-blue-50 border-blue-200"
+      className: "bg-blue-50 border-blue-200",
     });
+  };
+
+  const handleFixCreatedBy = async () => {
+    const confirmFix = window.confirm(
+      "🔧 CORREÇÃO DE VÍNCULOS\n\n" +
+        "Esta operação irá:\n" +
+        "• Encontrar alunos antigos sem vínculo com instrutor\n" +
+        "• Associá-los automaticamente aos instrutores das turmas onde estão\n" +
+        "• Permitir que instrutores vejam seus alunos corretamente\n\n" +
+        "⚠️ IMPORTANTE: Esta correção é segura e reversível.\n\n" +
+        "Continuar com a correção?"
+    );
+
+    if (!confirmFix) return;
+
+    try {
+      console.log("🔧 Iniciando correção de vínculos...");
+
+      const response = await axios.post(`${API}/students/fix-created-by`);
+      const result = response.data;
+
+      console.log("✅ Resultado da correção:", result);
+
+      toast({
+        title: "Correção concluída com sucesso!",
+        description: `${result.alunos_corrigidos} alunos foram associados aos instrutores corretos.`,
+        className: "bg-green-50 border-green-200",
+      });
+
+      if (result.alunos_corrigidos > 0) {
+        // Mostrar detalhes da correção
+        const detalhesTexto = result.detalhes
+          .filter((d) => d.acao === "associado_ao_instrutor_da_turma")
+          .slice(0, 10)
+          .map((d) => `• ${d.aluno} → ${d.instrutor} (${d.turma})`)
+          .join("\n");
+
+        if (detalhesTexto) {
+          alert(
+            `✅ CORREÇÃO REALIZADA COM SUCESSO\n\n` +
+              `${result.alunos_corrigidos} alunos foram associados aos instrutores:\n\n` +
+              `${detalhesTexto}` +
+              `${
+                result.alunos_corrigidos > 10
+                  ? `\n\n... e mais ${result.alunos_corrigidos - 10} alunos`
+                  : ""
+              }\n\n` +
+              `Agora os instrutores podem ver seus alunos normalmente!`
+          );
+        }
+
+        // Atualizar lista de alunos
+        fetchAlunos();
+      }
+    } catch (error) {
+      console.error("❌ Erro na correção de vínculos:", error);
+      toast({
+        title: "Erro na correção",
+        description:
+          error.response?.data?.detail ||
+          "Erro interno na correção de vínculos",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCleanupOrphans = async () => {
@@ -3618,6 +3717,19 @@ const AlunosManager = () => {
             </CardDescription>
           </div>
           <div className="flex gap-2">
+            {/* Correção de Alunos sem created_by - Apenas Admin */}
+            {user?.tipo === "admin" && (
+              <Button
+                onClick={handleFixCreatedBy}
+                variant="outline"
+                className="border-orange-600 text-orange-600 hover:bg-orange-50"
+                title="Corrigir alunos antigos que não aparecem para instrutores"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Corrigir Vínculos
+              </Button>
+            )}
+
             {/* Limpeza de Alunos Órfãos - Apenas Admin */}
             {user?.tipo === "admin" && (
               <Button
@@ -3691,11 +3803,17 @@ const AlunosManager = () => {
                         </li>
                       </ul>
                       <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                        <p className="font-medium text-yellow-800">💡 Dicas importantes:</p>
+                        <p className="font-medium text-yellow-800">
+                          💡 Dicas importantes:
+                        </p>
                         <ul className="mt-1 space-y-0.5 text-yellow-700">
-                          <li>• Data no formato: YYYY-MM-DD (ex: 2005-03-15)</li>
+                          <li>
+                            • Data no formato: YYYY-MM-DD (ex: 2005-03-15)
+                          </li>
                           <li>• CPF apenas números (11 dígitos)</li>
-                          <li>• Curso deve existir exatamente como cadastrado</li>
+                          <li>
+                            • Curso deve existir exatamente como cadastrado
+                          </li>
                         </ul>
                       </div>
                     </div>

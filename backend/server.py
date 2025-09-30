@@ -1093,6 +1093,120 @@ async def cleanup_orphan_students(current_user: UserResponse = Depends(get_curre
         "orphan_names": orphan_names[:20]  # Máximo 20 nomes no retorno
     }
 
+@api_router.post("/students/fix-created-by")
+async def fix_alunos_created_by(current_user: UserResponse = Depends(get_current_user)):
+    """🔧 MIGRAÇÃO: Corrigir alunos sem created_by associando aos instrutores das turmas
+    
+    Este endpoint resolve o problema de alunos antigos que não aparecem para instrutores
+    porque foram criados antes da implementação do campo created_by.
+    """
+    
+    # 🔒 VERIFICAÇÃO: Apenas admin pode executar migração
+    if current_user.tipo != "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="Apenas administradores podem executar migração de dados"
+        )
+    
+    try:
+        # 1. Buscar alunos sem created_by
+        alunos_sem_created_by = await db.alunos.find({
+            "$or": [
+                {"created_by": {"$exists": False}},
+                {"created_by": None},
+                {"created_by": ""}
+            ],
+            "ativo": True
+        }).to_list(1000)
+        
+        print(f"🔍 Encontrados {len(alunos_sem_created_by)} alunos sem created_by")
+        
+        if not alunos_sem_created_by:
+            return {
+                "message": "Nenhum aluno precisa de correção",
+                "alunos_corrigidos": 0,
+                "detalhes": []
+            }
+        
+        # 2. Buscar todas as turmas ativas
+        turmas = await db.turmas.find({"ativo": True}).to_list(1000)
+        turmas_dict = {turma["id"]: turma for turma in turmas}
+        
+        # 3. Buscar instrutores para cada turma
+        instrutores = await db.usuarios.find({
+            "tipo": "instrutor",
+            "status": "ativo"
+        }).to_list(1000)
+        instrutores_dict = {instrutor["id"]: instrutor for instrutor in instrutores}
+        
+        detalhes = []
+        alunos_corrigidos = 0
+        
+        # 4. Para cada aluno sem created_by
+        for aluno in alunos_sem_created_by:
+            turma_id = aluno.get("turma_id")
+            
+            if turma_id and turma_id in turmas_dict:
+                # Aluno está em uma turma - associar ao instrutor da turma
+                turma = turmas_dict[turma_id]
+                instrutor_id = turma.get("instrutor_id")
+                
+                if instrutor_id and instrutor_id in instrutores_dict:
+                    instrutor = instrutores_dict[instrutor_id]
+                    
+                    # Atualizar aluno com dados do instrutor
+                    await db.alunos.update_one(
+                        {"id": aluno["id"]},
+                        {
+                            "$set": {
+                                "created_by": instrutor_id,
+                                "created_by_name": instrutor["nome"],
+                                "created_by_type": "instrutor"
+                            }
+                        }
+                    )
+                    
+                    alunos_corrigidos += 1
+                    detalhes.append({
+                        "aluno": aluno["nome"],
+                        "cpf": aluno.get("cpf", "N/A"),
+                        "turma": turma["nome"],
+                        "instrutor": instrutor["nome"],
+                        "acao": "associado_ao_instrutor_da_turma"
+                    })
+                    
+                    print(f"✅ {aluno['nome']} → instrutor {instrutor['nome']} (turma {turma['nome']})")
+                else:
+                    detalhes.append({
+                        "aluno": aluno["nome"],
+                        "cpf": aluno.get("cpf", "N/A"),
+                        "turma": turma["nome"],
+                        "problema": "turma_sem_instrutor",
+                        "acao": "nao_corrigido"
+                    })
+            else:
+                # Aluno não está em turma - manter sem created_by (será removido na limpeza)
+                detalhes.append({
+                    "aluno": aluno["nome"],
+                    "cpf": aluno.get("cpf", "N/A"),
+                    "problema": "sem_turma",
+                    "acao": "nao_corrigido"
+                })
+        
+        return {
+            "message": f"Migração concluída: {alunos_corrigidos} alunos associados a instrutores",
+            "total_encontrados": len(alunos_sem_created_by),
+            "alunos_corrigidos": alunos_corrigidos,
+            "detalhes": detalhes[:50]  # Máximo 50 no retorno
+        }
+        
+    except Exception as e:
+        print(f"❌ Erro na migração: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro interno na migração: {str(e)}"
+        )
+
 @api_router.post("/students/import-csv")
 async def import_students_csv(
     file: UploadFile = File(...), 
