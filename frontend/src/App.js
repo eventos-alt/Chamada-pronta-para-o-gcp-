@@ -3484,16 +3484,34 @@ const AlunosManager = () => {
       const result = response.data;
 
       // Mostrar resultado detalhado
-      toast({
-        title: "Importação CSV concluída",
-        description: `${
-          result.summary.successful
-        } alunos importados com sucesso. ${
-          result.summary.errors +
-          result.summary.duplicates +
-          result.summary.unauthorized
-        } falhas.`,
-      });
+      const totalFailures = result.summary.errors + result.summary.duplicates + result.summary.unauthorized;
+      
+      if (result.summary.successful === 0 && totalFailures > 0) {
+        // ⚠️ NENHUM ALUNO IMPORTADO - Mostrar erros detalhados
+        const errorDetails = [
+          ...result.details.errors,
+          ...result.details.duplicates,
+          ...result.details.unauthorized,
+          ...result.details.warnings
+        ].join('\n');
+        
+        alert(`❌ NENHUM ALUNO FOI IMPORTADO\n\n` +
+              `${totalFailures} falhas encontradas:\n\n` +
+              `${errorDetails}\n\n` +
+              `💡 DICAS:\n` +
+              `• Verifique se o curso "${user?.curso_nome || 'seu curso'}" existe exatamente como digitado\n` +
+              `• Datas devem estar no formato YYYY-MM-DD (ex: 2005-03-15)\n` +
+              `• CPF deve ter 11 dígitos\n` +
+              `• Campos nome, cpf e data_nascimento são obrigatórios\n\n` +
+              `Clique em "Baixar Modelo CSV" para ver um exemplo correto.`);
+      } else {
+        // ✅ IMPORTAÇÃO PARCIAL OU TOTAL
+        toast({
+          title: "Importação CSV concluída",
+          description: `${result.summary.successful} alunos importados com sucesso. ${totalFailures} falhas.`,
+          className: result.summary.successful > 0 ? "bg-green-50 border-green-200" : ""
+        });
+      }
 
       // Log detalhado no console para debug
       console.log("📊 Resultado importação CSV:", result);
@@ -3515,6 +3533,36 @@ const AlunosManager = () => {
     } finally {
       setCsvImporting(false);
     }
+  };
+
+  const handleDownloadModeloCsv = () => {
+    // 📥 DOWNLOAD MODELO CSV - Gerar arquivo de exemplo
+    const modeloData = [
+      ['nome', 'cpf', 'data_nascimento', 'curso', 'turma', 'email', 'telefone'],
+      ['João da Silva', '12345678901', '2005-05-15', user?.curso_nome || 'Informática Básica', 'Turma A', 'joao@email.com', '11999887766'],
+      ['Maria Santos', '98765432100', '2006-08-20', user?.curso_nome || 'Informática Básica', 'Turma A', 'maria@email.com', '11988776655'],
+      ['Pedro Oliveira', '45678912300', '2007-12-10', user?.curso_nome || 'Informática Básica', 'Turma B', 'pedro@email.com', '11977665544']
+    ];
+
+    // Converter para CSV
+    const csvContent = modeloData.map(row => row.join(',')).join('\n');
+    
+    // Criar blob e download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `modelo_alunos_${user?.curso_nome || 'exemplo'}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Modelo CSV baixado",
+      description: "Use este arquivo como exemplo para importar seus alunos",
+      className: "bg-blue-50 border-blue-200"
+    });
   };
 
   const handleCleanupOrphans = async () => {
@@ -3615,7 +3663,18 @@ const AlunosManager = () => {
                       />
                     </div>
                     <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                      <p className="font-medium mb-2">📋 Formato esperado:</p>
+                      <div className="flex justify-between items-start mb-2">
+                        <p className="font-medium">📋 Formato esperado:</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadModeloCsv}
+                          className="text-xs h-6 px-2"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Baixar Modelo
+                        </Button>
+                      </div>
                       <code className="text-xs block mb-2">
                         nome,cpf,data_nascimento,curso,turma,email,telefone
                       </code>
@@ -3631,6 +3690,14 @@ const AlunosManager = () => {
                           • <strong>turma, email, telefone</strong>: opcionais
                         </li>
                       </ul>
+                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                        <p className="font-medium text-yellow-800">💡 Dicas importantes:</p>
+                        <ul className="mt-1 space-y-0.5 text-yellow-700">
+                          <li>• Data no formato: YYYY-MM-DD (ex: 2005-03-15)</li>
+                          <li>• CPF apenas números (11 dígitos)</li>
+                          <li>• Curso deve existir exatamente como cadastrado</li>
+                        </ul>
+                      </div>
                     </div>
                     <div className="flex justify-end gap-2">
                       <Button

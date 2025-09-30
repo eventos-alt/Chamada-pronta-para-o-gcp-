@@ -1202,7 +1202,13 @@ async def import_students_csv(
             
             # Validar se curso existe
             if curso_limpo not in cursos_dict:
-                results['errors'].append(f"Linha {row_num}: Curso '{curso_limpo}' não encontrado")
+                # 💡 MELHORIA: Sugerir cursos disponíveis
+                cursos_disponiveis = list(cursos_dict.keys())[:5]  # Máximo 5 sugestões
+                sugestoes = ", ".join(f"'{c}'" for c in cursos_disponiveis)
+                results['errors'].append(
+                    f"Linha {row_num}: Curso '{curso_limpo}' não encontrado. " +
+                    f"Cursos disponíveis: {sugestoes}{'...' if len(cursos_dict) > 5 else ''}"
+                )
                 continue
             
             curso = cursos_dict[curso_limpo]
