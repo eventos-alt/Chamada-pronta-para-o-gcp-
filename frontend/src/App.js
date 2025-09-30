@@ -50,7 +50,6 @@ import {
   UserX,
   Calendar,
   FileText,
-  Upload,
   Download,
   LogOut,
   Plus,
@@ -3118,6 +3117,9 @@ const RelatoriosManager = () => {
 
 // Alunos Manager Component COMPLETO
 const AlunosManager = () => {
+  const { user } = useAuth(); // 🔧 HOOK ORDER FIX: useAuth deve vir primeiro
+  const { toast } = useToast();
+
   const [alunos, setAlunos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -3127,9 +3129,6 @@ const AlunosManager = () => {
   const [selectedAluno, setSelectedAluno] = useState(null);
   const [dropoutReason, setDropoutReason] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
-  const [isCsvDialogOpen, setIsCsvDialogOpen] = useState(false);
-  const [csvFile, setCsvFile] = useState(null);
-  const [csvImporting, setCsvImporting] = useState(false);
   const [turmas, setTurmas] = useState([]);
   const [formData, setFormData] = useState({
     nome: "",
@@ -3146,7 +3145,6 @@ const AlunosManager = () => {
     observacoes: "",
     turma_id: "", // ✅ Campo turma adicionado
   });
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchAlunos();
@@ -3456,150 +3454,6 @@ const AlunosManager = () => {
     return labels[status] || status;
   };
 
-  const handleCsvImport = async () => {
-    if (!csvFile) {
-      toast({
-        title: "Arquivo obrigatório",
-        description: "Por favor, selecione um arquivo CSV para importar.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setCsvImporting(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", csvFile);
-
-      const response = await axios.post(
-        `${API}/students/import-csv`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      const result = response.data;
-
-      // Mostrar resultado detalhado
-      const totalFailures =
-        result.summary.errors +
-        result.summary.duplicates +
-        result.summary.unauthorized;
-
-      if (result.summary.successful === 0 && totalFailures > 0) {
-        // ⚠️ NENHUM ALUNO IMPORTADO - Mostrar erros detalhados
-        const errorDetails = [
-          ...result.details.errors,
-          ...result.details.duplicates,
-          ...result.details.unauthorized,
-          ...result.details.warnings,
-        ].join("\n");
-
-        alert(
-          `❌ NENHUM ALUNO FOI IMPORTADO\n\n` +
-            `${totalFailures} falhas encontradas:\n\n` +
-            `${errorDetails}\n\n` +
-            `💡 DICAS:\n` +
-            `• Verifique se o curso "${
-              user?.curso_nome || "seu curso"
-            }" existe exatamente como digitado\n` +
-            `• Datas devem estar no formato YYYY-MM-DD (ex: 2005-03-15)\n` +
-            `• CPF deve ter 11 dígitos\n` +
-            `• Campos nome, cpf e data_nascimento são obrigatórios\n\n` +
-            `Clique em "Baixar Modelo CSV" para ver um exemplo correto.`
-        );
-      } else {
-        // ✅ IMPORTAÇÃO PARCIAL OU TOTAL
-        toast({
-          title: "Importação CSV concluída",
-          description: `${result.summary.successful} alunos importados com sucesso. ${totalFailures} falhas.`,
-          className:
-            result.summary.successful > 0 ? "bg-green-50 border-green-200" : "",
-        });
-      }
-
-      // Log detalhado no console para debug
-      console.log("📊 Resultado importação CSV:", result);
-
-      // Atualizar lista de alunos
-      fetchAlunos();
-
-      // Fechar dialog
-      setIsCsvDialogOpen(false);
-      setCsvFile(null);
-    } catch (error) {
-      console.error("❌ Erro na importação CSV:", error);
-      toast({
-        title: "Erro na importação",
-        description:
-          error.response?.data?.detail || "Erro interno na importação CSV",
-        variant: "destructive",
-      });
-    } finally {
-      setCsvImporting(false);
-    }
-  };
-
-  const handleDownloadModeloCsv = () => {
-    // 📥 DOWNLOAD MODELO CSV - Gerar arquivo de exemplo
-    const modeloData = [
-      ["nome", "cpf", "data_nascimento", "curso", "turma", "email", "telefone"],
-      [
-        "João da Silva",
-        "12345678901",
-        "2005-05-15",
-        user?.curso_nome || "Informática Básica",
-        "Turma A",
-        "joao@email.com",
-        "11999887766",
-      ],
-      [
-        "Maria Santos",
-        "98765432100",
-        "2006-08-20",
-        user?.curso_nome || "Informática Básica",
-        "Turma A",
-        "maria@email.com",
-        "11988776655",
-      ],
-      [
-        "Pedro Oliveira",
-        "45678912300",
-        "2007-12-10",
-        user?.curso_nome || "Informática Básica",
-        "Turma B",
-        "pedro@email.com",
-        "11977665544",
-      ],
-    ];
-
-    // Converter para CSV
-    const csvContent = modeloData.map((row) => row.join(",")).join("\n");
-
-    // Criar blob e download
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `modelo_alunos_${user?.curso_nome || "exemplo"}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    toast({
-      title: "Modelo CSV baixado",
-      description: "Use este arquivo como exemplo para importar seus alunos",
-      className: "bg-blue-50 border-blue-200",
-    });
-  };
-
   const handleFixCreatedBy = async () => {
     const confirmFix = window.confirm(
       "🔧 CORREÇÃO DE VÍNCULOS\n\n" +
@@ -3698,9 +3552,56 @@ const AlunosManager = () => {
     }
   };
 
-  if (loading) return <div>Carregando...</div>;
+  const handleDebugStudents = async (userId) => {
+    try {
+      const response = await axios.get(`${API}/debug/students/${userId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
-  const { user } = useAuth();
+      const debug = response.data;
+
+      // Mostrar informações detalhadas no console
+      console.log("🔍 DEBUG ALUNOS:", debug);
+
+      toast({
+        title: "Debug Executado",
+        description: `Encontrados: ${debug.totais.alunos_filtrados} alunos (ver console para detalhes)`,
+      });
+
+      // Criar uma janela popup com os detalhes
+      const details = `
+🔍 DEBUG ALUNOS - ${debug.usuario.nome} (${debug.usuario.tipo})
+
+TOTAIS:
+• Todos os alunos no sistema: ${debug.totais.todos_alunos}
+• Alunos criados por você: ${debug.totais.alunos_created_by}
+• Alunos ativos: ${debug.totais.alunos_ativos}
+• Alunos que você vê: ${debug.totais.alunos_filtrados}
+
+ALUNOS CRIADOS POR VOCÊ:
+${debug.alunos_created_by
+  .map((a) => `• ${a.nome} (CPF: ${a.cpf}) - Ativo: ${a.ativo ? "Sim" : "Não"}`)
+  .join("\n")}
+
+${
+  debug.alunos_created_by.length === 0
+    ? "⚠️ Nenhum aluno foi criado por você"
+    : ""
+}
+      `;
+
+      alert(details);
+    } catch (error) {
+      console.error("Erro no debug:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao executar debug",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) return <div>Carregando...</div>;
 
   return (
     <Card>
@@ -3730,6 +3631,19 @@ const AlunosManager = () => {
               </Button>
             )}
 
+            {/* Debug de Alunos - Apenas Admin */}
+            {user?.tipo === "admin" && (
+              <Button
+                onClick={() => handleDebugStudents(user.id)}
+                variant="outline"
+                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                title="Ver detalhes dos alunos que você deveria enxergar"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                Debug Alunos
+              </Button>
+            )}
+
             {/* Limpeza de Alunos Órfãos - Apenas Admin */}
             {user?.tipo === "admin" && (
               <Button
@@ -3740,104 +3654,6 @@ const AlunosManager = () => {
                 <Trash2 className="h-4 w-4 mr-2" />
                 Limpar Órfãos
               </Button>
-            )}
-
-            {/* Importação CSV - Disponível para Instrutor, Pedagogo e Admin */}
-            {["admin", "instrutor", "pedagogo"].includes(user?.tipo) && (
-              <Dialog open={isCsvDialogOpen} onOpenChange={setIsCsvDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="border-green-600 text-green-600 hover:bg-green-50"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Importar CSV
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>📑 Importar Alunos via CSV</DialogTitle>
-                    <DialogDescription>
-                      {user?.tipo === "admin"
-                        ? "Importe alunos de qualquer curso/unidade"
-                        : user?.tipo === "instrutor"
-                        ? "Importe alunos apenas do seu curso"
-                        : "Importe alunos da sua unidade"}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Arquivo CSV</Label>
-                      <Input
-                        type="file"
-                        accept=".csv"
-                        onChange={(e) => setCsvFile(e.target.files[0])}
-                      />
-                    </div>
-                    <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                      <div className="flex justify-between items-start mb-2">
-                        <p className="font-medium">📋 Formato esperado:</p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadModeloCsv}
-                          className="text-xs h-6 px-2"
-                        >
-                          <Download className="h-3 w-3 mr-1" />
-                          Baixar Modelo
-                        </Button>
-                      </div>
-                      <code className="text-xs block mb-2">
-                        nome,cpf,data_nascimento,curso,turma,email,telefone
-                      </code>
-                      <ul className="text-xs space-y-1">
-                        <li>
-                          • <strong>nome, cpf, data_nascimento</strong>:
-                          obrigatórios
-                        </li>
-                        <li>
-                          • <strong>curso</strong>: deve existir no sistema
-                        </li>
-                        <li>
-                          • <strong>turma, email, telefone</strong>: opcionais
-                        </li>
-                      </ul>
-                      <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                        <p className="font-medium text-yellow-800">
-                          💡 Dicas importantes:
-                        </p>
-                        <ul className="mt-1 space-y-0.5 text-yellow-700">
-                          <li>
-                            • Data no formato: YYYY-MM-DD (ex: 2005-03-15)
-                          </li>
-                          <li>• CPF apenas números (11 dígitos)</li>
-                          <li>
-                            • Curso deve existir exatamente como cadastrado
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsCsvDialogOpen(false);
-                          setCsvFile(null);
-                        }}
-                      >
-                        Cancelar
-                      </Button>
-                      <Button
-                        onClick={handleCsvImport}
-                        disabled={!csvFile || csvImporting}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        {csvImporting ? "Importando..." : "Importar"}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             )}
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

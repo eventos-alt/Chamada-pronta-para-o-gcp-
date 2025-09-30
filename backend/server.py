@@ -1178,6 +1178,66 @@ async def fix_alunos_created_by(current_user: UserResponse = Depends(get_current
             detail=f"Erro interno na migração: {str(e)}"
         )
 
+@api_router.get("/debug/students/{user_id}")
+async def debug_students_for_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """🔍 DEBUG: Verificar exatamente quais alunos um usuário deveria ver"""
+    
+    if current_user.tipo != "admin":
+        raise HTTPException(status_code=403, detail="Apenas admin pode usar debug")
+    
+    # Buscar o usuário
+    user = await db.usuarios.find_one({"id": user_id})
+    if not user:
+        return {"error": "Usuário não encontrado"}
+    
+    # Buscar TODOS os alunos
+    todos_alunos = await db.alunos.find({}).to_list(1000)
+    
+    # Filtrar por created_by
+    alunos_created_by = [a for a in todos_alunos if a.get("created_by") == user_id]
+    
+    # Filtrar por ativo=True
+    alunos_ativos = [a for a in todos_alunos if a.get("ativo") == True]
+    
+    # Filtrar por created_by E ativo
+    alunos_filtrados = [a for a in todos_alunos if a.get("created_by") == user_id and a.get("ativo") == True]
+    
+    return {
+        "usuario": {
+            "id": user["id"],
+            "nome": user["nome"],
+            "tipo": user["tipo"],
+            "curso_id": user.get("curso_id"),
+            "unidade_id": user.get("unidade_id")
+        },
+        "totais": {
+            "todos_alunos": len(todos_alunos),
+            "alunos_created_by": len(alunos_created_by),
+            "alunos_ativos": len(alunos_ativos),
+            "alunos_filtrados": len(alunos_filtrados)
+        },
+        "alunos_created_by": [
+            {
+                "id": a["id"],
+                "nome": a["nome"],
+                "cpf": a.get("cpf"),
+                "ativo": a.get("ativo"),
+                "created_by": a.get("created_by"),
+                "created_by_name": a.get("created_by_name")
+            } for a in alunos_created_by
+        ],
+        "alunos_filtrados": [
+            {
+                "id": a["id"],
+                "nome": a["nome"],
+                "cpf": a.get("cpf"),
+                "ativo": a.get("ativo"),
+                "created_by": a.get("created_by"),
+                "created_by_name": a.get("created_by_name")
+            } for a in alunos_filtrados
+        ]
+    }
+
 @api_router.post("/students/import-csv")
 async def import_students_csv(
     file: UploadFile = File(...), 
@@ -1369,6 +1429,7 @@ async def import_students_csv(
                 'turma_id': turma_id,
                 'status_turma': status_turma,
                 'status': 'ativo',
+                'ativo': True,  # ✅ CRÍTICO: Campo ativo para filtro
                 'created_by': current_user.id,  # ID do usuário que importou
                 'created_by_name': current_user.nome,  # Nome do usuário que importou
                 'created_by_type': current_user.tipo,  # Tipo do usuário que importou
