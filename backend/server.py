@@ -1121,8 +1121,24 @@ async def import_students_csv(
     
     # Ler conteúdo do arquivo
     contents = await file.read()
-    csv_content = contents.decode('utf-8')
-    csv_reader = csv.DictReader(io.StringIO(csv_content))
+    
+    # 🔧 CORREÇÃO: Detectar encoding e separador automaticamente
+    try:
+        # Tentar UTF-8 primeiro
+        csv_content = contents.decode('utf-8')
+    except UnicodeDecodeError:
+        try:
+            # Fallback para Windows-1252 (comum em arquivos Excel brasileiros)
+            csv_content = contents.decode('windows-1252')
+        except UnicodeDecodeError:
+            # Último recurso: ISO-8859-1
+            csv_content = contents.decode('iso-8859-1')
+    
+    # 🔧 CORREÇÃO: Detectar separador (vírgula ou ponto e vírgula)
+    delimiter = ',' if ',' in csv_content.split('\n')[0] else ';'
+    print(f"🔍 CSV Delimiter detectado: '{delimiter}'")
+    
+    csv_reader = csv.DictReader(io.StringIO(csv_content), delimiter=delimiter)
     
     # Validar campos obrigatórios no CSV
     required_fields = ['nome', 'cpf', 'data_nascimento', 'curso']
@@ -1154,18 +1170,42 @@ async def import_students_csv(
     
     for row_num, row in enumerate(csv_reader, start=2):  # Linha 2+ (header = linha 1)
         try:
+            # 🔧 LIMPEZA: Remover caracteres especiais (BOM, �, etc)
+            nome_limpo = row['nome'].strip().lstrip('\ufeff').lstrip('�').strip()
+            cpf_limpo = row['cpf'].strip().lstrip('\ufeff').lstrip('�').strip()
+            data_nascimento_limpa = row['data_nascimento'].strip().lstrip('\ufeff').lstrip('�').strip()
+            curso_limpo = row['curso'].strip().lstrip('\ufeff').lstrip('�').strip()
+            
+            print(f"🔍 Processando linha {row_num}:")
+            print(f"   Nome: '{nome_limpo}'")
+            print(f"   CPF: '{cpf_limpo}'")
+            print(f"   Data: '{data_nascimento_limpa}'")
+            print(f"   Curso: '{curso_limpo}'")
+            
             # Validar campos obrigatórios
-            if not row['nome'].strip() or not row['cpf'].strip() or not row['data_nascimento'].strip():
+            if not nome_limpo or not cpf_limpo or not data_nascimento_limpa:
                 results['errors'].append(f"Linha {row_num}: Campos obrigatórios em branco")
                 continue
             
-            # Validar se curso existe
-            curso_nome = row['curso'].strip()
-            if curso_nome not in cursos_dict:
-                results['errors'].append(f"Linha {row_num}: Curso '{curso_nome}' não encontrado")
+            # 🔧 CORREÇÃO: Converter data de dd/mm/yyyy para yyyy-mm-dd
+            try:
+                if '/' in data_nascimento_limpa:
+                    # Formato brasileiro: dd/mm/yyyy
+                    day, month, year = data_nascimento_limpa.split('/')
+                    data_nascimento_iso = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+                else:
+                    # Já está em formato ISO
+                    data_nascimento_iso = data_nascimento_limpa
+            except ValueError:
+                results['errors'].append(f"Linha {row_num}: Data de nascimento inválida: {data_nascimento_limpa}")
                 continue
             
-            curso = cursos_dict[curso_nome]
+            # Validar se curso existe
+            if curso_limpo not in cursos_dict:
+                results['errors'].append(f"Linha {row_num}: Curso '{curso_limpo}' não encontrado")
+                continue
+            
+            curso = cursos_dict[curso_limpo]
             
             # 🔒 VALIDAÇÃO POR TIPO DE USUÁRIO
             if current_user.tipo == "instrutor":
@@ -1187,9 +1227,9 @@ async def import_students_csv(
             # Admin: aceita qualquer curso (sem restrições)
             
             # Verificar duplicado (CPF já existe)
-            existing_aluno = await db.alunos.find_one({"cpf": row['cpf'].strip()})
+            existing_aluno = await db.alunos.find_one({"cpf": cpf_limpo})
             if existing_aluno:
-                results['duplicates'].append(f"Linha {row_num}: CPF {row['cpf']} já cadastrado")
+                results['duplicates'].append(f"Linha {row_num}: CPF {cpf_limpo} já cadastrado")
                 continue
             
             # 🎯 LÓGICA DE TURMA
@@ -1226,14 +1266,14 @@ async def import_students_csv(
             else:
                 results['warnings'].append(f"Linha {row_num}: Sem turma definida - aluno será marcado como 'não alocado'")
             
-            # Criar aluno
+            # Criar aluno com dados limpos
             aluno_data = {
                 'id': str(uuid.uuid4()),
-                'nome': row['nome'].strip(),
-                'cpf': row['cpf'].strip(),
-                'data_nascimento': row['data_nascimento'].strip(),
-                'email': row.get('email', '').strip(),
-                'telefone': row.get('telefone', '').strip(),
+                'nome': nome_limpo,
+                'cpf': cpf_limpo,
+                'data_nascimento': data_nascimento_iso,
+                'email': row.get('email', '').strip().lstrip('\ufeff').lstrip('�').strip(),
+                'telefone': row.get('telefone', '').strip().lstrip('\ufeff').lstrip('�').strip(),
                 'curso_id': curso['id'],
                 'turma_id': turma_id,
                 'status_turma': status_turma,
@@ -1244,7 +1284,7 @@ async def import_students_csv(
                 'created_at': datetime.now(timezone.utc).isoformat()
             }
             
-            print(f"🔍 CSV Import - Criando aluno: {row['nome']}")
+            print(f"🔍 CSV Import - Criando aluno: {nome_limpo}")
             print(f"   created_by: {aluno_data['created_by']}")
             print(f"   created_by_name: {aluno_data['created_by_name']}")
             
@@ -1258,7 +1298,7 @@ async def import_students_csv(
                     {"$addToSet": {"alunos_ids": aluno_data['id']}}
                 )
             
-            results['success'].append(f"Linha {row_num}: {row['nome']} cadastrado com sucesso")
+            results['success'].append(f"Linha {row_num}: {nome_limpo} cadastrado com sucesso")
             
         except Exception as e:
             results['errors'].append(f"Linha {row_num}: Erro interno - {str(e)}")
