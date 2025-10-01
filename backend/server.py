@@ -2762,18 +2762,26 @@ async def get_dynamic_teacher_stats(
 # TEACHER STATS ENDPOINT (MANTER COMPATIBILIDADE)
 @api_router.get("/teacher/stats")
 async def get_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
-    """Retorna estatísticas para professores/instrutores (compatibilidade)"""
-    if current_user.tipo not in ["instrutor", "admin"]:
-        raise HTTPException(status_code=403, detail="Acesso restrito a instrutores")
+    """Retorna estatísticas para professores/instrutores/monitores (compatibilidade)"""
+    if current_user.tipo not in ["instrutor", "admin", "monitor"]:
+        raise HTTPException(status_code=403, detail="Acesso restrito a instrutores e monitores")
     
-    # Count turmas do instrutor
-    turmas_count = await db.turmas.count_documents({
-        "instrutor_id": current_user.id,
-        "ativo": True
-    })
+    # Lógica adaptada para instrutor e monitor
+    if current_user.tipo == "instrutor":
+        # Instrutor: turmas que ele leciona
+        query_turmas = {"instrutor_id": current_user.id, "ativo": True}
+    elif current_user.tipo == "monitor":
+        # Monitor: turmas que ele monitora
+        query_turmas = {"monitor_id": current_user.id, "ativo": True}
+    else:
+        # Admin: todas as turmas (ou lógica específica se necessário)
+        query_turmas = {"ativo": True}
     
-    # Count alunos nas suas turmas
-    turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(100)
+    # Count turmas
+    turmas_count = await db.turmas.count_documents(query_turmas)
+    
+    # Count alunos nas turmas
+    turmas = await db.turmas.find(query_turmas).to_list(100)
     turma_ids = [turma["id"] for turma in turmas]
     
     total_alunos = 0
