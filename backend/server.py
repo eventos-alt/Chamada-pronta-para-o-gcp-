@@ -923,7 +923,7 @@ async def get_alunos(
             print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
         
         if aluno_ids:
-            query["id"] = {"$in": list(aluno_ids)}
+            query = {"id": {"$in": list(aluno_ids)}, "ativo": True}
             print(f"👨‍🏫 Instrutor vendo {len(aluno_ids)} alunos das suas turmas")
         else:
             print("👨‍🏫 Instrutor: nenhum aluno nas turmas lecionadas")
@@ -951,7 +951,7 @@ async def get_alunos(
             aluno_ids.update(turma.get("alunos_ids", []))
         
         if aluno_ids:
-            query["id"] = {"$in": list(aluno_ids)}
+            query = {"id": {"$in": list(aluno_ids)}, "ativo": True}
             print(f"📊 Pedagogo vendo {len(aluno_ids)} alunos da unidade {current_user.unidade_id}")
         else:
             print("📊 Pedagogo: nenhum aluno nas turmas da unidade")
@@ -975,7 +975,7 @@ async def get_alunos(
             print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
         
         if aluno_ids:
-            query["id"] = {"$in": list(aluno_ids)}
+            query = {"id": {"$in": list(aluno_ids)}, "ativo": True}
             print(f"👩‍💻 Monitor vendo {len(aluno_ids)} alunos das turmas monitoradas")
         else:
             print("👩‍💻 Monitor: nenhum aluno nas turmas monitoradas")
