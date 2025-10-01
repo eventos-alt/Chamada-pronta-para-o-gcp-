@@ -85,6 +85,9 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Configurar timeout global para axios
+axios.defaults.timeout = 10000; // 10 segundos
+
 // Authentication Context
 const AuthContext = React.createContext();
 
@@ -101,22 +104,48 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
+  // Timeout de segurança - nunca deixar loading indefinidamente
   useEffect(() => {
+    const failsafeTimeout = setTimeout(() => {
+      console.warn("⚠️ Timeout de segurança ativado - parando loading");
+      setLoading(false);
+    }, 15000); // 15 segundos
+
+    return () => clearTimeout(failsafeTimeout);
+  }, []);
+
+  useEffect(() => {
+    console.log("🚀 Inicializando autenticação...");
+    console.log("🔗 Backend URL:", BACKEND_URL);
+
+    if (!BACKEND_URL) {
+      console.error("❌ BACKEND_URL não configurado!");
+      setLoading(false);
+      return;
+    }
+
     if (token) {
+      console.log("🔑 Token encontrado, verificando usuário...");
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchCurrentUser();
     } else {
+      console.log("ℹ️ Sem token, direcionando para login");
       setLoading(false);
     }
   }, [token]);
 
   const fetchCurrentUser = async () => {
     try {
+      console.log("🔍 Verificando usuário atual...");
       const response = await axios.get(`${API}/auth/me`);
+      console.log("✅ Usuário carregado:", response.data.email);
       setUser(response.data);
     } catch (error) {
-      console.error("Error fetching user:", error);
-      logout();
+      console.error("❌ Erro ao buscar usuário:", error);
+      // Limpar dados inválidos e permitir novo login
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -4936,7 +4965,18 @@ function App() {
 const LoginRoute = () => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Carregando...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Carregando Sistema IOS...</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Se demorar muito, recarregue a página
+          </p>
+        </div>
+      </div>
+    );
   if (user) return <Navigate to="/" replace />;
 
   return <Login />;
@@ -4945,7 +4985,15 @@ const LoginRoute = () => {
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Carregando...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando autenticação...</p>
+        </div>
+      </div>
+    );
   if (!user) return <Navigate to="/login" replace />;
 
   return children;
