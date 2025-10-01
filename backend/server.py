@@ -321,7 +321,7 @@ class Turma(BaseModel):
     dias_semana: List[str] = []  # ["segunda", "terca", "quarta", "quinta", "sexta"]
     vagas_total: int = 30
     vagas_ocupadas: int = 0
-    ciclo: str  # "01/2025", "02/2025"
+    ciclo: Optional[str] = None  # "01/2025", "02/2025" - Opcional para compatibilidade
     ativo: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -338,7 +338,7 @@ class TurmaCreate(BaseModel):
     horario_fim: str
     dias_semana: List[str]
     vagas_total: int = 30
-    ciclo: str
+    ciclo: Optional[str] = None
 
 class TurmaUpdate(BaseModel):
     nome: Optional[str] = None
@@ -551,14 +551,9 @@ async def create_user(user_create: UserCreate, current_user: UserResponse = Depe
     user_obj = User(**user_dict)
     await db.usuarios.insert_one(user_obj.dict())
     
-    # Log da criação para auditoria
-    await log_admin_action(
-        admin_id=current_user.id,
-        action="create_user",
-        details=f"Criado usuário {user_create.tipo}: {user_create.nome} ({user_create.email})" + 
-                (f" - Unidade: {user_create.unidade_id}, Curso: {user_create.curso_id}" if user_create.tipo != "admin" else ""),
-        temp_password=temp_password
-    )
+    # Log da criação para auditoria (removido temporariamente - função não implementada)
+    # TODO: Implement log_admin_action function for audit trail
+    print(f"👤 Admin {current_user.email} criou usuário {user_create.tipo}: {user_create.nome} ({user_create.email})")
     
     response = UserResponse(**user_obj.dict())
     return response
@@ -895,26 +890,46 @@ async def get_alunos(
     print(f"   Curso ID: {current_user.curso_id}")
     print(f"   Unidade ID: {current_user.unidade_id}")
     
-    query = {"ativo": True}
-    if status:
-        query["status"] = status
-    
     # 👁️ FILTROS POR TIPO DE USUÁRIO - LÓGICA DETALHADA 29/09/2025
     if current_user.tipo == "admin":
-        # 👑 Admin: vê todos os alunos de todas as unidades, cursos e turmas
-        print("👑 Admin visualizando todos os alunos")
-        pass
-        
+        # 👑 Admin: vê TODOS os alunos (inclusive inativos para debug)
+        print("👑 Admin visualizando todos os alunos (ativos e inativos)")
+        query = {}
+        if status:
+            query["status"] = status
     elif current_user.tipo == "instrutor":
-        # 👨‍🏫 INSTRUTOR: VÊ TODOS OS ALUNOS QUE ELE CRIOU (independente de turma)
-        # LÓGICA SIMPLIFICADA: Instrutor cadastra → pode ver → depois enturma
+        # 👨‍🏫 INSTRUTOR: VÊ APENAS ALUNOS DAS TURMAS QUE ELE LECIONA
+        # NOVA LÓGICA: Similar ao pedagogo, mas filtrado por curso específico do instrutor
         
-        print(f"🔍 Buscando alunos criados pelo instrutor {current_user.email}")
+        if not current_user.curso_id or not current_user.unidade_id:
+            print("❌ Instrutor sem curso ou unidade definida")
+            return []
+            
+        # Buscar todas as turmas do curso específico do instrutor na sua unidade
+        turmas_instrutor = await db.turmas.find({
+            "curso_id": current_user.curso_id,
+            "unidade_id": current_user.unidade_id,
+            "instrutor_id": current_user.id,  # Apenas turmas que ele leciona
+            "ativo": True
+        }).to_list(1000)
         
-        # BUSCA SIMPLES: Apenas alunos criados por este instrutor
-        query["created_by"] = current_user.id
+        print(f"🔍 Instrutor {current_user.email} leciona {len(turmas_instrutor)} turmas")
         
-        # Contar para log
+        # Coletar IDs de todos os alunos das turmas do instrutor
+        aluno_ids = set()
+        for turma in turmas_instrutor:
+            turma_alunos = turma.get("alunos_ids", [])
+            aluno_ids.update(turma_alunos)
+            print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
+        
+        if aluno_ids:
+            query["id"] = {"$in": list(aluno_ids)}
+            print(f"👨‍🏫 Instrutor vendo {len(aluno_ids)} alunos das suas turmas")
+        else:
+            print("👨‍🏫 Instrutor: nenhum aluno nas turmas lecionadas")
+            return []
+            
+    elif current_user.tipo == "pedagogo":
         count = await db.alunos.count_documents(query)
         print(f"�‍🏫 Instrutor {current_user.email} vê {count} alunos que ele criou")
             
@@ -1178,6 +1193,58 @@ async def fix_alunos_created_by(current_user: UserResponse = Depends(get_current
             detail=f"Erro interno na migração: {str(e)}"
         )
 
+@api_router.post("/database/reset-all")
+async def reset_all_database(current_user: UserResponse = Depends(get_current_user)):
+    """🚨 RESET TOTAL: Apaga TODOS os alunos e turmas do banco
+    
+    ⚠️ CUIDADO: Esta operação não pode ser desfeita!
+    """
+    
+    # 🔒 VERIFICAÇÃO: Apenas admin pode executar
+    if current_user.tipo != "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="Apenas administradores podem resetar o banco"
+        )
+    
+    try:
+        # Contar antes da limpeza
+        alunos_count = await db.alunos.count_documents({})
+        turmas_count = await db.turmas.count_documents({})
+        chamadas_count = await db.chamadas.count_documents({})
+        
+        print(f"🚨 RESET TOTAL INICIADO por {current_user.email}")
+        print(f"   Alunos a serem removidos: {alunos_count}")
+        print(f"   Turmas a serem removidas: {turmas_count}")
+        print(f"   Chamadas a serem removidas: {chamadas_count}")
+        
+        # APAGAR TUDO
+        result_alunos = await db.alunos.delete_many({})
+        result_turmas = await db.turmas.delete_many({})
+        result_chamadas = await db.chamadas.delete_many({})
+        
+        print(f"✅ RESET CONCLUÍDO:")
+        print(f"   Alunos removidos: {result_alunos.deleted_count}")
+        print(f"   Turmas removidas: {result_turmas.deleted_count}")
+        print(f"   Chamadas removidas: {result_chamadas.deleted_count}")
+        
+        return {
+            "message": "🚨 BANCO RESETADO COMPLETAMENTE",
+            "removidos": {
+                "alunos": result_alunos.deleted_count,
+                "turmas": result_turmas.deleted_count,
+                "chamadas": result_chamadas.deleted_count
+            },
+            "status": "BANCO LIMPO - PRONTO PARA RECOMEÇAR"
+        }
+        
+    except Exception as e:
+        print(f"❌ Erro no reset: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro no reset do banco: {str(e)}"
+        )
+
 @api_router.get("/debug/students/{user_id}")
 async def debug_students_for_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
     """🔍 DEBUG: Verificar exatamente quais alunos um usuário deveria ver"""
@@ -1202,6 +1269,10 @@ async def debug_students_for_user(user_id: str, current_user: UserResponse = Dep
     # Filtrar por created_by E ativo
     alunos_filtrados = [a for a in todos_alunos if a.get("created_by") == user_id and a.get("ativo") == True]
     
+    # 🔍 ANÁLISE DETALHADA: Encontrar alunos com created_by diferente
+    alunos_outros_created_by = [a for a in todos_alunos if a.get("created_by") and a.get("created_by") != user_id]
+    alunos_sem_created_by = [a for a in todos_alunos if not a.get("created_by")]
+    
     return {
         "usuario": {
             "id": user["id"],
@@ -1214,7 +1285,9 @@ async def debug_students_for_user(user_id: str, current_user: UserResponse = Dep
             "todos_alunos": len(todos_alunos),
             "alunos_created_by": len(alunos_created_by),
             "alunos_ativos": len(alunos_ativos),
-            "alunos_filtrados": len(alunos_filtrados)
+            "alunos_filtrados": len(alunos_filtrados),
+            "alunos_sem_created_by": len(alunos_sem_created_by),
+            "alunos_outros_created_by": len(alunos_outros_created_by)
         },
         "alunos_created_by": [
             {
@@ -1235,6 +1308,26 @@ async def debug_students_for_user(user_id: str, current_user: UserResponse = Dep
                 "created_by": a.get("created_by"),
                 "created_by_name": a.get("created_by_name")
             } for a in alunos_filtrados
+        ],
+        "alunos_sem_created_by": [
+            {
+                "id": a["id"],
+                "nome": a["nome"],
+                "cpf": a.get("cpf"),
+                "ativo": a.get("ativo"),
+                "created_by": a.get("created_by"),
+                "created_by_name": a.get("created_by_name")
+            } for a in alunos_sem_created_by[:10]  # Máximo 10
+        ],
+        "alunos_outros_created_by": [
+            {
+                "id": a["id"],
+                "nome": a["nome"],
+                "cpf": a.get("cpf"),
+                "ativo": a.get("ativo"),
+                "created_by": a.get("created_by"),
+                "created_by_name": a.get("created_by_name")
+            } for a in alunos_outros_created_by[:10]  # Máximo 10
         ]
     }
 
@@ -1363,7 +1456,7 @@ async def import_students_csv(
                 # Instrutor: só aceita seu curso
                 if curso['id'] != current_user.curso_id:
                     results['unauthorized'].append(
-                        f"Linha {row_num}: Instrutor não pode importar alunos para curso '{curso_nome}'"
+                        f"Linha {row_num}: Instrutor não pode importar alunos para curso '{curso['nome']}'"
                     )
                     continue
                     
@@ -1516,7 +1609,27 @@ async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = D
 @api_router.get("/classes", response_model=List[Turma])
 async def get_turmas(current_user: UserResponse = Depends(get_current_user)):
     if current_user.tipo == "admin":
-        turmas = await db.turmas.find({"ativo": True}).to_list(1000)
+        turmas_raw = await db.turmas.find({"ativo": True}).to_list(1000)
+        # Processar turmas admin e garantir compatibilidade
+        result_turmas = []
+        for turma in turmas_raw:
+            try:
+                parsed_turma = parse_from_mongo(turma)
+                if 'ciclo' not in parsed_turma or parsed_turma['ciclo'] is None:
+                    parsed_turma['ciclo'] = None
+                turma_obj = Turma(**parsed_turma)
+                result_turmas.append(turma_obj)
+            except Exception as e:
+                print(f"⚠️ Admin - Erro ao processar turma {turma.get('id', 'SEM_ID')}: {e}")
+                parsed_turma = parse_from_mongo(turma)
+                parsed_turma['ciclo'] = None
+                try:
+                    turma_obj = Turma(**parsed_turma)
+                    result_turmas.append(turma_obj)
+                except Exception as e2:
+                    print(f"❌ Admin - Erro crítico turma {turma.get('id', 'SEM_ID')}: {e2}")
+                    continue
+        return result_turmas
     else:
         # Instrutor, pedagogo ou monitor vê turmas do seu curso e unidade
         query = {"ativo": True}
@@ -1538,7 +1651,29 @@ async def get_turmas(current_user: UserResponse = Depends(get_current_user)):
         
         turmas = await db.turmas.find(query).to_list(1000)
     
-    return [Turma(**parse_from_mongo(turma)) for turma in turmas]
+    # Processar turmas e garantir compatibilidade com dados antigos
+    result_turmas = []
+    for turma in turmas:
+        try:
+            parsed_turma = parse_from_mongo(turma)
+            # Garantir que campo ciclo existe (compatibilidade com dados antigos)
+            if 'ciclo' not in parsed_turma or parsed_turma['ciclo'] is None:
+                parsed_turma['ciclo'] = None
+            turma_obj = Turma(**parsed_turma)
+            result_turmas.append(turma_obj)
+        except Exception as e:
+            print(f"⚠️ Erro ao processar turma {turma.get('id', 'SEM_ID')}: {e}")
+            # Adicionar campos faltantes para compatibilidade
+            parsed_turma = parse_from_mongo(turma)
+            parsed_turma['ciclo'] = None  # Campo obrigatório faltante
+            try:
+                turma_obj = Turma(**parsed_turma)
+                result_turmas.append(turma_obj)
+            except Exception as e2:
+                print(f"❌ Erro crítico ao processar turma {turma.get('id', 'SEM_ID')}: {e2}")
+                continue
+    
+    return result_turmas
 
 @api_router.put("/classes/{turma_id}/students/{aluno_id}")
 async def add_aluno_to_turma(turma_id: str, aluno_id: str, current_user: UserResponse = Depends(get_current_user)):

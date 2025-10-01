@@ -3578,16 +3578,37 @@ TOTAIS:
 • Alunos criados por você: ${debug.totais.alunos_created_by}
 • Alunos ativos: ${debug.totais.alunos_ativos}
 • Alunos que você vê: ${debug.totais.alunos_filtrados}
+• Alunos SEM created_by: ${debug.totais.alunos_sem_created_by}
+• Alunos de OUTROS usuários: ${debug.totais.alunos_outros_created_by}
 
 ALUNOS CRIADOS POR VOCÊ:
-${debug.alunos_created_by
-  .map((a) => `• ${a.nome} (CPF: ${a.cpf}) - Ativo: ${a.ativo ? "Sim" : "Não"}`)
-  .join("\n")}
-
 ${
-  debug.alunos_created_by.length === 0
-    ? "⚠️ Nenhum aluno foi criado por você"
-    : ""
+  debug.alunos_created_by.length > 0
+    ? debug.alunos_created_by
+        .map(
+          (a) =>
+            `• ${a.nome} (CPF: ${a.cpf}) - Ativo: ${a.ativo ? "Sim" : "Não"}`
+        )
+        .join("\n")
+    : "⚠️ Nenhum aluno foi criado por você"
+}
+
+ALUNOS SEM CREATED_BY (órfãos):
+${
+  debug.alunos_sem_created_by?.length > 0
+    ? debug.alunos_sem_created_by
+        .map((a) => `• ${a.nome} (CPF: ${a.cpf})`)
+        .join("\n")
+    : "✅ Nenhum aluno órfão"
+}
+
+ALUNOS DE OUTROS USUÁRIOS:
+${
+  debug.alunos_outros_created_by?.length > 0
+    ? debug.alunos_outros_created_by
+        .map((a) => `• ${a.nome} → ${a.created_by_name || "Desconhecido"}`)
+        .join("\n")
+    : "✅ Nenhum aluno de outros usuários"
 }
       `;
 
@@ -3597,6 +3618,69 @@ ${
       toast({
         title: "Erro",
         description: "Erro ao executar debug",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetDatabase = async () => {
+    const confirmReset = window.confirm(
+      "🚨 ATENÇÃO: RESET TOTAL DO BANCO\n\n" +
+        "Esta operação irá APAGAR PERMANENTEMENTE:\n" +
+        "• TODOS os alunos cadastrados\n" +
+        "• TODAS as turmas criadas\n" +
+        "• TODAS as chamadas registradas\n\n" +
+        "⚠️ ESTA AÇÃO NÃO PODE SER DESFEITA!\n\n" +
+        "Tem certeza que deseja LIMPAR COMPLETAMENTE o banco?"
+    );
+
+    if (!confirmReset) return;
+
+    const confirmText = window.prompt(
+      "Para confirmar o RESET TOTAL, digite exatamente: CONFIRMO"
+    );
+
+    if (confirmText !== "CONFIRMO") {
+      toast({
+        title: "Reset cancelado",
+        description: "Texto de confirmação incorreto",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("🚨 Iniciando RESET TOTAL do banco...");
+
+      const response = await axios.post(`${API}/database/reset-all`);
+      const result = response.data;
+
+      console.log("✅ Reset concluído:", result);
+
+      alert(
+        `🚨 BANCO RESETADO COMPLETAMENTE\n\n` +
+          `Removidos:\n` +
+          `• ${result.removidos.alunos} alunos\n` +
+          `• ${result.removidos.turmas} turmas\n` +
+          `• ${result.removidos.chamadas} chamadas\n\n` +
+          `${result.status}\n\n` +
+          `O banco está limpo e pronto para recomeçar!`
+      );
+
+      // Recarregar dados
+      fetchAlunos();
+
+      toast({
+        title: "✅ Reset Concluído",
+        description: "Banco limpo - pronto para recomeçar",
+        className: "bg-green-50 border-green-200",
+      });
+    } catch (error) {
+      console.error("❌ Erro no reset:", error);
+      toast({
+        title: "Erro no Reset",
+        description:
+          error.response?.data?.detail || "Erro interno no reset do banco",
         variant: "destructive",
       });
     }
@@ -3642,6 +3726,19 @@ ${
               >
                 <Search className="h-4 w-4 mr-2" />
                 Debug Alunos
+              </Button>
+            )}
+
+            {/* RESET TOTAL DO BANCO - Apenas Admin */}
+            {user?.tipo === "admin" && (
+              <Button
+                onClick={handleResetDatabase}
+                variant="outline"
+                className="border-red-800 text-red-800 hover:bg-red-100"
+                title="🚨 APAGAR TODOS os alunos e turmas do banco"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                🚨 RESET TOTAL
               </Button>
             )}
 
