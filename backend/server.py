@@ -954,27 +954,33 @@ async def get_alunos(
             return []
             
     elif current_user.tipo == "monitor":
-        # 👩‍💻 MONITOR: VÊ APENAS ALUNOS DAS TURMAS QUE ELE MONITORA
-        # Buscar turmas onde este monitor está designado
-        turmas_monitor = await db.turmas.find({
-            "monitor_id": current_user.id,  # 🔒 ESPECÍFICO: Apenas turmas dele
+        # 👩‍💻 MONITOR: VÊ TODOS OS ALUNOS DA UNIDADE (igual ao pedagogo)
+        if not current_user.unidade_id:
+            print("❌ Monitor sem unidade definida")
+            return []
+            
+        # Buscar todas as turmas da unidade (igual lógica do pedagogo)
+        turmas_unidade = await db.turmas.find({
+            "unidade_id": current_user.unidade_id,
             "ativo": True
         }).to_list(1000)
         
-        print(f"🔍 Monitor {current_user.email} monitora {len(turmas_monitor)} turmas")
+        print(f"🔍 Monitor {current_user.email} da unidade {current_user.unidade_id}")
+        print(f"   Turmas na unidade: {len(turmas_unidade)}")
         
-        # Coletar IDs apenas dos alunos das turmas que ele monitora
+        # Coletar IDs de todos os alunos da unidade
         aluno_ids = set()
-        for turma in turmas_monitor:
+        for turma in turmas_unidade:
             turma_alunos = turma.get("alunos_ids", [])
             aluno_ids.update(turma_alunos)
-            print(f"   Turma '{turma['nome']}': {len(turma_alunos)} alunos")
+            nome_turma = turma.get("nome", "N/A")
+            print(f"   Turma '{nome_turma}': {len(turma_alunos)} alunos")
         
         if aluno_ids:
             query = {"id": {"$in": list(aluno_ids)}, "ativo": True}
-            print(f"👩‍💻 Monitor vendo {len(aluno_ids)} alunos das turmas monitoradas")
+            print(f"👩‍💻 Monitor vendo {len(aluno_ids)} alunos da unidade")
         else:
-            print("👩‍💻 Monitor: nenhum aluno nas turmas monitoradas")
+            print("👩‍💻 Monitor: nenhum aluno nas turmas da unidade")
             return []
     else:
         # Outros tipos de usuário não podem ver alunos
