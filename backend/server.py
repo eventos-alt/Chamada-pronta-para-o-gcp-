@@ -930,10 +930,6 @@ async def get_alunos(
             return []
             
     elif current_user.tipo == "pedagogo":
-        count = await db.alunos.count_documents(query)
-        print(f"�‍🏫 Instrutor {current_user.email} vê {count} alunos que ele criou")
-            
-    elif current_user.tipo == "pedagogo":
         # 📊 Pedagogo: vê todos os cursos da unidade
         if not current_user.unidade_id:
             print("❌ Pedagogo sem unidade definida")
