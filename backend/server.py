@@ -2337,27 +2337,39 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         }
     
     elif current_user.tipo == "instrutor":
-        # 👨‍🏫 INSTRUTOR: Apenas suas turmas
+        # 👨‍🏫 INSTRUTOR: Apenas suas turmas para estatísticas de chamada
         minhas_turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(1000)
         turmas_ids = [turma["id"] for turma in minhas_turmas]
         
-        # 🔄 CONTAR ALUNOS ÚNICOS (SEM DUPLICAÇÃO)
-        alunos_unicos = set()
-        for turma in minhas_turmas:
-            for aluno_id in turma.get("alunos_ids", []):
-                alunos_unicos.add(aluno_id)
-        
-        # Buscar status apenas dos alunos únicos
-        alunos_ativos = 0
-        alunos_desistentes = 0
-        
-        if alunos_unicos:
-            alunos_lista = await db.alunos.find({"id": {"$in": list(alunos_unicos)}}).to_list(1000)
-            for aluno in alunos_lista:
-                if aluno.get("status") == "ativo":
-                    alunos_ativos += 1
-                elif aluno.get("status") == "desistente":
-                    alunos_desistentes += 1
+        # � ALUNOS ATIVOS: TODOS DO CURSO (não apenas das turmas do instrutor)
+        if current_user.curso_id:
+            # Buscar TODAS as turmas do curso (não só do instrutor)
+            todas_turmas_curso = await db.turmas.find({
+                "curso_id": current_user.curso_id,
+                "ativo": True
+            }).to_list(1000)
+            
+            # Coletar IDs únicos de TODOS os alunos do curso
+            alunos_unicos_curso = set()
+            for turma in todas_turmas_curso:
+                for aluno_id in turma.get("alunos_ids", []):
+                    alunos_unicos_curso.add(aluno_id)
+            
+            # Contar status de TODOS os alunos do curso
+            alunos_ativos = 0
+            alunos_desistentes = 0
+            
+            if alunos_unicos_curso:
+                alunos_lista = await db.alunos.find({"id": {"$in": list(alunos_unicos_curso)}}).to_list(1000)
+                for aluno in alunos_lista:
+                    if aluno.get("status") == "ativo":
+                        alunos_ativos += 1
+                    elif aluno.get("status") == "desistente":
+                        alunos_desistentes += 1
+        else:
+            # Fallback se não tiver curso_id definido
+            alunos_ativos = 0
+            alunos_desistentes = 0
         
         # Chamadas do instrutor
         chamadas_hoje = await db.chamadas.count_documents({
