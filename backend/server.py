@@ -2341,21 +2341,23 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         minhas_turmas = await db.turmas.find({"instrutor_id": current_user.id, "ativo": True}).to_list(1000)
         turmas_ids = [turma["id"] for turma in minhas_turmas]
         
-        # Contar alunos únicos das suas turmas
+        # 🔄 CONTAR ALUNOS ÚNICOS (SEM DUPLICAÇÃO)
         alunos_unicos = set()
-        alunos_ativos = 0
-        alunos_desistentes = 0
-        
         for turma in minhas_turmas:
             for aluno_id in turma.get("alunos_ids", []):
                 alunos_unicos.add(aluno_id)
-                # Buscar status do aluno
-                aluno = await db.alunos.find_one({"id": aluno_id})
-                if aluno:
-                    if aluno.get("status") == "ativo":
-                        alunos_ativos += 1
-                    elif aluno.get("status") == "desistente":
-                        alunos_desistentes += 1
+        
+        # Buscar status apenas dos alunos únicos
+        alunos_ativos = 0
+        alunos_desistentes = 0
+        
+        if alunos_unicos:
+            alunos_lista = await db.alunos.find({"id": {"$in": list(alunos_unicos)}}).to_list(1000)
+            for aluno in alunos_lista:
+                if aluno.get("status") == "ativo":
+                    alunos_ativos += 1
+                elif aluno.get("status") == "desistente":
+                    alunos_desistentes += 1
         
         # Chamadas do instrutor
         chamadas_hoje = await db.chamadas.count_documents({
@@ -2413,20 +2415,23 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         turmas_permitidas = await db.turmas.find(query_turmas).to_list(1000)
         turmas_ids = [turma["id"] for turma in turmas_permitidas]
         
-        # Contar alunos únicos das turmas permitidas
+        # 🔄 CONTAR ALUNOS ÚNICOS (SEM DUPLICAÇÃO)
         alunos_unicos = set()
-        alunos_ativos = 0
-        alunos_desistentes = 0
-        
         for turma in turmas_permitidas:
             for aluno_id in turma.get("alunos_ids", []):
                 alunos_unicos.add(aluno_id)
-                aluno = await db.alunos.find_one({"id": aluno_id})
-                if aluno:
-                    if aluno.get("status") == "ativo":
-                        alunos_ativos += 1
-                    elif aluno.get("status") == "desistente":
-                        alunos_desistentes += 1
+        
+        # Buscar status apenas dos alunos únicos
+        alunos_ativos = 0
+        alunos_desistentes = 0
+        
+        if alunos_unicos:
+            alunos_lista = await db.alunos.find({"id": {"$in": list(alunos_unicos)}}).to_list(1000)
+            for aluno in alunos_lista:
+                if aluno.get("status") == "ativo":
+                    alunos_ativos += 1
+                elif aluno.get("status") == "desistente":
+                    alunos_desistentes += 1
         
         # Chamadas das turmas permitidas
         chamadas_hoje = await db.chamadas.count_documents({
