@@ -1869,7 +1869,12 @@ async def get_turma_students(turma_id: str, current_user: UserResponse = Depends
     if not aluno_ids:
         return []
     
-    alunos = await db.alunos.find({"id": {"$in": aluno_ids}, "ativo": True}).to_list(1000)
+    # 🚫 FILTRAR ALUNOS: Excluir desistentes da lista de chamada
+    alunos = await db.alunos.find({
+        "id": {"$in": aluno_ids}, 
+        "ativo": True,
+        "status": {"$ne": "desistente"}  # Excluir alunos desistentes
+    }).to_list(1000)
     
     # Clean up MongoDB-specific fields and parse dates
     result = []
@@ -1960,6 +1965,12 @@ async def create_desistente(desistente_create: DesistenteCreate, current_user: U
     await db.alunos.update_one(
         {"id": desistente_create.aluno_id},
         {"$set": {"status": "desistente"}}
+    )
+    
+    # 🔄 REMOVER ALUNO DAS TURMAS: Para não aparecer mais nas chamadas
+    await db.turmas.update_many(
+        {"alunos_ids": desistente_create.aluno_id},
+        {"$pull": {"alunos_ids": desistente_create.aluno_id}}
     )
     
     return desistente_obj
