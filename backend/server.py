@@ -2403,7 +2403,7 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         return {
             "total_unidades": 1,  # Sua unidade
             "total_cursos": 1,    # Seu curso
-            "total_alunos": len(alunos_unicos),
+            "total_alunos": alunos_ativos + alunos_desistentes,  # Total baseado nos status
             "total_turmas": len(minhas_turmas),
             "alunos_ativos": alunos_ativos,
             "alunos_desistentes": alunos_desistentes,
