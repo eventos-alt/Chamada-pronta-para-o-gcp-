@@ -2355,17 +2355,21 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
                 for aluno_id in turma.get("alunos_ids", []):
                     alunos_unicos_curso.add(aluno_id)
             
-            # Contar status de TODOS os alunos do curso
+            # 🎯 CONTAR APENAS ALUNOS DO CURSO (como sugerido)
             alunos_ativos = 0
             alunos_desistentes = 0
             
             if alunos_unicos_curso:
-                alunos_lista = await db.alunos.find({"id": {"$in": list(alunos_unicos_curso)}}).to_list(1000)
-                for aluno in alunos_lista:
-                    if aluno.get("status") == "ativo":
-                        alunos_ativos += 1
-                    elif aluno.get("status") == "desistente":
-                        alunos_desistentes += 1
+                # Buscar os alunos filtrando pelo status - APENAS do curso
+                alunos_ativos = await db.alunos.count_documents({
+                    "id": {"$in": list(alunos_unicos_curso)},
+                    "status": "ativo"
+                })
+                
+                alunos_desistentes = await db.alunos.count_documents({
+                    "id": {"$in": list(alunos_unicos_curso)},
+                    "status": "desistente"
+                })
         else:
             # Fallback se não tiver curso_id definido
             alunos_ativos = 0
