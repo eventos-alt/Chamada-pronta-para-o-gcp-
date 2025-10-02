@@ -2355,21 +2355,27 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
                 for aluno_id in turma.get("alunos_ids", []):
                     alunos_unicos_curso.add(aluno_id)
             
-            # 🎯 CONTAR APENAS ALUNOS DO CURSO (como sugerido)
+            # 🎯 CONTAR APENAS ALUNOS DO CURSO (alternativa por problema com $in)
             alunos_ativos = 0
             alunos_desistentes = 0
             
             if alunos_unicos_curso:
-                # Buscar os alunos filtrando pelo status - APENAS do curso
-                alunos_ativos = await db.alunos.count_documents({
-                    "id": {"$in": list(alunos_unicos_curso)},
-                    "status": "ativo"
-                })
+                # ALTERNATIVA: Usar aggregation pipeline para contornar problema $in
+                pipeline_ativos = [
+                    {"$match": {"id": {"$in": list(alunos_unicos_curso)}, "status": "ativo"}},
+                    {"$count": "total"}
+                ]
                 
-                alunos_desistentes = await db.alunos.count_documents({
-                    "id": {"$in": list(alunos_unicos_curso)},
-                    "status": "desistente"
-                })
+                pipeline_desistentes = [
+                    {"$match": {"id": {"$in": list(alunos_unicos_curso)}, "status": "desistente"}},
+                    {"$count": "total"}
+                ]
+                
+                result_ativos = await db.alunos.aggregate(pipeline_ativos).to_list(1)
+                result_desistentes = await db.alunos.aggregate(pipeline_desistentes).to_list(1)
+                
+                alunos_ativos = result_ativos[0]["total"] if result_ativos else 0
+                alunos_desistentes = result_desistentes[0]["total"] if result_desistentes else 0
         else:
             # Fallback se não tiver curso_id definido
             alunos_ativos = 0
