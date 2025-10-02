@@ -1909,6 +1909,46 @@ async def upload_atestado(file: UploadFile = File(...), current_user: UserRespon
 # DESISTENTES ROUTES
 @api_router.post("/dropouts", response_model=Desistente)
 async def create_desistente(desistente_create: DesistenteCreate, current_user: UserResponse = Depends(get_current_user)):
+    # 🔒 VALIDAÇÃO DE PERMISSÕES: Verificar se usuário pode registrar desistência deste aluno
+    if current_user.tipo not in ["admin", "instrutor", "pedagogo"]:
+        raise HTTPException(status_code=403, detail="Apenas admin, instrutor e pedagogo podem registrar desistências")
+    
+    # Verificar se o aluno existe
+    aluno = await db.alunos.find_one({"id": desistente_create.aluno_id})
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    
+    # Para não-admin: verificar se o aluno está nas turmas do usuário
+    if current_user.tipo != "admin":
+        # Buscar turmas que contêm este aluno
+        turmas_aluno = await db.turmas.find({
+            "alunos_ids": desistente_create.aluno_id,
+            "ativo": True
+        }).to_list(1000)
+        
+        # Verificar permissões baseadas no tipo de usuário
+        tem_permissao = False
+        
+        if current_user.tipo == "instrutor":
+            # Instrutor: pode registrar desistência de alunos das suas turmas
+            for turma in turmas_aluno:
+                if turma.get("instrutor_id") == current_user.id:
+                    tem_permissao = True
+                    break
+                    
+        elif current_user.tipo == "pedagogo":
+            # Pedagogo: pode registrar desistência de alunos da sua unidade
+            for turma in turmas_aluno:
+                if turma.get("unidade_id") == current_user.unidade_id:
+                    tem_permissao = True
+                    break
+        
+        if not tem_permissao:
+            raise HTTPException(
+                status_code=403, 
+                detail="Você só pode registrar desistência de alunos das suas turmas/unidade"
+            )
+    
     desistente_dict = prepare_for_mongo(desistente_create.dict())
     desistente_dict["registrado_por"] = current_user.id
     
