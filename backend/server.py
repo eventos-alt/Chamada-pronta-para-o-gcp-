@@ -371,7 +371,7 @@ class ChamadaCreate(BaseModel):
 class Desistente(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     aluno_id: str
-    turma_id: str
+    turma_id: Optional[str] = None  # Tornar opcional para permitir desistência sem turma específica
     data_desistencia: date
     motivo: str
     observacoes: Optional[str] = None
@@ -380,7 +380,7 @@ class Desistente(BaseModel):
 
 class DesistenteCreate(BaseModel):
     aluno_id: str
-    turma_id: str
+    turma_id: Optional[str] = None  # Tornar opcional para permitir desistência sem turma específica
     data_desistencia: date
     motivo: str
     observacoes: Optional[str] = None
