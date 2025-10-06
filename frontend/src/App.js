@@ -2956,7 +2956,7 @@ const TurmasManager = () => {
                   .filter(
                     (aluno) =>
                       !selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id) &&
-                      aluno.ativo
+                      aluno.status === "ativo"
                   )
                   .map((aluno) => (
                     <div
@@ -2986,8 +2986,14 @@ const TurmasManager = () => {
             <div>
               <h3 className="text-lg font-semibold mb-2">
                 Alunos na Turma (
-                {selectedTurmaForAlunos?.alunos_ids?.length || 0}/
-                {selectedTurmaForAlunos?.vagas_total || 0})
+                {
+                  alunos.filter(
+                    (aluno) =>
+                      selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id) &&
+                      aluno.status === "ativo"
+                  ).length
+                }
+                /{selectedTurmaForAlunos?.vagas_total || 0})
               </h3>
               <div className="max-h-40 overflow-y-auto border rounded p-2">
                 {alunos
@@ -2997,19 +3003,37 @@ const TurmasManager = () => {
                   .map((aluno) => (
                     <div
                       key={aluno.id}
-                      className="flex justify-between items-center p-2 hover:bg-gray-50 rounded"
+                      className={`flex justify-between items-center p-2 hover:bg-gray-50 rounded ${
+                        aluno.status === "desistente"
+                          ? "opacity-60 bg-red-50"
+                          : ""
+                      }`}
                     >
                       <div>
-                        <span className="font-medium">{aluno.nome}</span>
+                        <span
+                          className={`font-medium ${
+                            aluno.status === "desistente"
+                              ? "line-through text-red-600"
+                              : ""
+                          }`}
+                        >
+                          {aluno.nome}
+                        </span>
                         <span className="text-sm text-gray-500 ml-2">
                           {aluno.cpf}
                         </span>
+                        {aluno.status === "desistente" && (
+                          <span className="text-xs text-red-600 ml-2 font-semibold">
+                            (DESISTENTE)
+                          </span>
+                        )}
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleRemoveAlunoFromTurma(aluno.id)}
                         className="text-red-600 hover:text-red-700"
+                        disabled={aluno.status === "desistente"}
                       >
                         <Trash2 className="h-4 w-4 mr-1" />
                         Remover
@@ -3222,16 +3246,19 @@ const RelatoriosManager = () => {
           chamadas || []
         );
 
-        // Combinar dados do backend com cálculos locais precisos
+        // 🎯 USAR APENAS DADOS DO BACKEND para consistência
         const statsComPrecisao = {
           ...response.data,
-          taxa_media_presenca: estatisticasLocais.taxaMediaPresenca,
-          total_alunos: estatisticasLocais.totalAlunos,
-          alunos_em_risco: estatisticasLocais.alunosEmRisco,
-          desistentes: estatisticasLocais.desistentes,
+          // Manter alguns cálculos locais apenas para detalhes específicos
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           calculo_preciso: true,
+          // Usar contagens do backend (fonte única de verdade)
+          total_alunos:
+            response.data.total_alunos ||
+            response.data.alunos_ativos + response.data.alunos_desistentes,
+          alunos_ativos: response.data.alunos_ativos,
+          desistentes: response.data.alunos_desistentes,
         };
 
         setStats(statsComPrecisao);
@@ -3256,9 +3283,12 @@ const RelatoriosManager = () => {
 
         setStats({
           taxa_media_presenca: estatisticasLocais.taxaMediaPresenca,
-          total_alunos: estatisticasLocais.totalAlunos,
+          total_alunos: alunos.length, // Total de todos os alunos
+          alunos_ativos: alunos.filter((a) => a.status === "ativo").length,
+          alunos_desistentes: alunos.filter((a) => a.status === "desistente")
+            .length,
           alunos_em_risco: estatisticasLocais.alunosEmRisco,
-          desistentes: estatisticasLocais.desistentes,
+          desistentes: alunos.filter((a) => a.status === "desistente").length, // Consistência
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           modo_offline: true,
@@ -4959,14 +4989,16 @@ ${
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(aluno)}
-                        title="Editar aluno"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {aluno.status !== "desistente" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(aluno)}
+                          title="Editar aluno"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                       {aluno.status === "ativo" && (
                         <Button
                           variant="outline"
