@@ -2571,6 +2571,54 @@ async def fix_students_migration(current_user: UserResponse = Depends(get_curren
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na migração: {str(e)}")
 
+# 🔄 MIGRAÇÃO: Adicionar tipo_turma em turmas existentes
+async def migrate_turmas_tipo():
+    """Migração para adicionar campo tipo_turma em turmas existentes"""
+    try:
+        print("🔄 Iniciando migração de turmas...")
+        
+        # Buscar turmas sem o campo tipo_turma
+        turmas_sem_tipo = await db.turmas.find({"tipo_turma": {"$exists": False}}).to_list(1000)
+        
+        if not turmas_sem_tipo:
+            print("✅ Nenhuma migração necessária - todas as turmas já têm tipo_turma")
+            return
+        
+        print(f"🔄 Migrando {len(turmas_sem_tipo)} turmas...")
+        
+        for turma in turmas_sem_tipo:
+            # Buscar o responsável da turma
+            responsavel = await db.usuarios.find_one({"id": turma.get("instrutor_id")})
+            
+            # Determinar tipo baseado no responsável
+            if responsavel and responsavel.get("tipo") == "pedagogo":
+                tipo_turma = "extensao"
+            else:
+                tipo_turma = "regular"  # Default para instrutor ou admin
+            
+            # Atualizar turma
+            await db.turmas.update_one(
+                {"id": turma["id"]},
+                {"$set": {"tipo_turma": tipo_turma}}
+            )
+            
+            print(f"✅ Turma '{turma.get('nome', 'sem nome')}' → {tipo_turma}")
+        
+        print(f"✅ Migração concluída: {len(turmas_sem_tipo)} turmas atualizadas")
+        
+    except Exception as e:
+        print(f"❌ Erro na migração de turmas: {e}")
+
+# Endpoint manual para migração
+@api_router.post("/migrate/turmas-tipo")
+async def migrate_turmas_tipo_endpoint(current_user: UserResponse = Depends(get_current_user)):
+    """Endpoint manual para migração de tipo_turma"""
+    if current_user.tipo != "admin":
+        raise HTTPException(status_code=403, detail="Apenas admin pode executar migrações")
+    
+    await migrate_turmas_tipo()
+    return {"message": "Migração de tipo_turma executada com sucesso"}
+
 # INITIALIZE SYSTEM
 @api_router.post("/init")
 async def initialize_system():
@@ -2595,6 +2643,9 @@ async def initialize_system():
     
     # Create sample data for testing
     await create_sample_data()
+    
+    # 🔄 MIGRAÇÃO: Adicionar campo tipo_turma em turmas existentes
+    await migrate_turmas_tipo()
     
     return {"message": "Sistema inicializado com dados de teste"}
 
