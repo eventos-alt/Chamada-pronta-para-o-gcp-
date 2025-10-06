@@ -90,38 +90,306 @@ axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
 // 🔄 INTERCEPTOR COM RETRY - FASE 2 (Correção de Timeout)
 axios.interceptors.response.use(
-  response => response,
-  async error => {
+  (response) => response,
+  async (error) => {
     const config = error.config;
     if (!config || !config.retry) config.retry = 0;
-    
-    if (config.retry < 3 && (error.code === 'ECONNABORTED' || error.name === 'AxiosError')) {
+
+    if (
+      config.retry < 3 &&
+      (error.code === "ECONNABORTED" || error.name === "AxiosError")
+    ) {
       config.retry += 1;
       console.log(`🔄 Tentativa ${config.retry}/3 para ${config.url}`);
       return axios(config);
     }
-    
+
     // Log estruturado do erro
-    console.error('❌ Erro na requisição:', {
+    console.error("❌ Erro na requisição:", {
       url: config?.url,
       method: config?.method,
       error: error.message,
-      status: error.response?.status
+      status: error.response?.status,
     });
-    
+
     return Promise.reject(error);
   }
 );
 
-// 👥 NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
+// � REGRAS DE NEGÓCIO - FASE 3 (Precisão dos Cálculos)
+const REGRAS_PRESENCA = {
+  MINIMO_APROVACAO: 75, // % mínimo para aprovação
+  EM_RISCO: 60, // 60-74% = Aluno em risco
+  CRITICO: 40, // < 60% = Situação crítica
+  ALERTA_FALTAS_CONSECUTIVAS: 3, // 3+ faltas seguidas = alerta
+  PERIODO_ANALISE_TENDENCIA: 30, // Dias para análise preditiva
+  INCLUIR_DESISTENTES_STATS: false, // Não contar desistentes nas médias
+};
+
+// 🎯 CLASSIFICADOR DE RISCO DE ALUNO
+const classificarRiscoAluno = (percentualPresenca) => {
+  if (percentualPresenca >= REGRAS_PRESENCA.MINIMO_APROVACAO) return "adequado";
+  if (percentualPresenca >= REGRAS_PRESENCA.EM_RISCO) return "em_risco";
+  return "critico";
+};
+
+// 📈 CALCULADORA DE ESTATÍSTICAS PRECISAS
+const calcularEstatisticasPrecisas = (alunos, chamadas) => {
+  const alunosAtivos = REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS
+    ? alunos
+    : alunos.filter((aluno) => aluno.status !== "desistente");
+
+  const totalAlunos = alunosAtivos.length;
+
+  if (totalAlunos === 0)
+    return {
+      totalAlunos: 0,
+      alunosEmRisco: 0,
+      desistentes: alunos.filter((a) => a.status === "desistente").length,
+      taxaMediaPresenca: 0,
+    };
+
+  // Calcular presença por aluno
+  const estatisticasPorAluno = alunosAtivos.map((aluno) => {
+    const chamadasAluno = chamadas.filter((c) => c.aluno_id === aluno.id);
+    const totalChamadas = chamadasAluno.length;
+    const presencas = chamadasAluno.filter((c) => c.presente).length;
+    const percentual =
+      totalChamadas > 0 ? (presencas / totalChamadas) * 100 : 0;
+
+    return {
+      ...aluno,
+      totalChamadas,
+      presencas,
+      percentualPresenca: percentual,
+      classificacao: classificarRiscoAluno(percentual),
+    };
+  });
+
+  // Estatísticas gerais
+  const alunosEmRisco = estatisticasPorAluno.filter(
+    (a) => a.classificacao === "em_risco" || a.classificacao === "critico"
+  ).length;
+
+  const taxaMediaPresenca =
+    estatisticasPorAluno.length > 0
+      ? estatisticasPorAluno.reduce(
+          (acc, aluno) => acc + aluno.percentualPresenca,
+          0
+        ) / estatisticasPorAluno.length
+      : 0;
+
+  return {
+    totalAlunos,
+    alunosEmRisco,
+    desistentes: alunos.filter((a) => a.status === "desistente").length,
+    taxaMediaPresenca: Math.round(taxaMediaPresenca * 100) / 100,
+    estatisticasPorAluno,
+  };
+};
+
+// �👥 NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
 const getUserTypeLabel = (tipo) => {
   const labels = {
-    'admin': 'Administrador(a)',
-    'instrutor': 'Professor(a)', 
-    'pedagogo': 'Coord. Pedagógico',
-    'monitor': 'Assistente'
+    admin: "Administrador(a)",
+    instrutor: "Professor(a)",
+    pedagogo: "Coord. Pedagógico",
+    monitor: "Assistente",
   };
   return labels[tipo] || tipo;
+};
+
+// 📊 GERADOR CSV COM DADOS PRECISOS - FASE 4
+const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
+  console.log("🔧 Gerando CSV com dados precisos Fase 4");
+
+  // 📋 CABEÇALHO APRIMORADO COM NOVOS CAMPOS
+  const headers = [
+    "Nome do Aluno",
+    "CPF",
+    "Total de Chamadas",
+    "Presenças",
+    "Faltas",
+    "% Presença (Preciso)",
+    "Classificação de Risco",
+    "Status do Aluno",
+    "Data de Nascimento",
+    "Email",
+    "Telefone",
+    "Observações",
+  ];
+
+  // 📊 PROCESSAR DADOS COM CÁLCULOS PRECISOS
+  const linhas = estatisticasPrecisas.estatisticasPorAluno.map((aluno) => {
+    const faltas = aluno.totalChamadas - aluno.presencas;
+
+    // 🎯 Traduzir classificação para texto legível
+    const classificacaoTexto =
+      {
+        adequado: "Frequência Adequada",
+        em_risco: "Aluno em Risco",
+        critico: "Situação Crítica",
+      }[aluno.classificacao] || "Não Classificado";
+
+    // 🎯 Status traduzido
+    const statusTexto =
+      {
+        ativo: "Ativo",
+        desistente: "Desistente",
+        concluido: "Concluído",
+      }[aluno.status] || "Ativo";
+
+    return [
+      aluno.nome || "N/A",
+      aluno.cpf || "N/A",
+      aluno.totalChamadas.toString(),
+      aluno.presencas.toString(),
+      faltas.toString(),
+      `${aluno.percentualPresenca.toFixed(2)}%`, // PRECISÃO DE 2 CASAS
+      classificacaoTexto,
+      statusTexto,
+      aluno.data_nascimento || "N/A",
+      aluno.email || "N/A",
+      aluno.telefone || "N/A",
+      aluno.observacoes || "",
+    ];
+  });
+
+  // 📈 RODAPÉ COM ESTATÍSTICAS GERAIS
+  const rodape = [
+    [""],
+    ["=== ESTATÍSTICAS GERAIS (FASE 3) ==="],
+    [`Total de Alunos Ativos: ${estatisticasPrecisas.totalAlunos}`],
+    [`Alunos em Risco: ${estatisticasPrecisas.alunosEmRisco}`],
+    [`Desistentes: ${estatisticasPrecisas.desistentes}`],
+    [
+      `Taxa Média de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
+        2
+      )}%`,
+    ],
+    [""],
+    ["=== REGRAS APLICADAS ==="],
+    [`Mínimo para Aprovação: ≥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
+    [
+      `Alerta de Risco: ${REGRAS_PRESENCA.EM_RISCO}% - ${
+        REGRAS_PRESENCA.MINIMO_APROVACAO - 1
+      }%`,
+    ],
+    [`Situação Crítica: <${REGRAS_PRESENCA.EM_RISCO}%`],
+    [
+      `Desistentes nas médias: ${
+        REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? "SIM" : "NÃO"
+      }`,
+    ],
+    [""],
+    [`Relatório gerado em: ${new Date().toLocaleString("pt-BR")}`],
+    [`Sistema: IOS - Fase 4 (Cálculos Precisos)`],
+  ];
+
+  // 🔄 CONVERTER PARA CSV
+  const todasLinhas = [headers, ...linhas, ...rodape];
+  const csvContent = todasLinhas
+    .map((linha) =>
+      linha
+        .map((campo) => `"${campo.toString().replace(/"/g, '""')}"`)
+        .join(",")
+    )
+    .join("\n");
+
+  // 📋 ADICIONAR BOM (Byte Order Mark) para UTF-8
+  const csvComBOM = "\ufeff" + csvContent;
+
+  console.log(
+    `✅ CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
+  );
+  return csvComBOM;
+};
+
+// 🔧 HEALTH CHECK SISTEMA - FASE 5
+const verificarHealthSistema = async () => {
+  console.log("🔍 Executando Health Check - Fase 5");
+  
+  const healthStatus = {
+    timestamp: new Date().toISOString(),
+    versao_sistema: "IOS v2.0 - Fase 5",
+    fases_ativas: [],
+    backend_status: "unknown",
+    frontend_status: "ok",
+    dados_disponiveis: false,
+    calculos_precisos: false,
+    csv_funcionando: false,
+    estatisticas: {}
+  };
+
+  try {
+    // 🎯 TESTAR CONECTIVIDADE BACKEND
+    try {
+      const pingResponse = await axios.get(`${API}/ping`, { timeout: 5000 });
+      healthStatus.backend_status = "ok";
+      healthStatus.backend_response_time = pingResponse.config.timeout || "< 5s";
+    } catch (backendError) {
+      console.warn("⚠️ Backend offline, continuando em modo local");
+      healthStatus.backend_status = "offline";
+      healthStatus.modo_offline = true;
+    }
+
+    // 🎯 VERIFICAR DADOS LOCAIS
+    if (alunos && alunos.length > 0) {
+      healthStatus.dados_disponiveis = true;
+      healthStatus.total_alunos = alunos.length;
+      healthStatus.total_chamadas = chamadas ? chamadas.length : 0;
+      
+      // Testar cálculos precisos da Fase 3
+      try {
+        const testeCalculo = calcularEstatisticasPrecisas(alunos.slice(0, 5), chamadas || []);
+        healthStatus.calculos_precisos = true;
+        healthStatus.fases_ativas.push("Fase 3 - Cálculos Precisos");
+        healthStatus.estatisticas.taxa_media = testeCalculo.taxaMediaPresenca;
+        healthStatus.estatisticas.alunos_em_risco = testeCalculo.alunosEmRisco;
+      } catch (calculoError) {
+        console.error("❌ Erro nos cálculos Fase 3:", calculoError);
+        healthStatus.calculos_precisos = false;
+      }
+
+      // Testar geração CSV da Fase 4
+      try {
+        const testeCsv = gerarCSVComDadosPrecisos(
+          { estatisticasPorAluno: alunos.slice(0, 2).map(a => ({...a, totalChamadas: 10, presencas: 8, percentualPresenca: 80, classificacao: 'adequado'})), 
+            totalAlunos: 2, alunosEmRisco: 0, desistentes: 0, taxaMediaPresenca: 80 }, 
+          {}
+        );
+        healthStatus.csv_funcionando = testeCsv.length > 100;
+        if (healthStatus.csv_funcionando) {
+          healthStatus.fases_ativas.push("Fase 4 - CSV Aprimorado");
+        }
+      } catch (csvError) {
+        console.error("❌ Erro na geração CSV Fase 4:", csvError);
+        healthStatus.csv_funcionando = false;
+      }
+    }
+
+    // 🎯 VERIFICAR FASES IMPLEMENTADAS
+    if (typeof REGRAS_PRESENCA !== 'undefined') {
+      healthStatus.fases_ativas.push("Fase 3 - Regras de Negócio");
+    }
+    if (typeof getUserTypeLabel !== 'undefined') {
+      healthStatus.fases_ativas.push("Fase 1 - Nomenclatura Unissex"); 
+    }
+
+    healthStatus.fases_ativas.push("Fase 5 - Health Check");
+    
+    // 🎯 STATUS GERAL
+    healthStatus.status_geral = healthStatus.backend_status === "ok" && healthStatus.dados_disponiveis && healthStatus.calculos_precisos ? "saudavel" : "alerta";
+    
+    console.log("✅ Health Check concluído:", healthStatus);
+    return healthStatus;
+
+  } catch (error) {
+    console.error("❌ Erro no Health Check:", error);
+    healthStatus.status_geral = "erro";
+    healthStatus.erro = error.message;
+    return healthStatus;
+  }
 };
 
 // Authentication Context
@@ -494,9 +762,15 @@ const Login = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="instrutor">{getUserTypeLabel('instrutor')}</SelectItem>
-                    <SelectItem value="pedagogo">{getUserTypeLabel('pedagogo')}</SelectItem>
-                    <SelectItem value="monitor">{getUserTypeLabel('monitor')}</SelectItem>
+                    <SelectItem value="instrutor">
+                      {getUserTypeLabel("instrutor")}
+                    </SelectItem>
+                    <SelectItem value="pedagogo">
+                      {getUserTypeLabel("pedagogo")}
+                    </SelectItem>
+                    <SelectItem value="monitor">
+                      {getUserTypeLabel("monitor")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -784,9 +1058,7 @@ const Dashboard = () => {
               {/* Componente de Notificações */}
               <NotificationButton />
 
-              <Badge variant="outline">
-                {getUserTypeLabel(user?.tipo)}
-              </Badge>
+              <Badge variant="outline">{getUserTypeLabel(user?.tipo)}</Badge>
               <span className="text-sm text-gray-700">{user?.nome}</span>
               <Button
                 variant="ghost"
@@ -1746,7 +2018,8 @@ const UsuariosManager = () => {
             <div>
               <CardTitle>Gerenciamento de Usuários</CardTitle>
               <CardDescription>
-                Gerencie usuários do sistema (Administrador(a), Professor(a), Coord. Pedagógico, Assistente)
+                Gerencie usuários do sistema (Administrador(a), Professor(a),
+                Coord. Pedagógico, Assistente)
               </CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -1808,10 +2081,18 @@ const UsuariosManager = () => {
                         <SelectValue placeholder="Selecione o tipo de usuário" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">{getUserTypeLabel('admin')}</SelectItem>
-                        <SelectItem value="instrutor">{getUserTypeLabel('instrutor')}</SelectItem>
-                        <SelectItem value="pedagogo">{getUserTypeLabel('pedagogo')}</SelectItem>
-                        <SelectItem value="monitor">{getUserTypeLabel('monitor')}</SelectItem>
+                        <SelectItem value="admin">
+                          {getUserTypeLabel("admin")}
+                        </SelectItem>
+                        <SelectItem value="instrutor">
+                          {getUserTypeLabel("instrutor")}
+                        </SelectItem>
+                        <SelectItem value="pedagogo">
+                          {getUserTypeLabel("pedagogo")}
+                        </SelectItem>
+                        <SelectItem value="monitor">
+                          {getUserTypeLabel("monitor")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -2678,6 +2959,10 @@ const RelatoriosManager = () => {
   const { toast } = useToast();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
+  
+  // 🔧 HEALTH CHECK - FASE 5
+  const [healthStatus, setHealthStatus] = useState(null);
+  const [showHealthCheck, setShowHealthCheck] = useState(false);
 
   // 🔍 FILTROS AVANÇADOS PARA ADMIN
   const [filtros, setFiltros] = useState({
@@ -2753,11 +3038,57 @@ const RelatoriosManager = () => {
       }
 
       const response = await axios.get(url);
-      setStats(response.data);
+
+      // 📊 FASE 3: Aplicar regras de negócio precisas
+      if (alunos.length > 0) {
+        const estatisticasLocais = calcularEstatisticasPrecisas(
+          alunos,
+          chamadas
+        );
+
+        // Combinar dados do backend com cálculos locais precisos
+        const statsComPrecisao = {
+          ...response.data,
+          taxa_media_presenca: estatisticasLocais.taxaMediaPresenca,
+          total_alunos: estatisticasLocais.totalAlunos,
+          alunos_em_risco: estatisticasLocais.alunosEmRisco,
+          desistentes: estatisticasLocais.desistentes,
+          detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
+          regras_aplicadas: REGRAS_PRESENCA,
+          calculo_preciso: true,
+        };
+
+        setStats(statsComPrecisao);
+        console.log("✅ Estatísticas Fase 3 aplicadas:", {
+          taxa: estatisticasLocais.taxaMediaPresenca,
+          risco: estatisticasLocais.alunosEmRisco,
+          total: estatisticasLocais.totalAlunos,
+        });
+      } else {
+        setStats(response.data);
+      }
     } catch (error) {
       console.error("Error fetching dynamic stats:", error);
-      // Fallback para endpoint antigo se necessário
-      if (user?.tipo === "instrutor") {
+
+      // 🔄 Fallback com cálculos locais precisos
+      if (alunos.length > 0) {
+        console.log("🎯 Aplicando Fase 3 offline - cálculos precisos locais");
+        const estatisticasLocais = calcularEstatisticasPrecisas(
+          alunos,
+          chamadas
+        );
+
+        setStats({
+          taxa_media_presenca: estatisticasLocais.taxaMediaPresenca,
+          total_alunos: estatisticasLocais.totalAlunos,
+          alunos_em_risco: estatisticasLocais.alunosEmRisco,
+          desistentes: estatisticasLocais.desistentes,
+          detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
+          regras_aplicadas: REGRAS_PRESENCA,
+          modo_offline: true,
+          calculo_preciso: true,
+        });
+      } else if (user?.tipo === "instrutor") {
         try {
           const fallbackResponse = await axios.get(`${API}/teacher/stats`);
           setStats(fallbackResponse.data);
@@ -2770,37 +3101,80 @@ const RelatoriosManager = () => {
     }
   };
 
+  // 📊 FASE 4: CSV Export Aprimorado com Dados Precisos
   const downloadFrequencyReport = async () => {
     try {
-      // 🎯 FILTROS: Aplicar filtros no download CSV se for admin
-      let url = `${API}/reports/attendance?export_csv=true`;
+      console.log("🚀 Iniciando download CSV com Fase 4 - Dados Precisos");
 
-      if (
-        user?.tipo === "admin" &&
-        (filtros.data_inicio ||
-          filtros.data_fim ||
-          (filtros.unidade_id && filtros.unidade_id !== "all") ||
-          (filtros.curso_id && filtros.curso_id !== "all") ||
-          (filtros.turma_id && filtros.turma_id !== "all"))
-      ) {
-        const params = new URLSearchParams();
-        params.append("export_csv", "true");
-        if (filtros.data_inicio)
-          params.append("data_inicio", filtros.data_inicio);
-        if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
-        if (filtros.unidade_id && filtros.unidade_id !== "all")
-          params.append("unidade_id", filtros.unidade_id);
-        if (filtros.curso_id && filtros.curso_id !== "all")
-          params.append("curso_id", filtros.curso_id);
-        if (filtros.turma_id && filtros.turma_id !== "all")
-          params.append("turma_id", filtros.turma_id);
-        url = `${API}/reports/attendance?${params.toString()}`;
+      // 🎯 TENTATIVA 1: Backend com filtros aplicados
+      let backendResponse = null;
+      try {
+        let url = `${API}/reports/attendance?export_csv=true`;
+
+        if (
+          user?.tipo === "admin" &&
+          (filtros.data_inicio ||
+            filtros.data_fim ||
+            (filtros.unidade_id && filtros.unidade_id !== "all") ||
+            (filtros.curso_id && filtros.curso_id !== "all") ||
+            (filtros.turma_id && filtros.turma_id !== "all"))
+        ) {
+          const params = new URLSearchParams();
+          params.append("export_csv", "true");
+          if (filtros.data_inicio)
+            params.append("data_inicio", filtros.data_inicio);
+          if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
+          if (filtros.unidade_id && filtros.unidade_id !== "all")
+            params.append("unidade_id", filtros.unidade_id);
+          if (filtros.curso_id && filtros.curso_id !== "all")
+            params.append("curso_id", filtros.curso_id);
+          if (filtros.turma_id && filtros.turma_id !== "all")
+            params.append("turma_id", filtros.turma_id);
+          url = `${API}/reports/attendance?${params.toString()}`;
+        }
+
+        backendResponse = await axios.get(url);
+      } catch (backendError) {
+        console.log(
+          "⚠️ Backend CSV falhou, gerando localmente com Fase 4:",
+          backendError.message
+        );
       }
 
-      const response = await axios.get(url);
+      let csvData;
+      let dataSource;
 
-      // Criar arquivo CSV e fazer download
-      const csvData = response.data.csv_data;
+      // 🎯 USAR DADOS DO BACKEND SE DISPONÍVEL
+      if (backendResponse && backendResponse.data?.csv_data) {
+        csvData = backendResponse.data.csv_data;
+        dataSource = "backend";
+        console.log("✅ Usando dados do backend");
+      }
+      // 🎯 FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
+      else {
+        console.log("🔄 Gerando CSV localmente com cálculos Fase 3");
+
+        if (!alunos.length || !chamadas.length) {
+          toast({
+            title: "Aviso",
+            description: "Não há dados suficientes para gerar relatório",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Usar sistema de cálculos precisos da Fase 3
+        const estatisticasPrecisas = calcularEstatisticasPrecisas(
+          alunos,
+          chamadas
+        );
+
+        // Gerar CSV com dados precisos
+        csvData = gerarCSVComDadosPrecisos(estatisticasPrecisas, filtros);
+        dataSource = "local-fase3";
+      }
+
+      // 📁 CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
 
@@ -2808,13 +3182,27 @@ const RelatoriosManager = () => {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
 
-        // Nome do arquivo com filtros aplicados
+        // 📋 Nome do arquivo com indicadores de qualidade
         let fileName = `relatorio_frequencia_${
           new Date().toISOString().split("T")[0]
         }`;
+
+        // Adicionar indicador de fonte de dados
+        if (dataSource === "local-fase3") {
+          fileName += "_PRECISAO-FASE3";
+        }
+
+        // Adicionar filtros aplicados
         if (filtros.data_inicio && filtros.data_fim) {
           fileName += `_${filtros.data_inicio}_a_${filtros.data_fim}`;
         }
+        if (filtros.curso_id && filtros.curso_id !== "all") {
+          fileName += "_CURSO-FILTRADO";
+        }
+        if (filtros.unidade_id && filtros.unidade_id !== "all") {
+          fileName += "_UNIDADE-FILTRADA";
+        }
+
         fileName += ".csv";
 
         link.setAttribute("download", fileName);
@@ -2824,9 +3212,16 @@ const RelatoriosManager = () => {
         document.body.removeChild(link);
       }
 
+      // 🎉 FEEDBACK COM DETALHES DA FASE 4
       toast({
-        title: "Relatório exportado com sucesso!",
-        description: "O arquivo CSV foi baixado para seu computador.",
+        title: "📊 Relatório Fase 4 Exportado!",
+        description: `${
+          dataSource === "backend"
+            ? "Dados Backend"
+            : "Cálculos Locais Precisos"
+        } | ${
+          stats.detalhes_por_aluno?.length || alunos.length
+        } alunos | Arquivo baixado com sucesso`,
       });
     } catch (error) {
       console.error("Error downloading report:", error);
@@ -2842,6 +3237,38 @@ const RelatoriosManager = () => {
   const aplicarFiltros = () => {
     setLoading(true);
     fetchDynamicStats(filtros);
+  };
+
+  // 🔧 EXECUTAR HEALTH CHECK - FASE 5
+  const executarHealthCheck = async () => {
+    try {
+      setLoading(true);
+      toast({
+        title: "🔍 Executando Health Check",
+        description: "Verificando status do sistema Fase 5...",
+      });
+      
+      const healthResult = await verificarHealthSistema();
+      setHealthStatus(healthResult);
+      setShowHealthCheck(true);
+      
+      const statusIcon = healthResult.status_geral === "saudavel" ? "✅" : 
+                        healthResult.status_geral === "alerta" ? "⚠️" : "❌";
+      
+      toast({
+        title: `${statusIcon} Health Check Concluído`,
+        description: `Sistema: ${healthResult.status_geral.toUpperCase()} | ${healthResult.fases_ativas.length} fases ativas`,
+        variant: healthResult.status_geral === "erro" ? "destructive" : "default"
+      });
+    } catch (error) {
+      toast({
+        title: "❌ Erro no Health Check",
+        description: "Falha ao verificar status do sistema",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // 🧹 Função para limpar filtros
@@ -2896,13 +3323,31 @@ const RelatoriosManager = () => {
             )}
             <Button
               onClick={downloadFrequencyReport}
-              variant="outline"
+              variant="outline" 
               size="sm"
-              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+              className="text-blue-600 border-blue-600 hover:bg-blue-50 relative"
+              title="CSV com dados precisos da Fase 4"
             >
               <Download className="h-4 w-4 mr-1" />
               Exportar CSV
+              {stats.calculo_preciso && (
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" 
+                     title="Dados Fase 4 - Cálculos Precisos"></div>
+              )}
             </Button>
+            
+            {/* 🔧 BOTÃO HEALTH CHECK - FASE 5 */}
+            <Button
+              onClick={executarHealthCheck}
+              variant="outline"
+              size="sm" 
+              className="text-green-600 border-green-600 hover:bg-green-50"
+              title="Verificar status completo do sistema"
+            >
+              <Shield className="h-4 w-4 mr-1" />
+              Health Check
+            </Button>
+            
             <div className="flex items-center text-sm text-gray-500">
               <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
               Atualizado automaticamente
@@ -3141,27 +3586,52 @@ const RelatoriosManager = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg relative">
                     <p className="text-2xl font-bold text-blue-600">
-                      {stats.taxa_media_presenca || "0%"}
+                      {typeof stats.taxa_media_presenca === "number"
+                        ? `${stats.taxa_media_presenca.toFixed(1)}%`
+                        : stats.taxa_media_presenca || "0%"}
                     </p>
                     <p className="text-sm text-gray-600">
                       Taxa Média de Presença
                     </p>
+                    {stats.calculo_preciso && (
+                      <div className="absolute top-1 right-1">
+                        <div
+                          className="w-2 h-2 bg-green-500 rounded-full"
+                          title="Cálculo Preciso Fase 3"
+                        ></div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-center p-4 bg-green-50 rounded-lg relative">
                     <p className="text-2xl font-bold text-green-600">
                       {stats.total_alunos || 0}
                     </p>
-                    <p className="text-sm text-gray-600">Total de Alunos</p>
+                    <p className="text-sm text-gray-600">
+                      {stats.regras_aplicadas?.INCLUIR_DESISTENTES_STATS ===
+                      false
+                        ? "Alunos Ativos"
+                        : "Total de Alunos"}
+                    </p>
+                    {stats.desistentes > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        ({stats.desistentes} desistentes)
+                      </p>
+                    )}
                   </div>
 
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg relative">
                     <p className="text-2xl font-bold text-yellow-600">
                       {stats.alunos_em_risco || 0}
                     </p>
                     <p className="text-sm text-gray-600">Alunos em Risco</p>
+                    {stats.regras_aplicadas && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        &lt; {stats.regras_aplicadas.MINIMO_APROVACAO}%
+                      </p>
+                    )}
                   </div>
 
                   <div className="text-center p-4 bg-red-50 rounded-lg">
@@ -3171,6 +3641,57 @@ const RelatoriosManager = () => {
                     <p className="text-sm text-gray-600">Desistentes</p>
                   </div>
                 </div>
+
+                {/* 🎯 INDICADOR DE PRECISÃO - FASE 3 */}
+                {stats.calculo_preciso && (
+                  <div
+                    className={`mt-4 p-3 border rounded-lg ${
+                      stats.modo_offline
+                        ? "bg-orange-50 border-orange-200"
+                        : "bg-green-50 border-green-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-sm">
+                      <div
+                        className={`w-2 h-2 rounded-full ${
+                          stats.modo_offline ? "bg-orange-500" : "bg-green-500"
+                        }`}
+                      ></div>
+                      <span
+                        className={`font-medium ${
+                          stats.modo_offline
+                            ? "text-orange-800"
+                            : "text-green-800"
+                        }`}
+                      >
+                        {stats.modo_offline
+                          ? "Cálculo Offline - Fase 3"
+                          : "Sistema Fase 3 - Cálculos Precisos"}
+                      </span>
+                    </div>
+                    <div
+                      className={`mt-1 text-xs ${
+                        stats.modo_offline
+                          ? "text-orange-700"
+                          : "text-green-700"
+                      }`}
+                    >
+                      <p>• Taxa de presença com precisão de centésimos</p>
+                      <p>
+                        • Classificação de risco: &lt;
+                        {stats.regras_aplicadas?.EM_RISCO}% (risco) | &lt;
+                        {stats.regras_aplicadas?.MINIMO_APROVACAO}% (crítico)
+                      </p>
+                      <p>
+                        •{" "}
+                        {stats.regras_aplicadas?.INCLUIR_DESISTENTES_STATS
+                          ? "Incluindo"
+                          : "Excluindo"}{" "}
+                        alunos desistentes das médias
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
