@@ -2298,20 +2298,26 @@ const TurmasManager = () => {
   const fetchData = async () => {
     try {
       console.log("Fetching turmas data...");
-      const [turmasRes, unidadesRes, cursosRes, instrutoresRes, pedagogosRes, alunosRes] =
-        await Promise.all([
-          axios.get(`${API}/classes`),
-          axios.get(`${API}/units`),
-          axios.get(`${API}/courses`),
-          axios.get(`${API}/users?tipo=instrutor`),
-          axios.get(`${API}/users?tipo=pedagogo`),
-          axios.get(`${API}/students`),
-        ]);
+      const [
+        turmasRes,
+        unidadesRes,
+        cursosRes,
+        instrutoresRes,
+        pedagogosRes,
+        alunosRes,
+      ] = await Promise.all([
+        axios.get(`${API}/classes`),
+        axios.get(`${API}/units`),
+        axios.get(`${API}/courses`),
+        axios.get(`${API}/users?tipo=instrutor`),
+        axios.get(`${API}/users?tipo=pedagogo`),
+        axios.get(`${API}/students`),
+      ]);
 
       // ✅ COMBINAR INSTRUTORES E PEDAGOGOS para seleção de responsável
       const todosUsuarios = [
-        ...instrutoresRes.data.map(u => ({ ...u, tipo_label: 'Instrutor' })),
-        ...pedagogosRes.data.map(u => ({ ...u, tipo_label: 'Pedagogo' }))
+        ...instrutoresRes.data.map((u) => ({ ...u, tipo_label: "Instrutor" })),
+        ...pedagogosRes.data.map((u) => ({ ...u, tipo_label: "Pedagogo" })),
       ];
 
       console.log("Turmas:", turmasRes.data);
@@ -2856,7 +2862,13 @@ const TurmasManager = () => {
                 <TableRow key={turma.id}>
                   <TableCell className="font-medium">{turma.nome}</TableCell>
                   <TableCell>
-                    <Badge variant={turma.tipo_turma === "extensao" ? "destructive" : "default"}>
+                    <Badge
+                      variant={
+                        turma.tipo_turma === "extensao"
+                          ? "destructive"
+                          : "default"
+                      }
+                    >
                       {turma.tipo_turma === "extensao" ? "Extensão" : "Regular"}
                     </Badge>
                   </TableCell>
