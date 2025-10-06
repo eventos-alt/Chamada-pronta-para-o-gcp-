@@ -359,15 +359,13 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       try {
         const testeCsv = gerarCSVComDadosPrecisos(
           {
-            estatisticasPorAluno: alunosData
-              .slice(0, 2)
-              .map((a) => ({
-                ...a,
-                totalChamadas: 10,
-                presencas: 8,
-                percentualPresenca: 80,
-                classificacao: "adequado",
-              })),
+            estatisticasPorAluno: alunosData.slice(0, 2).map((a) => ({
+              ...a,
+              totalChamadas: 10,
+              presencas: 8,
+              percentualPresenca: 80,
+              classificacao: "adequado",
+            })),
             totalAlunos: 2,
             alunosEmRisco: 0,
             desistentes: 0,
@@ -2982,8 +2980,29 @@ const RelatoriosManager = () => {
   const [loading, setLoading] = useState(true);
 
   // � DADOS ESSENCIAIS PARA CÁLCULOS FASE 3
-  const [alunos, setAlunos] = useState([]);
-  const [chamadas, setChamadas] = useState([]);
+  const [alunos, setAlunos] = useState(() => {
+    try {
+      const cached = localStorage.getItem("ios_alunos_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [chamadas, setChamadas] = useState(() => {
+    try {
+      const cached = localStorage.getItem("ios_chamadas_cache");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // 📊 STATUS DE CONEXÃO COM MONGODB
+  const [dadosCarregando, setDadosCarregando] = useState(true);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState(() => {
+    return localStorage.getItem("ios_ultima_atualizacao") || null;
+  });
 
   // �🔧 HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
@@ -3020,37 +3039,69 @@ const RelatoriosManager = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // 📊 FUNÇÃO PARA CARREGAR DADOS BÁSICOS (ALUNOS E CHAMADAS)
+  // 📊 CONEXÃO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
+    console.log("🔍 Iniciando carregamento direto MongoDB via Render Backend");
+    setDadosCarregando(true);
+
     try {
-      console.log("🔍 Carregando dados básicos para Relatórios...");
-      
-      const [alunosRes, chamadasRes] = await Promise.all([
-        axios.get(`${API}/students`, { timeout: 45000 }),
-        axios.get(`${API}/attendance`, { timeout: 45000 })
+      // 🎯 REQUISIÇÕES DIRETAS PARA ENDPOINTS CORRETOS
+      const [alunosResponse, chamadasResponse] = await Promise.all([
+        axios.get(`${API}/students`, {
+          timeout: 60000,
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+          }
+        }),
+        axios.get(`${API}/attendance`, {
+          timeout: 60000,
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem("token")}`,
+          }
+        })
       ]);
 
-      // Garantir que sempre temos arrays válidos
-      const alunosData = Array.isArray(alunosRes.data) ? alunosRes.data : [];
-      const chamadasData = Array.isArray(chamadasRes.data) ? chamadasRes.data : [];
+      // ✅ DEFINIR DADOS SEMPRE (nunca undefined)
+      const alunosData = Array.isArray(alunosResponse.data) ? alunosResponse.data : [];
+      const chamadasData = Array.isArray(chamadasResponse.data) ? chamadasResponse.data : [];
 
       setAlunos(alunosData);
       setChamadas(chamadasData);
-
-      console.log(`✅ Dados básicos carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`);
+      
+      console.log(`✅ Dados carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`);
+      
+      toast({
+        title: "✅ Dados MongoDB Carregados",
+        description: `${alunosData.length} alunos e ${chamadasData.length} chamadas carregados`,
+        variant: "default",
+      });
 
     } catch (error) {
-      console.error("❌ Erro ao carregar dados básicos:", error);
+      console.error("❌ Erro ao carregar dados MongoDB:", error);
       
-      // Inicializar com arrays vazios para evitar ReferenceError
+      // 🎯 DIAGNÓSTICO DETALHADO
+      if (error.response?.status === 405) {
+        console.error("🚨 Erro 405: Método HTTP incorreto ou endpoint não existe");
+      } else if (error.response?.status === 401) {
+        console.error("🚨 Erro 401: Token inválido ou expirado - faça login novamente");
+      } else if (error.code === 'ECONNABORTED') {
+        console.error("🚨 Timeout: Backend Render demorou mais que 60s");
+      }
+      
+      // ⚠️ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
       setAlunos([]);
       setChamadas([]);
       
       toast({
-        title: "⚠️ Dados Básicos Indisponíveis",
-        description: "Usando modo offline. Alguns recursos podem estar limitados.",
-        variant: "destructive"
+        title: "❌ Erro ao Carregar Dados",
+        description: "Falha na conexão com MongoDB. Verifique se o backend está online.",
+        variant: "destructive",
       });
+    } finally {
+      setDadosCarregando(false);
+      setUltimaAtualizacao(new Date().toISOString());
     }
   };
 
