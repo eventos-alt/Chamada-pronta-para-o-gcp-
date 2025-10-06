@@ -1726,11 +1726,13 @@ async def cors_handler(request, call_next):
 #### **1. ReferenceError: alunos is not defined** ✅ **RESOLVIDO**
 
 **Sintomas:**
+
 - Dashboard completamente em branco
 - Console error: "ReferenceError: alunos is not defined"
 - Timeout de 60 segundos em requisições
 
 **Causa Raiz:**
+
 - Função `fetchDadosBasicos` estava com código duplicado e complexo
 - Estados `alunos` e `chamadas` não eram definidos corretamente
 - Lógica de fallback com múltiplos endpoints causava confusão
@@ -1757,43 +1759,47 @@ const fetchDadosBasicos = async () => {
       axios.get(`${API}/students`, {
         timeout: 60000,
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("token")}`,
-        }
+          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }),
       axios.get(`${API}/attendance`, {
         timeout: 60000,
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("token")}`,
-        }
-      })
+          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }),
     ]);
 
     // ✅ DEFINIR DADOS SEMPRE (nunca undefined)
-    const alunosData = Array.isArray(alunosResponse.data) ? alunosResponse.data : [];
-    const chamadasData = Array.isArray(chamadasResponse.data) ? chamadasResponse.data : [];
+    const alunosData = Array.isArray(alunosResponse.data)
+      ? alunosResponse.data
+      : [];
+    const chamadasData = Array.isArray(chamadasResponse.data)
+      ? chamadasResponse.data
+      : [];
 
     setAlunos(alunosData);
     setChamadas(chamadasData);
-    
+
     toast({
       title: "✅ Dados MongoDB Carregados",
       description: `${alunosData.length} alunos e ${chamadasData.length} chamadas carregados`,
     });
-
   } catch (error) {
     // 🎯 DIAGNÓSTICO DETALHADO DE ERROS
     if (error.response?.status === 405) {
-      console.error("🚨 Erro 405: Método HTTP incorreto ou endpoint não existe");
+      console.error(
+        "🚨 Erro 405: Método HTTP incorreto ou endpoint não existe"
+      );
     } else if (error.response?.status === 401) {
       console.error("🚨 Erro 401: Token inválido - faça login novamente");
     }
-    
+
     // ⚠️ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
     setAlunos([]);
     setChamadas([]);
-    
   } finally {
     setDadosCarregando(false);
     setUltimaAtualizacao(new Date().toISOString());
@@ -1804,6 +1810,7 @@ const fetchDadosBasicos = async () => {
 #### **2. Status 405 Method Not Allowed** ✅ **PREVENIDO**
 
 **Diagnóstico Implementado:**
+
 - Verificação específica de Status 405 nos logs
 - Headers corretos: `Authorization`, `Accept`, `Content-Type`
 - Timeout configurado para 60 segundos
@@ -1812,6 +1819,7 @@ const fetchDadosBasicos = async () => {
 #### **3. Código Duplicado e Complexo** ✅ **REMOVIDO**
 
 **Problemas Eliminados:**
+
 - Remoção de 200+ linhas de código redundante
 - Eliminação de lógica de fallback desnecessária
 - Remoção de dados mockados
@@ -1820,6 +1828,7 @@ const fetchDadosBasicos = async () => {
 ### 🚀 **ARQUITETURA FINAL IMPLEMENTADA**
 
 #### **Fluxo de Dados Direto:**
+
 ```
 Frontend (Vercel) → Backend (Render) → MongoDB (Atlas)
      ↑                    ↑                ↑
@@ -1830,11 +1839,13 @@ Frontend (Vercel) → Backend (Render) → MongoDB (Atlas)
 #### **Características da Nova Implementação:**
 
 **✅ Conexão Direta (sem cache):**
+
 - Dados sempre vêm do MongoDB via Render backend
 - Não usa cache local (conforme solicitado pelo usuário)
 - Promise.all para requisições paralelas
 
 **✅ Headers de Autenticação Corretos:**
+
 ```javascript
 headers: {
   'Accept': 'application/json',
@@ -1843,6 +1854,7 @@ headers: {
 ```
 
 **✅ Estados Sempre Definidos:**
+
 ```javascript
 // ✅ Nunca permite undefined que causava ReferenceError
 setAlunos(alunosResponse.data || []);
@@ -1854,6 +1866,7 @@ setChamadas([]);
 ```
 
 **✅ Diagnóstico de Erro Robusto:**
+
 - Status 405: Método HTTP incorreto ou endpoint inexistente
 - Status 401: Token JWT inválido ou expirado
 - ECONNABORTED: Timeout do backend (60s)
@@ -1862,6 +1875,7 @@ setChamadas([]);
 ### 📊 **MÉTRICAS DE SUCESSO**
 
 #### **Antes da Correção:**
+
 - ❌ Dashboard completamente em branco
 - ❌ ReferenceError: alunos is not defined
 - ❌ 200+ linhas de código complexo e redundante
@@ -1869,6 +1883,7 @@ setChamadas([]);
 - ❌ Estados undefined causando crashes
 
 #### **Após a Correção:**
+
 - ✅ Dashboard carrega normalmente
 - ✅ Estados sempre definidos (arrays vazios ou com dados)
 - ✅ Código limpo e direto (50 linhas vs 200+)
@@ -1883,6 +1898,7 @@ setChamadas([]);
 **Mensagem:** "REFACTOR: fetchDadosBasicos - conexão direta MongoDB sem cache"
 
 **Alterações:**
+
 - ✅ Remoção de código duplicado e complexo
 - ✅ Implementação de Promise.all simples
 - ✅ Headers Authorization corretos
@@ -1894,18 +1910,21 @@ setChamadas([]);
 ### 🔄 **STATUS ATUAL DO SISTEMA**
 
 #### **Frontend:**
+
 - ✅ Compilado com sucesso
 - ✅ Servidor local funcionando em `http://localhost:3000`
 - ✅ ReferenceError completamente resolvido
 - ✅ Dashboard carregando dados corretamente
 
 #### **Backend:**
+
 - ✅ Deploy no Render funcionando
 - ✅ CORS configurado para Vercel
 - ✅ Endpoints `/students` e `/attendance` operacionais
 - ✅ MongoDB Atlas conectado
 
 #### **Integração:**
+
 - ✅ Comunicação Frontend ↔ Backend ↔ MongoDB
 - ✅ Autenticação JWT funcionando
 - ✅ Dados carregados diretamente do banco (sem cache)
@@ -1931,7 +1950,7 @@ setChamadas([]);
 
 ```javascript
 // ❌ ERRO: Frontend tentando GET em endpoint inexistente
-axios.get(`${API}/attendance`) // → 405 Method Not Allowed
+axios.get(`${API}/attendance`); // → 405 Method Not Allowed
 
 // Erro no console:
 // "Request failed with status code 405"
@@ -1940,6 +1959,7 @@ axios.get(`${API}/attendance`) // → 405 Method Not Allowed
 ```
 
 **🎯 Causa Raiz:**
+
 - Backend FastAPI **NÃO TEM** `@api_router.get("/attendance")`
 - Backend tem apenas:
   - `@api_router.post("/attendance")` → Criar chamadas
@@ -1951,10 +1971,10 @@ axios.get(`${API}/attendance`) // → 405 Method Not Allowed
 
 ```javascript
 // ❌ ANTES: Endpoint inexistente
-axios.get(`${API}/attendance`)
+axios.get(`${API}/attendance`);
 
 // ✅ DEPOIS: Endpoint correto que existe no backend
-axios.get(`${API}/reports/attendance`)
+axios.get(`${API}/reports/attendance`);
 ```
 
 **📊 Correção no fetchDadosBasicos:**
@@ -1966,24 +1986,23 @@ const fetchDadosBasicos = async () => {
       axios.get(`${API}/students`, {
         timeout: 60000,
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("token")}`,
-        }
+          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       }),
       // ✅ CORRIGIDO: Usar endpoint que existe no backend
       axios.get(`${API}/reports/attendance`, {
         timeout: 60000,
         headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("token")}`,
-        }
-      })
+          Accept: "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }),
     ]);
 
     // ✅ Dados sempre definidos
     setAlunos(alunosResponse.data || []);
     setChamadas(chamadasResponse.data || []);
-
   } catch (error) {
     // ✅ Arrays vazios em caso de erro (nunca undefined)
     setAlunos([]);
@@ -1995,11 +2014,13 @@ const fetchDadosBasicos = async () => {
 #### **2. ReferenceError: alunos is not defined** ✅ **RESOLVIDO**
 
 **🔍 Problema:**
+
 - Dashboard completamente em branco
 - Console error: "ReferenceError: alunos is not defined"
 - Estados `alunos` e `chamadas` ficavam `undefined` após erro 405
 
 **✅ Solução:**
+
 - Estados sempre inicializados com arrays vazios
 - Tratamento robusto de erros
 - Nunca permitir `undefined` em estados críticos
@@ -2007,12 +2028,14 @@ const fetchDadosBasicos = async () => {
 #### **3. Código Duplicado e Complexo** ✅ **REFATORADO**
 
 **🔍 Problema:**
+
 - Função `fetchDadosBasicos` com 200+ linhas
 - Lógica de fallback desnecessariamente complexa
 - Múltiplos endpoints alternativos confusos
 - Cache local conflitando com requisição direta
 
 **✅ Solução:**
+
 - Refatoração completa para 50 linhas limpas
 - Promise.all simples e direto
 - Remoção de fallbacks desnecessários
@@ -2021,6 +2044,7 @@ const fetchDadosBasicos = async () => {
 ### 🎯 **ENDPOINTS BACKEND DOCUMENTADOS**
 
 #### **Chamadas/Attendance:**
+
 ```python
 # ✅ ENDPOINTS QUE EXISTEM:
 @api_router.post("/attendance")                     # Criar chamada
@@ -2032,6 +2056,7 @@ const fetchDadosBasicos = async () => {
 ```
 
 #### **Alunos/Students:**
+
 ```python
 # ✅ ENDPOINTS QUE EXISTEM:
 @api_router.get("/students")        # Listar alunos (USADO NO FRONTEND)
@@ -2043,11 +2068,13 @@ const fetchDadosBasicos = async () => {
 ### 📊 **COMMITS REALIZADOS**
 
 #### **Commit d59dacf:**
+
 - **Título**: "REFACTOR: fetchDadosBasicos - conexão direta MongoDB sem cache"
 - **Alterações**: 78 inserções, 27 remoções
 - **Foco**: Simplificação e limpeza de código
 
 #### **Commit 3baaf1f:**
+
 - **Título**: "FIX CRITICO: Endpoint attendance 405 corrigido"
 - **Alterações**: 202 inserções
 - **Foco**: Correção do endpoint de attendance
@@ -2055,6 +2082,7 @@ const fetchDadosBasicos = async () => {
 ### 🚀 **STATUS ATUAL DO SISTEMA**
 
 #### **✅ Funcionalidades Operacionais:**
+
 - Dashboard carregando dados do MongoDB
 - Estados sempre definidos (sem ReferenceError)
 - Conexão direta Frontend → Backend → MongoDB
@@ -2063,8 +2091,9 @@ const fetchDadosBasicos = async () => {
 - Autenticação JWT funcionando
 
 #### **✅ Arquitetura Validada:**
+
 ```
-Frontend (React/Vercel) 
+Frontend (React/Vercel)
     ↓ axios.get()
 Backend (FastAPI/Render)
     ↓ motor.motor_asyncio
@@ -2072,6 +2101,7 @@ MongoDB (Atlas)
 ```
 
 #### **✅ URLs de Produção:**
+
 - **Frontend**: https://sistema-ios-chamada.vercel.app
 - **Backend**: https://sistema-ios-backend.onrender.com
 - **Status**: Ambos online e comunicando corretamente

@@ -2287,6 +2287,7 @@ const TurmasManager = () => {
     dias_semana: [],
     vagas_total: 30,
     ciclo: "01/2025",
+    tipo_turma: "regular",
   });
   const { toast } = useToast();
 
@@ -2297,25 +2298,34 @@ const TurmasManager = () => {
   const fetchData = async () => {
     try {
       console.log("Fetching turmas data...");
-      const [turmasRes, unidadesRes, cursosRes, usuariosRes, alunosRes] =
+      const [turmasRes, unidadesRes, cursosRes, instrutoresRes, pedagogosRes, alunosRes] =
         await Promise.all([
           axios.get(`${API}/classes`),
           axios.get(`${API}/units`),
           axios.get(`${API}/courses`),
           axios.get(`${API}/users?tipo=instrutor`),
+          axios.get(`${API}/users?tipo=pedagogo`),
           axios.get(`${API}/students`),
         ]);
+
+      // ✅ COMBINAR INSTRUTORES E PEDAGOGOS para seleção de responsável
+      const todosUsuarios = [
+        ...instrutoresRes.data.map(u => ({ ...u, tipo_label: 'Instrutor' })),
+        ...pedagogosRes.data.map(u => ({ ...u, tipo_label: 'Pedagogo' }))
+      ];
 
       console.log("Turmas:", turmasRes.data);
       console.log("Unidades:", unidadesRes.data);
       console.log("Cursos:", cursosRes.data);
-      console.log("Usuarios:", usuariosRes.data);
+      console.log("Instrutores:", instrutoresRes.data);
+      console.log("Pedagogos:", pedagogosRes.data);
+      console.log("Todos Usuários:", todosUsuarios);
       console.log("Alunos:", alunosRes.data);
 
       setTurmas(turmasRes.data);
       setUnidades(unidadesRes.data);
       setCursos(cursosRes.data);
-      setUsuarios(usuariosRes.data);
+      setUsuarios(todosUsuarios); // ✅ Usar lista combinada
       setAlunos(alunosRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -2378,6 +2388,7 @@ const TurmasManager = () => {
       dias_semana: [],
       vagas_total: 30,
       ciclo: "01/2025",
+      tipo_turma: user?.tipo === "pedagogo" ? "extensao" : "regular",
     });
   };
 
@@ -2417,6 +2428,7 @@ const TurmasManager = () => {
       dias_semana: turma.dias_semana || [],
       vagas_total: turma.vagas_total,
       ciclo: turma.ciclo,
+      tipo_turma: turma.tipo_turma || "regular",
     });
     setIsDialogOpen(true);
   };
@@ -2677,9 +2689,9 @@ const TurmasManager = () => {
 
                 <div className="space-y-2">
                   <Label>
-                    Instrutor{" "}
+                    Responsável{" "}
                     {user?.tipo === "admin"
-                      ? `(${usuarios.length} disponíveis)`
+                      ? `(${usuarios.length} instrutores/pedagogos disponíveis)`
                       : "(Você)"}
                   </Label>
                   {user?.tipo === "admin" ? (
@@ -2690,12 +2702,12 @@ const TurmasManager = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o instrutor" />
+                        <SelectValue placeholder="Selecione o responsável" />
                       </SelectTrigger>
                       <SelectContent>
                         {usuarios.map((usuario) => (
                           <SelectItem key={usuario.id} value={usuario.id}>
-                            {usuario.nome}
+                            {usuario.nome} ({usuario.tipo_label})
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -2772,6 +2784,29 @@ const TurmasManager = () => {
                   </div>
                 </div>
 
+                {/* Campo Tipo de Turma */}
+                <div className="space-y-2">
+                  <Label>Tipo de Turma</Label>
+                  <Select
+                    value={formData.tipo_turma}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, tipo_turma: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="regular">
+                        Regular (Curso Técnico)
+                      </SelectItem>
+                      <SelectItem value="extensao">
+                        Extensão (Curso Livre)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="vagas_total">Vagas Total</Label>
                   <Input
@@ -2807,6 +2842,7 @@ const TurmasManager = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Ciclo</TableHead>
                 <TableHead>Período</TableHead>
                 <TableHead>Horário</TableHead>
@@ -2819,6 +2855,11 @@ const TurmasManager = () => {
               {turmas.map((turma) => (
                 <TableRow key={turma.id}>
                   <TableCell className="font-medium">{turma.nome}</TableCell>
+                  <TableCell>
+                    <Badge variant={turma.tipo_turma === "extensao" ? "destructive" : "default"}>
+                      {turma.tipo_turma === "extensao" ? "Extensão" : "Regular"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{turma.ciclo}</TableCell>
                   <TableCell>
                     {new Date(turma.data_inicio).toLocaleDateString()} -{" "}

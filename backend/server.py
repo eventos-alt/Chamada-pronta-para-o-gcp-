@@ -322,6 +322,7 @@ class Turma(BaseModel):
     vagas_total: int = 30
     vagas_ocupadas: int = 0
     ciclo: Optional[str] = None  # "01/2025", "02/2025" - Opcional para compatibilidade
+    tipo_turma: str = "regular"  # "regular" (instrutor) ou "extensao" (pedagogo)
     ativo: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -339,6 +340,7 @@ class TurmaCreate(BaseModel):
     dias_semana: List[str]
     vagas_total: int = 30
     ciclo: Optional[str] = None
+    tipo_turma: str = "regular"  # "regular" (instrutor) ou "extensao" (pedagogo)
 
 class TurmaUpdate(BaseModel):
     nome: Optional[str] = None
@@ -347,6 +349,7 @@ class TurmaUpdate(BaseModel):
     horario_inicio: Optional[str] = None
     horario_fim: Optional[str] = None
     dias_semana: Optional[List[str]] = None
+    tipo_turma: Optional[str] = None  # "regular" ou "extensao"
     vagas_total: Optional[int] = None
 
 class Chamada(BaseModel):
@@ -1568,11 +1571,21 @@ async def import_students_csv(
 async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = Depends(get_current_user)):
     # Admin pode criar qualquer turma
     if current_user.tipo == "admin":
-        # Validar se instrutor existe e está ativo
+        # Validar se responsável existe e está ativo
         if turma_create.instrutor_id:
-            instrutor = await db.usuarios.find_one({"id": turma_create.instrutor_id, "tipo": "instrutor", "status": "ativo"})
-            if not instrutor:
-                raise HTTPException(status_code=400, detail="Instrutor não encontrado ou inativo")
+            responsavel = await db.usuarios.find_one({
+                "id": turma_create.instrutor_id, 
+                "tipo": {"$in": ["instrutor", "pedagogo"]}, 
+                "status": "ativo"
+            })
+            if not responsavel:
+                raise HTTPException(status_code=400, detail="Responsável não encontrado ou inativo")
+            
+            # 🎯 DETERMINAR TIPO DE TURMA BASEADO NO RESPONSÁVEL
+            if responsavel["tipo"] == "pedagogo":
+                turma_create.tipo_turma = "extensao"
+            else:
+                turma_create.tipo_turma = "regular"
     
     # Instrutor só pode criar turmas do seu próprio curso e unidade
     elif current_user.tipo == "instrutor":
@@ -1588,9 +1601,26 @@ async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = D
         
         # Definir instrutor automaticamente
         turma_create.instrutor_id = current_user.id
+        turma_create.tipo_turma = "regular"  # Turma regular do instrutor
+    
+    # Pedagogo pode criar turmas de extensão
+    elif current_user.tipo == "pedagogo":
+        if not current_user.curso_id or not current_user.unidade_id:
+            raise HTTPException(status_code=400, detail="Pedagogo deve estar associado a um curso e unidade")
+        
+        # Validar se a turma é do curso e unidade do pedagogo
+        if turma_create.curso_id != current_user.curso_id:
+            raise HTTPException(status_code=403, detail="Pedagogo só pode criar turmas do seu curso")
+        
+        if turma_create.unidade_id != current_user.unidade_id:
+            raise HTTPException(status_code=403, detail="Pedagogo só pode criar turmas da sua unidade")
+        
+        # Definir pedagogo automaticamente
+        turma_create.instrutor_id = current_user.id
+        turma_create.tipo_turma = "extensao"  # Turma de extensão do pedagogo
     
     else:
-        raise HTTPException(status_code=403, detail="Apenas admins e instrutores podem criar turmas")
+        raise HTTPException(status_code=403, detail="Apenas admins, instrutores e pedagogos podem criar turmas")
     
     # Validar se curso e unidade existem
     curso = await db.cursos.find_one({"id": turma_create.curso_id})
@@ -2077,9 +2107,9 @@ async def get_attendance_report(
         
         # 📊 FORMATO CSV COMPLETO CONFORME ESPECIFICAÇÃO
         writer.writerow([
-            "Aluno", "CPF", "Matricula", "Turma", "Curso", "Data", 
+            "Aluno", "CPF", "Matricula", "Turma", "Tipo_Turma", "Curso", "Data", 
             "Hora_Inicio", "Hora_Fim", "Status", "Hora_Registro", 
-            "Professor", "Unidade", "Observacoes"
+            "Responsavel", "Tipo_Responsavel", "Unidade", "Observacoes"
         ])
         
         # Coletar dados completos para cada chamada
@@ -2096,8 +2126,8 @@ async def get_attendance_report(
                 # Buscar dados da unidade
                 unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
                 
-                # Buscar dados do instrutor
-                instrutor = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+                # Buscar dados do responsável (pode ser instrutor ou pedagogo)
+                responsavel = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
                 
                 # Dados da chamada
                 data_chamada = chamada.get("data", "")
@@ -2141,19 +2171,28 @@ async def get_attendance_report(
                             obs_final.append(f"Obs. turma: {observacoes_gerais}")
                         observacoes_texto = "; ".join(obs_final)
                         
+                        # 🎯 DETERMINAR TIPO DE TURMA E RESPONSÁVEL
+                        tipo_turma = turma.get("tipo_turma", "regular")
+                        tipo_turma_label = "Extensão" if tipo_turma == "extensao" else "Regular"
+                        
+                        tipo_responsavel = responsavel.get("tipo", "instrutor") if responsavel else "instrutor"
+                        tipo_responsavel_label = "Pedagogo" if tipo_responsavel == "pedagogo" else "Instrutor"
+                        
                         # Escrever linha do CSV
                         writer.writerow([
                             aluno.get("nome", ""),                          # Aluno
                             aluno.get("cpf", ""),                           # CPF
                             aluno.get("matricula", aluno.get("id", "")),    # Matricula (usa ID se não tiver)
                             turma.get("nome", ""),                          # Turma
+                            tipo_turma_label,                               # Tipo_Turma
                             curso.get("nome", "") if curso else "",         # Curso
                             data_chamada,                                   # Data
                             hora_inicio,                                    # Hora_Inicio
                             hora_fim,                                       # Hora_Fim
                             status,                                         # Status
                             hora_registro,                                  # Hora_Registro
-                            instrutor.get("nome", "") if instrutor else "", # Professor
+                            responsavel.get("nome", "") if responsavel else "", # Responsavel
+                            tipo_responsavel_label,                         # Tipo_Responsavel
                             unidade.get("nome", "") if unidade else "",     # Unidade
                             observacoes_texto                               # Observacoes
                         ])
