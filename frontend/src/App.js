@@ -297,13 +297,13 @@ const Login = () => {
       <Card className="w-full max-w-md shadow-xl border-purple-200">
         <CardHeader className="text-center">
           {/* Logo principal do sistema + nome */}
-          <div className="login-header mb-4">
-            <img 
-              src="/logo-sistema.jpg" 
-              alt="Logo do Sistema IOS" 
-              className="system-logo h-20 w-auto object-contain mx-auto mb-3"
+          <div className="login-header mb-6">
+            <img
+              src="/logo-sistema.jpg"
+              alt="Logo do Sistema IOS"
+              className="system-logo h-32 w-auto object-contain mx-auto mb-4 drop-shadow-lg"
             />
-            <h1 className="system-name text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+            <h1 className="system-name text-4xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
               IOS
             </h1>
           </div>
@@ -487,14 +487,16 @@ const Login = () => {
       </Card>
 
       {/* Card temporário da marca */}
-      <div className={`fixed bottom-5 left-5 flex items-center bg-black bg-opacity-75 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-800 z-50 ${
-        showBrandCard 
-          ? 'opacity-100 transform translate-y-0' 
-          : 'opacity-0 transform translate-y-3 pointer-events-none'
-      }`}>
-        <img 
-          src="/logo-amaros.svg" 
-          alt="Amaro's Developer Logo" 
+      <div
+        className={`fixed bottom-5 right-5 flex items-center bg-black bg-opacity-75 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-800 z-50 ${
+          showBrandCard
+            ? "opacity-100 transform translate-y-0"
+            : "opacity-0 transform translate-y-3 pointer-events-none"
+        }`}
+      >
+        <img
+          src="/logo-amaros.svg"
+          alt="Amaro's Developer Logo"
           className="h-7 mr-3"
         />
         <span className="text-sm font-normal tracking-wide">
