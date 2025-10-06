@@ -2151,17 +2151,11 @@ async def get_attendance_report(
                         justificativa = dados_presenca.get("justificativa", "")
                         hora_registro = dados_presenca.get("hora_registro", "")
                         
-                        # Status mais detalhado
+                        # Status simplificado: apenas Presente ou Ausente
                         if presente:
-                            if hora_registro and hora_registro > hora_inicio:
-                                status = "Atrasado"
-                            else:
-                                status = "Presente"
+                            status = "Presente"
                         else:
-                            if justificativa and ("atestado" in justificativa.lower() or "justificada" in justificativa.lower()):
-                                status = "Justificado"
-                            else:
-                                status = "Ausente"
+                            status = "Ausente"
                         
                         # Observações combinadas
                         obs_final = []
