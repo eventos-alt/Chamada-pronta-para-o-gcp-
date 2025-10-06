@@ -3821,7 +3821,7 @@ const RelatoriosManager = () => {
 
                   <div className="text-center p-4 bg-red-50 rounded-lg">
                     <p className="text-2xl font-bold text-red-600">
-                      {stats.desistentes || 0}
+                      {stats.alunos_desistentes || 0}
                     </p>
                     <p className="text-sm text-gray-600">Desistentes</p>
                   </div>
