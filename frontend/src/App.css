@@ -310,10 +310,10 @@ body {
 }
 
 /* 💎 Sistema de Login Premium - Amaro's Developer */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 .font-poppins {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 .system-logo {
@@ -321,13 +321,13 @@ body {
 }
 
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -336,8 +336,8 @@ body {
 }
 
 .system-name {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(90deg, #06b6d4, #0ea5e9);
+  font-family: "Poppins", sans-serif;
+  background: linear-gradient(90deg, #9333ea, #f97316);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
