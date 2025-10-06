@@ -181,7 +181,7 @@ const Login = () => {
           <div className="mx-auto mb-4 p-3 bg-blue-600 rounded-full w-16 h-16 flex items-center justify-center">
             <GraduationCap className="h-8 w-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">Sistema IOS</CardTitle>
+          <CardTitle className="text-2xl font-bold text-gray-900">ClassCheck</CardTitle>
           <CardDescription>Controle de Presença - Instituto da Oportunidade Social</CardDescription>
         </CardHeader>
         <CardContent>
@@ -331,7 +331,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">Sistema IOS</h1>
+              <h1 className="text-xl font-bold text-gray-900">ClassCheck</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Badge variant="outline">

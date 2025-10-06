@@ -281,10 +281,10 @@ const Login = () => {
             <GraduationCap className="h-8 w-8 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
-            Sistema IOS
+            ClassCheck
           </CardTitle>
           <CardDescription className="text-gray-600">
-            Controle de Presença - Instituto da Oportunidade Social
+            by Amaro's Developer - Sistema de Controle de Presença
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -700,7 +700,10 @@ const Dashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">Sistema IOS</h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">ClassCheck</h1>
+                <p className="text-xs text-gray-500">by Amaro's Developer</p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               {/* Componente de Notificações */}
@@ -987,6 +990,15 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+      
+      {/* Footer discreto */}
+      <footer className="mt-auto py-4 border-t bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-xs text-gray-400">
+            Desenvolvido por <span className="font-medium text-gray-600">Amaro's Developer</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
@@ -4970,7 +4982,7 @@ const LoginRoute = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando Sistema IOS...</p>
+          <p className="mt-4 text-gray-600">Carregando ClassCheck...</p>
           <p className="text-sm text-gray-400 mt-2">
             Se demorar muito, recarregue a página
           </p>
