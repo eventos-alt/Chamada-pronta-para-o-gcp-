@@ -86,7 +86,43 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Configurar timeout global para axios
-axios.defaults.timeout = 10000; // 10 segundos
+axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
+
+// 🔄 INTERCEPTOR COM RETRY - FASE 2 (Correção de Timeout)
+axios.interceptors.response.use(
+  response => response,
+  async error => {
+    const config = error.config;
+    if (!config || !config.retry) config.retry = 0;
+    
+    if (config.retry < 3 && (error.code === 'ECONNABORTED' || error.name === 'AxiosError')) {
+      config.retry += 1;
+      console.log(`🔄 Tentativa ${config.retry}/3 para ${config.url}`);
+      return axios(config);
+    }
+    
+    // Log estruturado do erro
+    console.error('❌ Erro na requisição:', {
+      url: config?.url,
+      method: config?.method,
+      error: error.message,
+      status: error.response?.status
+    });
+    
+    return Promise.reject(error);
+  }
+);
+
+// 👥 NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
+const getUserTypeLabel = (tipo) => {
+  const labels = {
+    'admin': 'Administrador(a)',
+    'instrutor': 'Professor(a)', 
+    'pedagogo': 'Coord. Pedagógico',
+    'monitor': 'Assistente'
+  };
+  return labels[tipo] || tipo;
+};
 
 // Authentication Context
 const AuthContext = React.createContext();
@@ -458,9 +494,9 @@ const Login = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="instrutor">Instrutor</SelectItem>
-                    <SelectItem value="pedagogo">Pedagogo</SelectItem>
-                    <SelectItem value="monitor">Monitor</SelectItem>
+                    <SelectItem value="instrutor">{getUserTypeLabel('instrutor')}</SelectItem>
+                    <SelectItem value="pedagogo">{getUserTypeLabel('pedagogo')}</SelectItem>
+                    <SelectItem value="monitor">{getUserTypeLabel('monitor')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -749,13 +785,7 @@ const Dashboard = () => {
               <NotificationButton />
 
               <Badge variant="outline">
-                {user?.tipo === "admin"
-                  ? "Administrador"
-                  : user?.tipo === "instrutor"
-                  ? "Instrutor"
-                  : user?.tipo === "pedagogo"
-                  ? "Pedagogo"
-                  : "Monitor"}
+                {getUserTypeLabel(user?.tipo)}
               </Badge>
               <span className="text-sm text-gray-700">{user?.nome}</span>
               <Button
@@ -1664,15 +1694,7 @@ const UsuariosManager = () => {
     setIsDialogOpen(true);
   };
 
-  const getTipoLabel = (tipo) => {
-    const tipos = {
-      admin: "Administrador",
-      instrutor: "Instrutor",
-      pedagogo: "Pedagogo",
-      monitor: "Monitor",
-    };
-    return tipos[tipo] || tipo;
-  };
+  // Função removida - usando getUserTypeLabel global com nomenclatura unissex
 
   if (loading) return <div>Carregando...</div>;
 
@@ -1700,7 +1722,7 @@ const UsuariosManager = () => {
                   <div>
                     <p className="font-medium">{user.nome}</p>
                     <p className="text-sm text-gray-500">
-                      {user.email} - {getTipoLabel(user.tipo)}
+                      {user.email} - {getUserTypeLabel(user.tipo)}
                     </p>
                   </div>
                   <Button
@@ -1724,8 +1746,7 @@ const UsuariosManager = () => {
             <div>
               <CardTitle>Gerenciamento de Usuários</CardTitle>
               <CardDescription>
-                Gerencie usuários do sistema (Admin Master, Instrutor, Pedagogo,
-                Monitor)
+                Gerencie usuários do sistema (Administrador(a), Professor(a), Coord. Pedagógico, Assistente)
               </CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -1787,10 +1808,10 @@ const UsuariosManager = () => {
                         <SelectValue placeholder="Selecione o tipo de usuário" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="instrutor">Instrutor</SelectItem>
-                        <SelectItem value="pedagogo">Pedagogo</SelectItem>
-                        <SelectItem value="monitor">Monitor</SelectItem>
+                        <SelectItem value="admin">{getUserTypeLabel('admin')}</SelectItem>
+                        <SelectItem value="instrutor">{getUserTypeLabel('instrutor')}</SelectItem>
+                        <SelectItem value="pedagogo">{getUserTypeLabel('pedagogo')}</SelectItem>
+                        <SelectItem value="monitor">{getUserTypeLabel('monitor')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1891,7 +1912,7 @@ const UsuariosManager = () => {
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {getTipoLabel(usuario.tipo)}
+                        {getUserTypeLabel(usuario.tipo)}
                       </Badge>
                     </TableCell>
                     <TableCell>{usuario.telefone || "-"}</TableCell>
