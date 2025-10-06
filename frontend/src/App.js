@@ -301,9 +301,9 @@ const Login = () => {
             <img
               src="/logo-sistema.jpg"
               alt="Logo do Sistema IOS"
-              className="system-logo h-32 w-auto object-contain mx-auto mb-4 drop-shadow-lg"
+              className="system-logo h-32 w-auto object-contain mx-auto mb-4 opacity-95 transition-all duration-700 ease-in-out animate-fade-in"
             />
-            <h1 className="system-name text-4xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+            <h1 className="system-name text-3xl font-semibold text-gray-900 text-center tracking-wide font-poppins bg-gradient-to-r from-cyan-500 to-blue-500 bg-clip-text text-transparent">
               IOS
             </h1>
           </div>
