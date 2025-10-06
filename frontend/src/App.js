@@ -294,20 +294,19 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4 relative">
-      {/* Logo principal do sistema */}
-      <div className="absolute top-10 left-1/2 transform -translate-x-1/2">
-        <img 
-          src="/logo-sistema.jpg" 
-          alt="Logo do Sistema ClassCheck" 
-          className="h-16 w-auto object-contain"
-        />
-      </div>
-
-      <Card className="w-full max-w-md shadow-xl border-purple-200 mt-20">
+      <Card className="w-full max-w-md shadow-xl border-purple-200">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
-            ClassCheck
-          </CardTitle>
+          {/* Logo principal do sistema + nome */}
+          <div className="login-header mb-4">
+            <img 
+              src="/logo-sistema.jpg" 
+              alt="Logo do Sistema IOS" 
+              className="system-logo h-20 w-auto object-contain mx-auto mb-3"
+            />
+            <h1 className="system-name text-3xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+              IOS
+            </h1>
+          </div>
           <CardDescription className="text-gray-600">
             Sistema de Controle de Presença
           </CardDescription>
