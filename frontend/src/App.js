@@ -306,9 +306,9 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
 };
 
 // 🔧 HEALTH CHECK SISTEMA - FASE 5
-const verificarHealthSistema = async () => {
+const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
   console.log("🔍 Executando Health Check - Fase 5");
-  
+
   const healthStatus = {
     timestamp: new Date().toISOString(),
     versao_sistema: "IOS v2.0 - Fase 5",
@@ -318,7 +318,7 @@ const verificarHealthSistema = async () => {
     dados_disponiveis: false,
     calculos_precisos: false,
     csv_funcionando: false,
-    estatisticas: {}
+    estatisticas: {},
   };
 
   try {
@@ -326,7 +326,8 @@ const verificarHealthSistema = async () => {
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 5000 });
       healthStatus.backend_status = "ok";
-      healthStatus.backend_response_time = pingResponse.config.timeout || "< 5s";
+      healthStatus.backend_response_time =
+        pingResponse.config.timeout || "< 5s";
     } catch (backendError) {
       console.warn("⚠️ Backend offline, continuando em modo local");
       healthStatus.backend_status = "offline";
@@ -334,14 +335,17 @@ const verificarHealthSistema = async () => {
     }
 
     // 🎯 VERIFICAR DADOS LOCAIS
-    if (alunos && alunos.length > 0) {
+    if (alunosData && alunosData.length > 0) {
       healthStatus.dados_disponiveis = true;
-      healthStatus.total_alunos = alunos.length;
-      healthStatus.total_chamadas = chamadas ? chamadas.length : 0;
-      
+      healthStatus.total_alunos = alunosData.length;
+      healthStatus.total_chamadas = chamadasData ? chamadasData.length : 0;
+
       // Testar cálculos precisos da Fase 3
       try {
-        const testeCalculo = calcularEstatisticasPrecisas(alunos.slice(0, 5), chamadas || []);
+        const testeCalculo = calcularEstatisticasPrecisas(
+          alunosData.slice(0, 5),
+          chamadasData || []
+        );
         healthStatus.calculos_precisos = true;
         healthStatus.fases_ativas.push("Fase 3 - Cálculos Precisos");
         healthStatus.estatisticas.taxa_media = testeCalculo.taxaMediaPresenca;
@@ -354,8 +358,21 @@ const verificarHealthSistema = async () => {
       // Testar geração CSV da Fase 4
       try {
         const testeCsv = gerarCSVComDadosPrecisos(
-          { estatisticasPorAluno: alunos.slice(0, 2).map(a => ({...a, totalChamadas: 10, presencas: 8, percentualPresenca: 80, classificacao: 'adequado'})), 
-            totalAlunos: 2, alunosEmRisco: 0, desistentes: 0, taxaMediaPresenca: 80 }, 
+          {
+            estatisticasPorAluno: alunosData
+              .slice(0, 2)
+              .map((a) => ({
+                ...a,
+                totalChamadas: 10,
+                presencas: 8,
+                percentualPresenca: 80,
+                classificacao: "adequado",
+              })),
+            totalAlunos: 2,
+            alunosEmRisco: 0,
+            desistentes: 0,
+            taxaMediaPresenca: 80,
+          },
           {}
         );
         healthStatus.csv_funcionando = testeCsv.length > 100;
@@ -369,21 +386,25 @@ const verificarHealthSistema = async () => {
     }
 
     // 🎯 VERIFICAR FASES IMPLEMENTADAS
-    if (typeof REGRAS_PRESENCA !== 'undefined') {
+    if (typeof REGRAS_PRESENCA !== "undefined") {
       healthStatus.fases_ativas.push("Fase 3 - Regras de Negócio");
     }
-    if (typeof getUserTypeLabel !== 'undefined') {
-      healthStatus.fases_ativas.push("Fase 1 - Nomenclatura Unissex"); 
+    if (typeof getUserTypeLabel !== "undefined") {
+      healthStatus.fases_ativas.push("Fase 1 - Nomenclatura Unissex");
     }
 
     healthStatus.fases_ativas.push("Fase 5 - Health Check");
-    
+
     // 🎯 STATUS GERAL
-    healthStatus.status_geral = healthStatus.backend_status === "ok" && healthStatus.dados_disponiveis && healthStatus.calculos_precisos ? "saudavel" : "alerta";
-    
+    healthStatus.status_geral =
+      healthStatus.backend_status === "ok" &&
+      healthStatus.dados_disponiveis &&
+      healthStatus.calculos_precisos
+        ? "saudavel"
+        : "alerta";
+
     console.log("✅ Health Check concluído:", healthStatus);
     return healthStatus;
-
   } catch (error) {
     console.error("❌ Erro no Health Check:", error);
     healthStatus.status_geral = "erro";
@@ -2959,8 +2980,12 @@ const RelatoriosManager = () => {
   const { toast } = useToast();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
-  
-  // 🔧 HEALTH CHECK - FASE 5
+
+  // � DADOS ESSENCIAIS PARA CÁLCULOS FASE 3
+  const [alunos, setAlunos] = useState([]);
+  const [chamadas, setChamadas] = useState([]);
+
+  // �🔧 HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
   const [showHealthCheck, setShowHealthCheck] = useState(false);
 
@@ -2980,6 +3005,8 @@ const RelatoriosManager = () => {
   const [turmas, setTurmas] = useState([]);
 
   useEffect(() => {
+    // 📊 CARREGAR DADOS ESSENCIAIS PRIMEIRO
+    fetchDadosBasicos();
     fetchDynamicStats();
 
     // Carregar dados para os filtros se for admin
@@ -2992,6 +3019,40 @@ const RelatoriosManager = () => {
 
     return () => clearInterval(interval);
   }, [user]);
+
+  // 📊 FUNÇÃO PARA CARREGAR DADOS BÁSICOS (ALUNOS E CHAMADAS)
+  const fetchDadosBasicos = async () => {
+    try {
+      console.log("🔍 Carregando dados básicos para Relatórios...");
+      
+      const [alunosRes, chamadasRes] = await Promise.all([
+        axios.get(`${API}/students`, { timeout: 45000 }),
+        axios.get(`${API}/attendance`, { timeout: 45000 })
+      ]);
+
+      // Garantir que sempre temos arrays válidos
+      const alunosData = Array.isArray(alunosRes.data) ? alunosRes.data : [];
+      const chamadasData = Array.isArray(chamadasRes.data) ? chamadasRes.data : [];
+
+      setAlunos(alunosData);
+      setChamadas(chamadasData);
+
+      console.log(`✅ Dados básicos carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`);
+
+    } catch (error) {
+      console.error("❌ Erro ao carregar dados básicos:", error);
+      
+      // Inicializar com arrays vazios para evitar ReferenceError
+      setAlunos([]);
+      setChamadas([]);
+      
+      toast({
+        title: "⚠️ Dados Básicos Indisponíveis",
+        description: "Usando modo offline. Alguns recursos podem estar limitados.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchFilterData = async () => {
     try {
@@ -3040,10 +3101,10 @@ const RelatoriosManager = () => {
       const response = await axios.get(url);
 
       // 📊 FASE 3: Aplicar regras de negócio precisas
-      if (alunos.length > 0) {
+      if (alunos && alunos.length > 0) {
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
-          chamadas
+          chamadas || []
         );
 
         // Combinar dados do backend com cálculos locais precisos
@@ -3071,11 +3132,11 @@ const RelatoriosManager = () => {
       console.error("Error fetching dynamic stats:", error);
 
       // 🔄 Fallback com cálculos locais precisos
-      if (alunos.length > 0) {
+      if (alunos && alunos.length > 0) {
         console.log("🎯 Aplicando Fase 3 offline - cálculos precisos locais");
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
-          chamadas
+          chamadas || []
         );
 
         setStats({
@@ -3154,10 +3215,10 @@ const RelatoriosManager = () => {
       else {
         console.log("🔄 Gerando CSV localmente com cálculos Fase 3");
 
-        if (!alunos.length || !chamadas.length) {
+        if (!alunos || !alunos.length) {
           toast({
-            title: "Aviso",
-            description: "Não há dados suficientes para gerar relatório",
+            title: "⚠️ Dados Indisponíveis",
+            description: "Aguarde o carregamento dos dados ou tente novamente",
             variant: "destructive",
           });
           return;
@@ -3247,24 +3308,31 @@ const RelatoriosManager = () => {
         title: "🔍 Executando Health Check",
         description: "Verificando status do sistema Fase 5...",
       });
-      
-      const healthResult = await verificarHealthSistema();
+
+      const healthResult = await verificarHealthSistema(alunos, chamadas);
       setHealthStatus(healthResult);
       setShowHealthCheck(true);
-      
-      const statusIcon = healthResult.status_geral === "saudavel" ? "✅" : 
-                        healthResult.status_geral === "alerta" ? "⚠️" : "❌";
-      
+
+      const statusIcon =
+        healthResult.status_geral === "saudavel"
+          ? "✅"
+          : healthResult.status_geral === "alerta"
+          ? "⚠️"
+          : "❌";
+
       toast({
         title: `${statusIcon} Health Check Concluído`,
-        description: `Sistema: ${healthResult.status_geral.toUpperCase()} | ${healthResult.fases_ativas.length} fases ativas`,
-        variant: healthResult.status_geral === "erro" ? "destructive" : "default"
+        description: `Sistema: ${healthResult.status_geral.toUpperCase()} | ${
+          healthResult.fases_ativas.length
+        } fases ativas`,
+        variant:
+          healthResult.status_geral === "erro" ? "destructive" : "default",
       });
     } catch (error) {
       toast({
         title: "❌ Erro no Health Check",
         description: "Falha ao verificar status do sistema",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -3323,7 +3391,7 @@ const RelatoriosManager = () => {
             )}
             <Button
               onClick={downloadFrequencyReport}
-              variant="outline" 
+              variant="outline"
               size="sm"
               className="text-blue-600 border-blue-600 hover:bg-blue-50 relative"
               title="CSV com dados precisos da Fase 4"
@@ -3331,23 +3399,25 @@ const RelatoriosManager = () => {
               <Download className="h-4 w-4 mr-1" />
               Exportar CSV
               {stats.calculo_preciso && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" 
-                     title="Dados Fase 4 - Cálculos Precisos"></div>
+                <div
+                  className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
+                  title="Dados Fase 4 - Cálculos Precisos"
+                ></div>
               )}
             </Button>
-            
+
             {/* 🔧 BOTÃO HEALTH CHECK - FASE 5 */}
             <Button
               onClick={executarHealthCheck}
               variant="outline"
-              size="sm" 
+              size="sm"
               className="text-green-600 border-green-600 hover:bg-green-50"
               title="Verificar status completo do sistema"
             >
               <Shield className="h-4 w-4 mr-1" />
               Health Check
             </Button>
-            
+
             <div className="flex items-center text-sm text-gray-500">
               <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
               Atualizado automaticamente
