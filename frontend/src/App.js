@@ -741,7 +741,7 @@ const Dashboard = () => {
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900">ClassCheck</h1>
+                <h1 className="text-xl font-bold text-gray-900">IOS</h1>
                 <p className="text-xs text-gray-500">by Amaro's Developer</p>
               </div>
             </div>
@@ -5023,7 +5023,7 @@ const LoginRoute = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando ClassCheck...</p>
+          <p className="mt-4 text-gray-600">Carregando IOS...</p>
           <p className="text-sm text-gray-400 mt-2">
             Se demorar muito, recarregue a página
           </p>
