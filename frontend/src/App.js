@@ -742,10 +742,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">IOS</h1>
-                <p className="text-xs text-gray-500">by Amaro's Developer</p>
-              </div>
+              <h1 className="text-xl font-bold text-gray-900">IOS</h1>
             </div>
             <div className="flex items-center space-x-4">
               {/* Componente de Notificações */}
