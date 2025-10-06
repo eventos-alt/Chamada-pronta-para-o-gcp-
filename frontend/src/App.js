@@ -186,6 +186,7 @@ const Login = () => {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [showBrandCard, setShowBrandCard] = useState(false);
   const [firstAccessData, setFirstAccessData] = useState({
     nome: "",
     email: "",
@@ -193,6 +194,24 @@ const Login = () => {
   });
   const { login } = useAuth();
   const { toast } = useToast();
+
+  // Animação do card temporal da marca
+  useEffect(() => {
+    // Mostrar o card após 500ms
+    const showTimer = setTimeout(() => {
+      setShowBrandCard(true);
+    }, 500);
+
+    // Esconder o card após 4 segundos
+    const hideTimer = setTimeout(() => {
+      setShowBrandCard(false);
+    }, 4500);
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -274,17 +293,23 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-xl border-purple-200">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4 relative">
+      {/* Logo principal do sistema */}
+      <div className="absolute top-10 left-1/2 transform -translate-x-1/2">
+        <img 
+          src="/logo-sistema.jpg" 
+          alt="Logo do Sistema ClassCheck" 
+          className="h-16 w-auto object-contain"
+        />
+      </div>
+
+      <Card className="w-full max-w-md shadow-xl border-purple-200 mt-20">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 bg-gradient-to-r from-purple-600 to-orange-500 rounded-full w-16 h-16 flex items-center justify-center shadow-lg">
-            <GraduationCap className="h-8 w-8 text-white" />
-          </div>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
             ClassCheck
           </CardTitle>
           <CardDescription className="text-gray-600">
-            by Amaro's Developer - Sistema de Controle de Presença
+            Sistema de Controle de Presença
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -461,6 +486,22 @@ const Login = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Card temporário da marca */}
+      <div className={`fixed bottom-5 left-5 flex items-center bg-black bg-opacity-75 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-800 z-50 ${
+        showBrandCard 
+          ? 'opacity-100 transform translate-y-0' 
+          : 'opacity-0 transform translate-y-3 pointer-events-none'
+      }`}>
+        <img 
+          src="/logo-amaros.svg" 
+          alt="Amaro's Developer Logo" 
+          className="h-7 mr-3"
+        />
+        <span className="text-sm font-normal tracking-wide">
+          by Amaro's Developer – Sistema de Controle de Presença
+        </span>
+      </div>
     </div>
   );
 };
@@ -990,12 +1031,13 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
-      
+
       {/* Footer discreto */}
       <footer className="mt-auto py-4 border-t bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-xs text-gray-400">
-            Desenvolvido por <span className="font-medium text-gray-600">Amaro's Developer</span>
+            Desenvolvido por{" "}
+            <span className="font-medium text-gray-600">Amaro's Developer</span>
           </div>
         </div>
       </footer>
