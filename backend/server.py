@@ -1812,6 +1812,105 @@ async def delete_turma(turma_id: str, current_user: UserResponse = Depends(get_c
         }
     }
 
+@api_router.put("/classes/{turma_id}", response_model=Turma)
+async def update_turma(turma_id: str, turma_update: TurmaUpdate, current_user: UserResponse = Depends(get_current_user)):
+    """✏️ ATUALIZAR TURMA - Admin, Instrutor (suas turmas) ou Pedagogo (suas turmas)"""
+    
+    # Verificar se turma existe
+    turma_existente = await db.turmas.find_one({"id": turma_id})
+    if not turma_existente:
+        raise HTTPException(status_code=404, detail="Turma não encontrada")
+    
+    # 🔒 VERIFICAÇÃO DE PERMISSÕES
+    if current_user.tipo == "instrutor":
+        # Instrutor só pode atualizar suas próprias turmas
+        if turma_existente["instrutor_id"] != current_user.id:
+            raise HTTPException(
+                status_code=403, 
+                detail="Você só pode atualizar suas próprias turmas"
+            )
+    elif current_user.tipo == "pedagogo":
+        # Pedagogo só pode atualizar turmas do seu curso/unidade
+        if (current_user.curso_id and turma_existente["curso_id"] != current_user.curso_id) or \
+           (current_user.unidade_id and turma_existente["unidade_id"] != current_user.unidade_id):
+            raise HTTPException(
+                status_code=403, 
+                detail="Você só pode atualizar turmas do seu curso/unidade"
+            )
+    elif current_user.tipo == "monitor":
+        # Monitor não pode atualizar turmas
+        raise HTTPException(
+            status_code=403, 
+            detail="Monitores não podem atualizar turmas"
+        )
+    # Admin pode atualizar qualquer turma (sem restrições)
+    
+    # 📝 PREPARAR DADOS PARA ATUALIZAÇÃO
+    update_data = {}
+    
+    # Campos que podem ser atualizados diretamente
+    for field in ["nome", "data_inicio", "data_fim", "horario_inicio", "horario_fim", "dias_semana", "tipo_turma", "vagas_total"]:
+        value = getattr(turma_update, field)
+        if value is not None:
+            if field in ["data_inicio", "data_fim"] and isinstance(value, date):
+                update_data[field] = value.isoformat()
+            else:
+                update_data[field] = value
+    
+    # Se não há nada para atualizar
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nenhum campo válido fornecido para atualização")
+    
+    # 📅 VALIDAÇÃO DE DATAS
+    if "data_inicio" in update_data and "data_fim" in update_data:
+        data_inicio = datetime.fromisoformat(update_data["data_inicio"]).date()
+        data_fim = datetime.fromisoformat(update_data["data_fim"]).date()
+        if data_inicio >= data_fim:
+            raise HTTPException(status_code=400, detail="Data de início deve ser anterior à data de fim")
+    
+    # 🕒 VALIDAÇÃO DE HORÁRIOS
+    if "horario_inicio" in update_data and "horario_fim" in update_data:
+        try:
+            h_inicio = datetime.strptime(update_data["horario_inicio"], "%H:%M").time()
+            h_fim = datetime.strptime(update_data["horario_fim"], "%H:%M").time()
+            if h_inicio >= h_fim:
+                raise HTTPException(status_code=400, detail="Horário de início deve ser anterior ao horário de fim")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de horário inválido. Use HH:MM")
+    
+    # ✅ EXECUTAR ATUALIZAÇÃO
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.turmas.update_one(
+        {"id": turma_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count == 0:
+        # Verificar se realmente não houve mudanças ou se foi erro
+        turma_verificacao = await db.turmas.find_one({"id": turma_id})
+        if not turma_verificacao:
+            raise HTTPException(status_code=404, detail="Turma não encontrada")
+        # Se chegou aqui, provavelmente não houve mudanças (valores iguais)
+    
+    # 📊 BUSCAR TURMA ATUALIZADA
+    turma_atualizada = await db.turmas.find_one({"id": turma_id})
+    
+    # Buscar informações complementares (curso, unidade, instrutor)
+    curso = await db.cursos.find_one({"id": turma_atualizada["curso_id"]})
+    unidade = await db.unidades.find_one({"id": turma_atualizada["unidade_id"]})
+    instrutor = await db.usuarios.find_one({"id": turma_atualizada["instrutor_id"]})
+    
+    # Preparar dados para resposta
+    turma_atualizada["curso_nome"] = curso["nome"] if curso else "Curso não encontrado"
+    turma_atualizada["unidade_nome"] = unidade["nome"] if unidade else "Unidade não encontrada"
+    turma_atualizada["instrutor_nome"] = instrutor["nome"] if instrutor else "Instrutor não encontrado"
+    
+    print(f"✏️ {current_user.tipo.title()} {current_user.nome} atualizou turma: {turma_atualizada['nome']} (ID: {turma_id})")
+    print(f"   Campos atualizados: {list(update_data.keys())}")
+    
+    return parse_from_mongo(turma_atualizada)
+
 # CHAMADA ROUTES
 @api_router.post("/attendance", response_model=Chamada)
 async def create_chamada(chamada_create: ChamadaCreate, current_user: UserResponse = Depends(get_current_user)):
