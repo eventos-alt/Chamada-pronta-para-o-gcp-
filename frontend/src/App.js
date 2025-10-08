@@ -4002,16 +4002,16 @@ const AlunosManager = () => {
   const [dropoutReason, setDropoutReason] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
-  
+
   // 🚀 BULK UPLOAD STATES
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkUploadFile, setBulkUploadFile] = useState(null);
   const [updateExisting, setUpdateExisting] = useState(false);
   const [selectedTurmaForBulk, setSelectedTurmaForBulk] = useState("");
   const [bulkUploading, setBulkUploading] = useState(false);
-  const [uploadSummaryOpen, setUploadSummaryOpen] = useState(false);
-  const [uploadSummary, setUploadSummary] = useState(null);
-  
+  const [showBulkSummary, setShowBulkSummary] = useState(false);
+  const [bulkSummaryData, setBulkSummaryData] = useState(null);
+
   const [formData, setFormData] = useState({
     nome: "",
     cpf: "",
@@ -4328,15 +4328,15 @@ const AlunosManager = () => {
     }
 
     setBulkUploading(true);
-    
+
     try {
       const formData = new FormData();
-      formData.append('file', bulkUploadFile);
+      formData.append("file", bulkUploadFile);
 
       // Construir parâmetros
       const params = new URLSearchParams();
-      if (updateExisting) params.append('update_existing', 'true');
-      if (selectedTurmaForBulk) params.append('turma_id', selectedTurmaForBulk);
+      if (updateExisting) params.append("update_existing", "true");
+      if (selectedTurmaForBulk) params.append("turma_id", selectedTurmaForBulk);
 
       console.log("🚀 Iniciando bulk upload...");
       console.log("📄 Arquivo:", bulkUploadFile.name);
@@ -4347,8 +4347,8 @@ const AlunosManager = () => {
         `${API}/students/bulk-upload?${params}`,
         formData,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 300000 // 5 minutos para uploads grandes
+          headers: { "Content-Type": "multipart/form-data" },
+          timeout: 300000, // 5 minutos para uploads grandes
         }
       );
 
@@ -4356,31 +4356,30 @@ const AlunosManager = () => {
       console.log("✅ Upload concluído:", result);
 
       // Mostrar resumo
-      setUploadSummary(result.summary);
-      setUploadSummaryOpen(true);
-      
+      setBulkSummaryData(result);
+      setShowBulkSummary(true);
+
       // Fechar dialog de upload
       setIsBulkUploadOpen(false);
-      
+
       // Limpar campos
       setBulkUploadFile(null);
       setUpdateExisting(false);
       setSelectedTurmaForBulk("");
-      
+
       // Recarregar alunos
       fetchAlunos();
 
       toast({
         title: "✅ Upload Concluído",
-        description: result.message
+        description: result.message,
       });
-
     } catch (error) {
       console.error("❌ Erro no bulk upload:", error);
       toast({
         title: "❌ Erro no Upload",
         description: error.response?.data?.detail || error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setBulkUploading(false);
@@ -4389,16 +4388,19 @@ const AlunosManager = () => {
 
   const downloadErrorReport = (errors) => {
     const csvContent = [
-      'linha,erro,dados',
-      ...errors.map(error => 
-        `${error.line},"${error.error}","${JSON.stringify(error.data || {})}"`
-      )
-    ].join('\n');
+      "linha,erro,dados",
+      ...errors.map(
+        (error) =>
+          `${error.line},"${error.error}","${JSON.stringify(error.data || {})}"`
+      ),
+    ].join("\n");
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `erros_bulk_upload_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `erros_bulk_upload_${
+      new Date().toISOString().split("T")[0]
+    }.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
   };
@@ -4409,10 +4411,12 @@ João da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9
 Maria Souza,987.654.321-00,22/03/1995,maria@email.com,11888888888,98.765.432-1,F,Av Paulista 456
 Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233-3,M,Rua Augusta 789`;
 
-    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([templateContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = 'modelo_alunos.csv';
+    link.download = "modelo_alunos.csv";
     link.click();
     URL.revokeObjectURL(link.href);
   };
@@ -4464,7 +4468,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
           <div className="flex gap-2">
             {/* 🚀 BULK UPLOAD BUTTON */}
             {user?.tipo !== "monitor" && (
-              <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
+              <Dialog
+                open={isBulkUploadOpen}
+                onOpenChange={setIsBulkUploadOpen}
+              >
                 <DialogTrigger asChild>
                   <Button className="bg-green-600 hover:bg-green-700">
                     <Upload className="h-4 w-4 mr-2" />
@@ -4473,7 +4480,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 </DialogTrigger>
               </Dialog>
             )}
-            
+
             {/* 🎯 PRODUÇÃO: Botões de teste removidos para usuários finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -4991,29 +4998,46 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               Importação em Massa de Alunos
             </DialogTitle>
             <DialogDescription>
-              Importe múltiplos alunos usando arquivo CSV. 
-              {user?.tipo === "admin" 
-                ? " Você pode importar para qualquer curso." 
-                : ` Você pode importar apenas para ${user?.curso_nome || "seu curso"}.`}
+              Importe múltiplos alunos usando arquivo CSV.
+              {user?.tipo === "admin"
+                ? " Você pode importar para qualquer curso."
+                : ` Você pode importar apenas para ${
+                    user?.curso_nome || "seu curso"
+                  }.`}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
             {/* 📋 INSTRUÇÕES */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">📋 Formato do CSV</h3>
+              <h3 className="font-semibold text-blue-800 mb-2">
+                📋 Formato do CSV
+              </h3>
               <div className="text-sm text-blue-700 space-y-1">
-                <p><strong>Campos obrigatórios:</strong> nome_completo, cpf, data_nascimento</p>
-                <p><strong>Campos opcionais:</strong> email, telefone, rg, genero, endereco</p>
-                <p><strong>Formato data:</strong> DD/MM/AAAA (ex: 15/03/1990)</p>
-                <p><strong>Formato CPF:</strong> Com ou sem pontuação (ex: 123.456.789-09 ou 12345678909)</p>
+                <p>
+                  <strong>Campos obrigatórios:</strong> nome_completo, cpf,
+                  data_nascimento
+                </p>
+                <p>
+                  <strong>Campos opcionais:</strong> email, telefone, rg,
+                  genero, endereco
+                </p>
+                <p>
+                  <strong>Formato data:</strong> DD/MM/AAAA (ex: 15/03/1990)
+                </p>
+                <p>
+                  <strong>Formato CPF:</strong> Com ou sem pontuação (ex:
+                  123.456.789-09 ou 12345678909)
+                </p>
               </div>
             </div>
 
             {/* 🎯 SELEÇÃO DE ARQUIVO */}
             <div className="space-y-4">
               <div>
-                <Label className="text-lg font-medium">1. Selecione o arquivo CSV</Label>
+                <Label className="text-lg font-medium">
+                  1. Selecione o arquivo CSV
+                </Label>
                 <div className="mt-2">
                   <Input
                     type="file"
@@ -5031,8 +5055,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
               {/* 🎯 OPÇÕES DE IMPORTAÇÃO */}
               <div className="space-y-3">
-                <Label className="text-lg font-medium">2. Opções de Importação</Label>
-                
+                <Label className="text-lg font-medium">
+                  2. Opções de Importação
+                </Label>
+
                 {/* Atualizar existentes */}
                 <div className="flex items-center space-x-2">
                   <input
@@ -5061,19 +5087,22 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       <SelectContent>
                         <SelectItem value="">Sem turma padrão</SelectItem>
                         {turmas
-                          .filter(turma => 
-                            user?.tipo === "admin" || 
-                            turma.curso_id === user?.curso_id
+                          .filter(
+                            (turma) =>
+                              user?.tipo === "admin" ||
+                              turma.curso_id === user?.curso_id
                           )
                           .map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
-                              {turma.nome} - {turma.curso_nome || "Curso não informado"}
+                              {turma.nome} -{" "}
+                              {turma.curso_nome || "Curso não informado"}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500">
-                      💡 Alunos sem turma especificada no CSV serão alocados nesta turma
+                      💡 Alunos sem turma especificada no CSV serão alocados
+                      nesta turma
                     </p>
                   </div>
                 )}
@@ -5127,9 +5156,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
       <Dialog open={showBulkSummary} onOpenChange={setShowBulkSummary}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>
-              📊 Resultado da Importação em Massa
-            </DialogTitle>
+            <DialogTitle>📊 Resultado da Importação em Massa</DialogTitle>
             <DialogDescription>
               Resumo detalhado do processamento do arquivo CSV
             </DialogDescription>
@@ -5166,45 +5193,58 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </div>
 
               {/* 📝 DETALHES */}
-              {bulkSummaryData.detalhes && bulkSummaryData.detalhes.length > 0 && (
-                <div>
-                  <h3 className="font-semibold mb-3">📝 Detalhes do Processamento</h3>
-                  <div className="max-h-40 overflow-y-auto border rounded-lg">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Linha</TableHead>
-                          <TableHead>Nome</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Detalhes</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {bulkSummaryData.detalhes.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{item.linha}</TableCell>
-                            <TableCell>{item.nome || "N/A"}</TableCell>
-                            <TableCell>
-                              <Badge variant={item.status === "sucesso" ? "default" : "destructive"}>
-                                {item.status === "sucesso" ? "✅ Sucesso" : "❌ Erro"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="max-w-xs truncate">
-                              {item.mensagem}
-                            </TableCell>
+              {bulkSummaryData.detalhes &&
+                bulkSummaryData.detalhes.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">
+                      📝 Detalhes do Processamento
+                    </h3>
+                    <div className="max-h-40 overflow-y-auto border rounded-lg">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Linha</TableHead>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Detalhes</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {bulkSummaryData.detalhes.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item.linha}</TableCell>
+                              <TableCell>{item.nome || "N/A"}</TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    item.status === "sucesso"
+                                      ? "default"
+                                      : "destructive"
+                                  }
+                                >
+                                  {item.status === "sucesso"
+                                    ? "✅ Sucesso"
+                                    : "❌ Erro"}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {item.mensagem}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* ⚠️ ERROS */}
               {bulkSummaryData.erros && bulkSummaryData.erros.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-semibold text-red-700">⚠️ Erros Encontrados</h3>
+                    <h3 className="font-semibold text-red-700">
+                      ⚠️ Erros Encontrados
+                    </h3>
                     <Button
                       variant="outline"
                       size="sm"
@@ -5223,7 +5263,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     ))}
                     {bulkSummaryData.erros.length > 5 && (
                       <div className="text-sm text-red-600 italic">
-                        ... e mais {bulkSummaryData.erros.length - 5} erros. 
+                        ... e mais {bulkSummaryData.erros.length - 5} erros.
                         Baixe o relatório completo.
                       </div>
                     )}
@@ -5232,32 +5272,38 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               )}
 
               {/* ✅ SUCESSOS */}
-              {bulkSummaryData.sucessos && bulkSummaryData.sucessos.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-green-700 mb-3">✅ Alunos Importados com Sucesso</h3>
-                  <div className="max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3">
-                    {bulkSummaryData.sucessos.slice(0, 10).map((sucesso, index) => (
-                      <div key={index} className="text-sm text-green-700 mb-1">
-                        <strong>{sucesso.nome}</strong> - CPF: {sucesso.cpf}
-                        {sucesso.turma && ` → Turma: ${sucesso.turma}`}
-                      </div>
-                    ))}
-                    {bulkSummaryData.sucessos.length > 10 && (
-                      <div className="text-sm text-green-600 italic">
-                        ... e mais {bulkSummaryData.sucessos.length - 10} alunos importados.
-                      </div>
-                    )}
+              {bulkSummaryData.sucessos &&
+                bulkSummaryData.sucessos.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-green-700 mb-3">
+                      ✅ Alunos Importados com Sucesso
+                    </h3>
+                    <div className="max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3">
+                      {bulkSummaryData.sucessos
+                        .slice(0, 10)
+                        .map((sucesso, index) => (
+                          <div
+                            key={index}
+                            className="text-sm text-green-700 mb-1"
+                          >
+                            <strong>{sucesso.nome}</strong> - CPF: {sucesso.cpf}
+                            {sucesso.turma && ` → Turma: ${sucesso.turma}`}
+                          </div>
+                        ))}
+                      {bulkSummaryData.sucessos.length > 10 && (
+                        <div className="text-sm text-green-600 italic">
+                          ... e mais {bulkSummaryData.sucessos.length - 10}{" "}
+                          alunos importados.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
 
           <div className="flex justify-end space-x-2 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowBulkSummary(false)}
-            >
+            <Button variant="outline" onClick={() => setShowBulkSummary(false)}>
               Fechar
             </Button>
             <Button
