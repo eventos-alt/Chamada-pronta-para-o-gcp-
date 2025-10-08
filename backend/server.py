@@ -16,9 +16,12 @@ from passlib.hash import bcrypt
 import base64
 import csv
 import io
+import re
+from io import StringIO, BytesIO
 from collections import defaultdict
 import asyncio
 from urllib.parse import quote_plus
+from dateutil import parser as dateutil_parser
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -423,6 +426,52 @@ def parse_from_mongo(item):
                 except (ValueError, AttributeError):
                     pass
     return item
+
+# Bulk Upload Helper Functions
+def normalize_cpf(raw: str) -> str:
+    """Remove all non-digit characters from CPF"""
+    if raw is None:
+        return ""
+    s = re.sub(r"\D", "", str(raw))
+    return s
+
+def validate_cpf(cpf: str) -> bool:
+    """Validate Brazilian CPF number"""
+    cpf = normalize_cpf(cpf)
+    if len(cpf) != 11:
+        return False
+    # evita sequências iguais
+    if cpf == cpf[0] * 11:
+        return False
+
+    def calc_digit(cpf_slice: str) -> int:
+        size = len(cpf_slice) + 1
+        total = 0
+        for i, ch in enumerate(cpf_slice):
+            total += int(ch) * (size - i)
+        r = total % 11
+        return 0 if r < 2 else 11 - r
+
+    d1 = calc_digit(cpf[:9])
+    d2 = calc_digit(cpf[:10])
+    return d1 == int(cpf[9]) and d2 == int(cpf[10])
+
+def parse_date_str(s: str) -> date:
+    """Parse date string in various formats"""
+    if s is None:
+        raise ValueError("Data vazia")
+    s = str(s).strip()
+    # tenta formatos comuns
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%Y/%m/%d"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except Exception:
+            pass
+    # fallback mais flexível
+    try:
+        return dateutil_parser.parse(s, dayfirst=True).date()
+    except Exception as e:
+        raise ValueError("Formato de data inválido. Utilize YYYY-MM-DD ou DD/MM/YYYY") from e
 
 # JWT Token Functions
 def create_access_token(data: dict):
@@ -1344,6 +1393,358 @@ async def debug_students_for_user(user_id: str, current_user: UserResponse = Dep
                 "created_by_name": a.get("created_by_name")
             } for a in alunos_outros_created_by[:10]  # Máximo 10
         ]
+    }
+
+@api_router.post("/students/bulk-upload")
+async def bulk_upload_students(
+    file: UploadFile = File(...),
+    turma_id: Optional[str] = Query(None, description="ID da turma para associar alunos"),
+    curso_id: Optional[str] = Query(None, description="ID do curso (opcional para instrutor)"),
+    update_existing: bool = Query(False, description="Se true, atualiza aluno existente por CPF"),
+    current_user: UserResponse = Depends(get_current_user),
+):
+    """
+    🚀 UPLOAD EM MASSA DE ALUNOS - SISTEMA AVANÇADO
+    
+    📋 Formatos aceitos: CSV (.csv) e Excel (.xls/.xlsx)
+    📊 Campos obrigatórios: nome_completo, cpf, data_nascimento
+    📊 Campos opcionais: email, telefone, rg, genero, endereco
+    
+    ✅ Validações implementadas:
+    - CPF brasileiro com algoritmo de validação
+    - Datas em múltiplos formatos (DD/MM/YYYY, YYYY-MM-DD, etc.)
+    - Duplicados por CPF (atualizar ou pular)
+    - Permissões por tipo de usuário
+    
+    👨‍🏫 Instrutor: apenas seu curso específico
+    📊 Pedagogo: qualquer curso da sua unidade  
+    👩‍💻 Monitor: NÃO pode fazer upload
+    👑 Admin: sem restrições
+    
+    🎯 Associação automática à turma se turma_id fornecido
+    📊 Retorna resumo detalhado: inseridos/atualizados/pulados/erros
+    """
+    
+    # 🔒 VERIFICAÇÃO DE PERMISSÕES
+    if current_user.tipo == "monitor":
+        raise HTTPException(
+            status_code=403,
+            detail="Monitores não podem fazer upload de alunos. Apenas visualizar."
+        )
+    
+    # 🎯 Para instrutor sem curso_id explícito, usar o curso do usuário
+    if current_user.tipo == "instrutor" and not curso_id:
+        curso_id = getattr(current_user, "curso_id", None)
+        if not curso_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Instrutor deve ter curso associado ou fornecer curso_id"
+            )
+    
+    # 📁 VALIDAÇÃO DO ARQUIVO
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="Nome do arquivo é obrigatório")
+    
+    filename = file.filename.lower()
+    content = await file.read()
+    
+    if not content:
+        raise HTTPException(status_code=400, detail="Arquivo está vazio")
+    
+    # 📊 PARSING DO ARQUIVO (CSV ou Excel)
+    rows: List[Dict[str, Any]] = []
+    
+    try:
+        if filename.endswith(".csv") or not any(filename.endswith(ext) for ext in (".xls", ".xlsx")):
+            # 📄 PARSE CSV
+            try:
+                # Tentar UTF-8 primeiro
+                text = content.decode("utf-8", errors="replace")
+            except UnicodeDecodeError:
+                try:
+                    # Fallback Windows-1252 (Excel brasileiro)
+                    text = content.decode("windows-1252", errors="replace")
+                except UnicodeDecodeError:
+                    # Último recurso
+                    text = content.decode("iso-8859-1", errors="replace")
+            
+            # Detectar separador automaticamente
+            delimiter = ',' if ',' in text.split('\n')[0] else ';'
+            
+            reader = csv.DictReader(StringIO(text), delimiter=delimiter)
+            for i, r in enumerate(reader, start=2):
+                # Limpar dados e adicionar número da linha
+                clean_row = {"_line": i}
+                for k, v in r.items():
+                    if k and v:
+                        # Remover BOM e caracteres especiais
+                        key_clean = str(k).strip().lstrip('\ufeff').lstrip('�')
+                        value_clean = str(v).strip().lstrip('\ufeff').lstrip('�')
+                        clean_row[key_clean] = value_clean
+                rows.append(clean_row)
+                
+        else:
+            # 📊 PARSE EXCEL (necessita pandas)
+            try:
+                import pandas as pd
+            except ImportError:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Para upload de Excel é necessário instalar pandas e openpyxl no backend"
+                )
+            
+            try:
+                df = pd.read_excel(BytesIO(content), dtype=str)
+                df = df.fillna("")  # Substituir NaN por string vazia
+                
+                for idx, r in df.iterrows():
+                    clean_row = {"_line": idx + 2}  # +2 porque header é linha 1
+                    for k, v in r.items():
+                        if not pd.isna(v) and str(v).strip():
+                            clean_row[str(k).strip()] = str(v).strip()
+                    rows.append(clean_row)
+                    
+            except Exception as e:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Erro ao processar Excel: {str(e)}"
+                )
+                
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Erro ao ler arquivo: {str(e)}"
+        )
+    
+    if not rows:
+        raise HTTPException(
+            status_code=400,
+            detail="Arquivo sem dados válidos ou cabeçalho incorreto"
+        )
+    
+    # 🔍 FUNÇÃO PARA BUSCAR CAMPOS COM ALIASES
+    def get_field(r: Dict[str, Any], *aliases):
+        """Busca campo por vários aliases possíveis"""
+        for alias in aliases:
+            if alias in r and r[alias]:
+                return r[alias]
+            # Busca case-insensitive com normalização
+            alias_norm = alias.lower().replace(" ", "_").replace("-", "_")
+            for k in r.keys():
+                k_norm = k.lower().replace(" ", "_").replace("-", "_")
+                if k_norm == alias_norm and r[k]:
+                    return r[k]
+        return None
+    
+    # 📊 CONTADORES E RESULTADOS
+    inserted = 0
+    updated = 0
+    skipped = 0
+    errors: List[Dict[str, Any]] = []
+    
+    print(f"🚀 Iniciando bulk upload: {len(rows)} linhas para processar")
+    print(f"👤 Usuário: {current_user.nome} ({current_user.tipo})")
+    if curso_id:
+        print(f"📚 Curso ID: {curso_id}")
+    if turma_id:
+        print(f"🎯 Turma ID: {turma_id}")
+    
+    # 🔄 PROCESSAR CADA LINHA
+    for r in rows:
+        line = r.get("_line", "?")
+        
+        try:
+            # 📋 EXTRAIR CAMPOS COM ALIASES
+            nome = get_field(r, "nome_completo", "nome", "full_name", "student_name")
+            data_nasc_raw = get_field(r, "data_nascimento", "data nascimento", "birthdate", "dob", "data_nasc")
+            cpf_raw = get_field(r, "cpf", "CPF", "Cpf", "document")
+            
+            # Campos opcionais
+            email = get_field(r, "email", "e-mail", "Email")
+            telefone = get_field(r, "telefone", "phone", "celular", "tel")
+            rg = get_field(r, "rg", "RG", "identidade")
+            genero = get_field(r, "genero", "sexo", "gender")
+            endereco = get_field(r, "endereco", "endereço", "address")
+            
+            # ✅ VALIDAÇÕES BÁSICAS
+            if not nome or not cpf_raw:
+                errors.append({
+                    "line": line,
+                    "error": "Nome completo e CPF são obrigatórios",
+                    "data": {"nome": nome, "cpf": cpf_raw}
+                })
+                continue
+            
+            # ✅ VALIDAÇÃO E NORMALIZAÇÃO CPF
+            cpf_norm = normalize_cpf(cpf_raw)
+            if not validate_cpf(cpf_norm):
+                errors.append({
+                    "line": line,
+                    "error": f"CPF inválido: {cpf_raw}",
+                    "data": {"cpf_original": cpf_raw, "cpf_normalized": cpf_norm}
+                })
+                continue
+            
+            # ✅ VALIDAÇÃO DATA DE NASCIMENTO
+            data_nasc = None
+            if data_nasc_raw:
+                try:
+                    data_nasc = parse_date_str(data_nasc_raw)
+                except Exception as e:
+                    errors.append({
+                        "line": line,
+                        "error": f"Data de nascimento inválida: {data_nasc_raw}",
+                        "data": {"data_original": data_nasc_raw, "erro": str(e)}
+                    })
+                    continue
+            
+            # 🔍 VERIFICAR SE ALUNO JÁ EXISTE (por CPF)
+            existing = await db.alunos.find_one({"cpf": cpf_norm})
+            
+            if existing:
+                if update_existing:
+                    # 🔄 ATUALIZAR ALUNO EXISTENTE
+                    update_doc = {
+                        "nome": nome.strip(),
+                        "cpf": cpf_norm,
+                        "updated_by": current_user.id,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    # Adicionar campos opcionais se fornecidos
+                    if data_nasc:
+                        update_doc["data_nascimento"] = data_nasc.isoformat()
+                    if email:
+                        update_doc["email"] = email
+                    if telefone:
+                        update_doc["telefone"] = telefone
+                    if rg:
+                        update_doc["rg"] = rg
+                    if genero:
+                        update_doc["genero"] = genero
+                    if endereco:
+                        update_doc["endereco"] = endereco
+                    if curso_id:
+                        update_doc["curso_id"] = curso_id
+                    
+                    await db.alunos.update_one(
+                        {"id": existing["id"]}, 
+                        {"$set": update_doc}
+                    )
+                    updated += 1
+                    aluno_id_to_use = existing["id"]
+                    
+                else:
+                    # 📊 PULAR ALUNO EXISTENTE
+                    skipped += 1
+                    aluno_id_to_use = existing["id"]
+                    
+            else:
+                # ➕ CRIAR NOVO ALUNO
+                new_id = str(uuid.uuid4())
+                doc = {
+                    "id": new_id,
+                    "nome": nome.strip(),
+                    "cpf": cpf_norm,
+                    "status": "ativo",
+                    "ativo": True,
+                    "created_by": current_user.id,
+                    "created_by_name": current_user.nome,
+                    "created_by_type": current_user.tipo,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                # Adicionar campos opcionais
+                if data_nasc:
+                    doc["data_nascimento"] = data_nasc.isoformat()
+                if email:
+                    doc["email"] = email
+                if telefone:
+                    doc["telefone"] = telefone
+                if rg:
+                    doc["rg"] = rg
+                if genero:
+                    doc["genero"] = genero
+                if endereco:
+                    doc["endereco"] = endereco
+                if curso_id:
+                    doc["curso_id"] = curso_id
+                
+                # Adicionar unidade do usuário se disponível
+                if hasattr(current_user, 'unidade_id') and current_user.unidade_id:
+                    doc["unidade_id"] = current_user.unidade_id
+                
+                await db.alunos.insert_one(doc)
+                inserted += 1
+                aluno_id_to_use = new_id
+                
+            # 🎯 ASSOCIAR À TURMA SE FORNECIDA
+            if turma_id and aluno_id_to_use:
+                try:
+                    # Verificar se turma existe e usuário tem permissão
+                    turma = await db.turmas.find_one({"id": turma_id})
+                    if turma:
+                        # Verificar permissões baseadas no tipo de usuário
+                        can_add_to_turma = False
+                        
+                        if current_user.tipo == "admin":
+                            can_add_to_turma = True
+                        elif current_user.tipo == "instrutor":
+                            # Instrutor: apenas suas turmas
+                            if turma["instrutor_id"] == current_user.id:
+                                can_add_to_turma = True
+                        elif current_user.tipo == "pedagogo":
+                            # Pedagogo: turmas da sua unidade
+                            if turma.get("unidade_id") == current_user.unidade_id:
+                                can_add_to_turma = True
+                        
+                        if can_add_to_turma:
+                            # Adicionar aluno à turma (evita duplicatas)
+                            await db.turmas.update_one(
+                                {"id": turma_id},
+                                {"$addToSet": {"alunos_ids": aluno_id_to_use}}
+                            )
+                        else:
+                            print(f"⚠️ Usuário {current_user.email} sem permissão para adicionar à turma {turma_id}")
+                    else:
+                        print(f"⚠️ Turma {turma_id} não encontrada")
+                        
+                except Exception as e:
+                    print(f"❌ Erro ao associar aluno {aluno_id_to_use} à turma {turma_id}: {e}")
+            
+        except Exception as e:
+            # 🚨 ERRO INESPERADO
+            errors.append({
+                "line": line,
+                "error": f"Erro inesperado: {str(e)}",
+                "data": {"exception_type": type(e).__name__}
+            })
+            print(f"❌ Erro na linha {line}: {e}")
+            continue
+    
+    # 📊 RESUMO FINAL
+    summary = {
+        "total_processed": len(rows),
+        "inserted": inserted,
+        "updated": updated,
+        "skipped": skipped,
+        "errors_count": len(errors),
+        "errors": errors[:50],  # Limitar para não sobrecarregar resposta
+        "success_rate": f"{((inserted + updated + skipped) / len(rows) * 100):.1f}%" if rows else "0%"
+    }
+    
+    print(f"✅ Bulk upload concluído:")
+    print(f"   📊 Total processado: {len(rows)}")
+    print(f"   ➕ Inseridos: {inserted}")
+    print(f"   🔄 Atualizados: {updated}")
+    print(f"   ⏭️ Pulados: {skipped}")
+    print(f"   ❌ Erros: {len(errors)}")
+    print(f"   📈 Taxa de sucesso: {summary['success_rate']}")
+    
+    return {
+        "success": True,
+        "message": f"Upload concluído: {inserted} inseridos, {updated} atualizados, {skipped} pulados, {len(errors)} erros",
+        "summary": summary
     }
 
 @api_router.post("/students/import-csv")

@@ -1,0 +1,6 @@
+nome_completo,cpf,data_nascimento,email,telefone,rg,genero,endereco
+João da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
+Maria Souza,987.654.321-00,22/03/1995,maria@email.com,11888888888,98.765.432-1,F,Av Paulista 456
+Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233-3,M,Rua Augusta 789
+Ana Santos,555.666.777-88,25/12/2000,ana@email.com,11666666666,55.566.677-7,F,Av Faria Lima 321
+Roberto Lima,444.555.666-77,15/08/1992,roberto@email.com,11555555555,44.455.566-6,M,Rua Oscar Freire 654

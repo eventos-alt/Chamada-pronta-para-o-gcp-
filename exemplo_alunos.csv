@@ -1,6 +1,4 @@
-nome,cpf,data_nascimento,curso,turma,email,telefone
-Carlos Pereira,12345678900,2005-01-15,Informática Básica,Turma A,carlos@email.com,11988887777
-Fernanda Lima,98765432100,2006-09-20,Informática Básica,Turma B,fernanda@email.com,11997776666
-João Silva Santos,11111111111,2004-03-10,Informática Básica,Turma A,joao@email.com,11999998888
-Maria Oliveira,22222222222,2005-07-25,Informática Básica,Turma B,maria@email.com,11988887777
-Ana Costa,33333333333,2006-01-30,Informática Básica,,ana@email.com,11977776666
+nome_completo,cpf,data_nascimento,email,telefone,rg,genero,endereco
+João da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua A 123
+Maria Souza,987.654.321-00,22/03/1995,maria@email.com,11888888888,98.765.432-1,F,Av B 456
+Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233-3,M,Rua C 789
