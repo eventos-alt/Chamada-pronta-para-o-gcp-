@@ -12,22 +12,24 @@ POST /api/students/bulk-upload
 
 ## 📊 Parâmetros
 
-| Parâmetro | Tipo | Obrigatório | Descrição |
-|-----------|------|-------------|-----------|
-| `file` | UploadFile | ✅ | Arquivo CSV ou Excel |
-| `turma_id` | string | ❌ | ID da turma para associar alunos |
-| `curso_id` | string | ❌ | ID do curso (opcional para instrutor) |
-| `update_existing` | boolean | ❌ | Se true, atualiza alunos existentes por CPF |
+| Parâmetro         | Tipo       | Obrigatório | Descrição                                   |
+| ----------------- | ---------- | ----------- | ------------------------------------------- |
+| `file`            | UploadFile | ✅          | Arquivo CSV ou Excel                        |
+| `turma_id`        | string     | ❌          | ID da turma para associar alunos            |
+| `curso_id`        | string     | ❌          | ID do curso (opcional para instrutor)       |
+| `update_existing` | boolean    | ❌          | Se true, atualiza alunos existentes por CPF |
 
 ## 📄 Formato do Arquivo CSV
 
 ### Cabeçalhos Aceitos (aliases flexíveis):
 
 **Obrigatórios:**
+
 - `nome_completo`, `nome`, `full_name`, `student_name`
 - `cpf`, `CPF`, `Cpf`, `document`
 
 **Opcionais:**
+
 - `data_nascimento`, `data nascimento`, `birthdate`, `dob`, `data_nasc`
 - `email`, `e-mail`, `Email`
 - `telefone`, `phone`, `celular`, `tel`
@@ -46,22 +48,24 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
 ## 🔒 Sistema de Permissões
 
-| Tipo de Usuário | Permissões |
-|------------------|------------|
-| **👑 Admin** | Sem restrições - pode importar para qualquer curso/unidade |
-| **👨‍🏫 Instrutor** | Apenas seu curso específico |
-| **📊 Pedagogo** | Qualquer curso da sua unidade |
-| **👩‍💻 Monitor** | ❌ SEM permissão de upload |
+| Tipo de Usuário  | Permissões                                                 |
+| ---------------- | ---------------------------------------------------------- |
+| **👑 Admin**     | Sem restrições - pode importar para qualquer curso/unidade |
+| **👨‍🏫 Instrutor** | Apenas seu curso específico                                |
+| **📊 Pedagogo**  | Qualquer curso da sua unidade                              |
+| **👩‍💻 Monitor**   | ❌ SEM permissão de upload                                 |
 
 ## ✅ Validações Implementadas
 
 ### 1. Validação de CPF
+
 - Algoritmo oficial brasileiro completo
 - Remove automaticamente pontos e traços
 - Rejeita sequências iguais (111.111.111-11)
 - Valida dígitos verificadores
 
 ### 2. Parsing de Datas
+
 - **DD/MM/YYYY** (12/05/1990)
 - **YYYY-MM-DD** (1990-05-12)
 - **DD-MM-YYYY** (12-05-1990)
@@ -69,11 +73,13 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 - Parsing flexível com dateutil
 
 ### 3. Encoding Automático
+
 - UTF-8 (padrão)
 - Windows-1252 (Excel brasileiro)
 - ISO-8859-1 (fallback)
 
 ### 4. Separador Automático
+
 - Vírgula (,) ou ponto e vírgula (;)
 - Detecção automática baseada no conteúdo
 
@@ -112,7 +118,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
   const [file, setFile] = useState(null);
   const [updateExisting, setUpdateExisting] = useState(false);
-  const [turmaId, setTurmaId] = useState('');
+  const [turmaId, setTurmaId] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async () => {
@@ -123,26 +129,26 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     const params = new URLSearchParams();
-    if (updateExisting) params.append('update_existing', 'true');
-    if (turmaId) params.append('turma_id', turmaId);
+    if (updateExisting) params.append("update_existing", "true");
+    if (turmaId) params.append("turma_id", turmaId);
 
     try {
       const response = await axios.post(
         `${API}/students/bulk-upload?${params}`,
         formData,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 300000 // 5 minutos para uploads grandes
+          headers: { "Content-Type": "multipart/form-data" },
+          timeout: 300000, // 5 minutos para uploads grandes
         }
       );
 
       const result = response.data;
       toast({
         title: "✅ Upload Concluído",
-        description: result.message
+        description: result.message,
       });
 
       // Mostrar resumo detalhado
@@ -152,7 +158,7 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
       toast({
         title: "❌ Erro no Upload",
         description: error.response?.data?.detail || error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setUploading(false);
@@ -165,7 +171,8 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
         <DialogHeader>
           <DialogTitle>📤 Importar Alunos em Massa</DialogTitle>
           <DialogDescription>
-            Importe centenas de alunos via CSV ou Excel com validações automáticas
+            Importe centenas de alunos via CSV ou Excel com validações
+            automáticas
           </DialogDescription>
         </DialogHeader>
 
@@ -178,7 +185,7 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
               onChange={(e) => setFile(e.target.files[0])}
               className="mb-4"
             />
-            
+
             <div className="text-sm text-gray-600">
               <p>📄 Formatos aceitos: CSV, Excel (.xlsx, .xls)</p>
               <p>📊 Campos obrigatórios: nome_completo, cpf</p>
@@ -206,7 +213,7 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
                   <SelectValue placeholder="Selecione uma turma..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {turmas.map(turma => (
+                  {turmas.map((turma) => (
                     <SelectItem key={turma.id} value={turma.id}>
                       {turma.nome}
                     </SelectItem>
@@ -220,15 +227,15 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
           <div className="bg-blue-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">📋 Recursos Úteis:</h4>
             <div className="space-y-1 text-sm">
-              <a 
-                href="/template_bulk_upload.csv" 
+              <a
+                href="/template_bulk_upload.csv"
                 download
                 className="text-blue-600 hover:underline block"
               >
                 📥 Baixar modelo CSV
               </a>
-              <a 
-                href="#validation-help" 
+              <a
+                href="#validation-help"
                 className="text-blue-600 hover:underline block"
               >
                 📖 Guia de validações
@@ -241,16 +248,12 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <Button 
-            onClick={handleUpload} 
+          <Button
+            onClick={handleUpload}
             disabled={!file || uploading}
             className="bg-green-600 hover:bg-green-700"
           >
-            {uploading ? (
-              <>⏳ Processando...</>
-            ) : (
-              <>🚀 Importar Alunos</>
-            )}
+            {uploading ? <>⏳ Processando...</> : <>🚀 Importar Alunos</>}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -264,7 +267,7 @@ const BulkUploadDialog = ({ isOpen, onClose, onSuccess }) => {
 ```javascript
 const UploadSummaryDialog = ({ summary, isOpen, onClose }) => {
   const successRate = parseFloat(summary.success_rate);
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -281,21 +284,21 @@ const UploadSummaryDialog = ({ summary, isOpen, onClose }) => {
               </div>
               <div className="text-sm text-green-700">Inseridos</div>
             </div>
-            
+
             <div className="bg-blue-50 p-3 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
                 {summary.updated}
               </div>
               <div className="text-sm text-blue-700">Atualizados</div>
             </div>
-            
+
             <div className="bg-yellow-50 p-3 rounded-lg">
               <div className="text-2xl font-bold text-yellow-600">
                 {summary.skipped}
               </div>
               <div className="text-sm text-yellow-700">Pulados</div>
             </div>
-            
+
             <div className="bg-red-50 p-3 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
                 {summary.errors_count}
@@ -308,18 +311,26 @@ const UploadSummaryDialog = ({ summary, isOpen, onClose }) => {
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium">Taxa de Sucesso:</span>
-              <span className={`text-lg font-bold ${
-                successRate >= 95 ? 'text-green-600' : 
-                successRate >= 80 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
+              <span
+                className={`text-lg font-bold ${
+                  successRate >= 95
+                    ? "text-green-600"
+                    : successRate >= 80
+                    ? "text-yellow-600"
+                    : "text-red-600"
+                }`}
+              >
                 {summary.success_rate}
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-              <div 
+              <div
                 className={`h-2 rounded-full ${
-                  successRate >= 95 ? 'bg-green-600' : 
-                  successRate >= 80 ? 'bg-yellow-600' : 'bg-red-600'
+                  successRate >= 95
+                    ? "bg-green-600"
+                    : successRate >= 80
+                    ? "bg-yellow-600"
+                    : "bg-red-600"
                 }`}
                 style={{ width: `${successRate}%` }}
               ></div>
@@ -329,10 +340,15 @@ const UploadSummaryDialog = ({ summary, isOpen, onClose }) => {
           {/* Erros */}
           {summary.errors_count > 0 && (
             <div className="space-y-2">
-              <h4 className="font-medium text-red-600">❌ Erros Encontrados:</h4>
+              <h4 className="font-medium text-red-600">
+                ❌ Erros Encontrados:
+              </h4>
               <div className="max-h-40 overflow-y-auto space-y-2">
                 {summary.errors.map((error, index) => (
-                  <div key={index} className="bg-red-50 p-3 rounded border-l-4 border-red-400">
+                  <div
+                    key={index}
+                    className="bg-red-50 p-3 rounded border-l-4 border-red-400"
+                  >
                     <div className="font-medium">Linha {error.line}:</div>
                     <div className="text-sm text-red-700">{error.error}</div>
                     {error.data && (
@@ -350,7 +366,7 @@ const UploadSummaryDialog = ({ summary, isOpen, onClose }) => {
         <DialogFooter>
           <Button onClick={onClose}>Fechar</Button>
           {summary.errors_count > 0 && (
-            <Button 
+            <Button
               variant="outline"
               onClick={() => downloadErrorReport(summary.errors)}
             >

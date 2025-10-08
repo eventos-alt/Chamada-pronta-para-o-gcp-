@@ -18,6 +18,7 @@
 ## 📋 COMO USAR NO FRONTEND (React)
 
 ### 1. **Botão de Importação**
+
 ```javascript
 <Button onClick={() => setBulkUploadOpen(true)} className="bg-blue-600">
   📤 Importar Alunos em Massa
@@ -25,9 +26,10 @@
 ```
 
 ### 2. **Dialog de Upload**
+
 ```javascript
 // Componente completo disponível em BULK_UPLOAD_GUIDE.md
-<BulkUploadDialog 
+<BulkUploadDialog
   isOpen={bulkUploadOpen}
   onClose={() => setBulkUploadOpen(false)}
   onSuccess={() => fetchAlunos()}
@@ -35,18 +37,19 @@
 ```
 
 ### 3. **Request para API**
+
 ```javascript
 const formData = new FormData();
-formData.append('file', selectedFile);
+formData.append("file", selectedFile);
 
 const params = new URLSearchParams();
-if (updateExisting) params.append('update_existing', 'true');
-if (turmaId) params.append('turma_id', turmaId);
+if (updateExisting) params.append("update_existing", "true");
+if (turmaId) params.append("turma_id", turmaId);
 
 const response = await axios.post(
   `${API}/students/bulk-upload?${params}`,
   formData,
-  { headers: { 'Content-Type': 'multipart/form-data' } }
+  { headers: { "Content-Type": "multipart/form-data" } }
 );
 ```
 
@@ -55,6 +58,7 @@ const response = await axios.post(
 ## 📊 FORMATO CSV ACEITO
 
 **Exemplo de arquivo CSV:**
+
 ```csv
 nome_completo,cpf,data_nascimento,email,telefone,rg,genero,endereco
 João da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
@@ -69,12 +73,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
 ## 🔒 PERMISSÕES POR TIPO DE USUÁRIO
 
-| Usuário | Permissão |
-|---------|-----------|
-| **👑 Admin** | Qualquer curso/unidade |
-| **👨‍🏫 Instrutor** | Apenas seu curso |
-| **📊 Pedagogo** | Cursos da sua unidade |
-| **👩‍💻 Monitor** | ❌ Sem permissão |
+| Usuário          | Permissão              |
+| ---------------- | ---------------------- |
+| **👑 Admin**     | Qualquer curso/unidade |
+| **👨‍🏫 Instrutor** | Apenas seu curso       |
+| **📊 Pedagogo**  | Cursos da sua unidade  |
+| **👩‍💻 Monitor**   | ❌ Sem permissão       |
 
 ---
 
@@ -95,7 +99,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
       {
         "line": 7,
         "error": "CPF inválido: 000.000.000-00",
-        "data": {"cpf_original": "000.000.000-00"}
+        "data": { "cpf_original": "000.000.000-00" }
       }
     ]
   }
@@ -107,17 +111,20 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 ## 🧪 TESTAR O SISTEMA
 
 ### 1. **Validar Funções**
+
 ```bash
 python test_validation.py
 ```
 
 ### 2. **Executar Servidor**
+
 ```bash
 cd backend
 python server.py
 ```
 
 ### 3. **Usar Arquivo Modelo**
+
 - Baixar: `template_bulk_upload.csv`
 - Modificar com dados reais
 - Fazer upload via API
@@ -127,20 +134,24 @@ python server.py
 ## 🎯 ARQUIVOS CRIADOS/MODIFICADOS
 
 ### Backend:
+
 - ✅ `server.py`: Endpoint `/api/students/bulk-upload` completo
 - ✅ `requirements.txt`: Dependência `python-dateutil` adicionada
 
 ### Funções Helper Adicionadas:
+
 - ✅ `normalize_cpf()`: Remove formatação CPF
 - ✅ `validate_cpf()`: Validação algoritmo brasileiro
 - ✅ `parse_date_str()`: Parse datas múltiplos formatos
 
 ### Arquivos de Teste:
+
 - ✅ `test_validation.py`: Teste funções helper
 - ✅ `test_bulk_upload.py`: Teste endpoint completo
 - ✅ `template_bulk_upload.csv`: Modelo para download
 
 ### Documentação:
+
 - ✅ `BULK_UPLOAD_GUIDE.md`: Guia completo implementação
 - ✅ `README_BULK_UPLOAD.md`: Resumo executivo (este arquivo)
 
@@ -149,11 +160,13 @@ python server.py
 ## 🔧 DEPENDÊNCIAS NECESSÁRIAS
 
 ### Backend (obrigatório):
+
 ```bash
 pip install python-dateutil
 ```
 
 ### Para Excel (opcional):
+
 ```bash
 pip install pandas openpyxl
 ```
@@ -164,7 +177,7 @@ pip install pandas openpyxl
 
 1. **Adicionar botão** "Importar Alunos em Massa" na aba Alunos
 2. **Implementar dialog** de upload (código em BULK_UPLOAD_GUIDE.md)
-3. **Adicionar link** "Baixar modelo CSV" 
+3. **Adicionar link** "Baixar modelo CSV"
 4. **Mostrar resumo** após upload com métricas visuais
 5. **Permitir download** de relatório de erros
 6. **Configurar timeout** adequado (5+ minutos)
@@ -174,28 +187,33 @@ pip install pandas openpyxl
 ## 🎉 FUNCIONALIDADES PRINCIPAIS
 
 ### ✅ Validações Robustas:
+
 - CPF brasileiro com algoritmo oficial
 - Datas em 4+ formatos diferentes
 - Encoding automático (UTF-8, Windows-1252, ISO-8859-1)
 - Separador CSV automático (, ou ;)
 
 ### ✅ Tratamento de Duplicados:
+
 - Identificação por CPF único
 - Opção: atualizar ou pular existentes
 - Contagem separada de cada ação
 
 ### ✅ Permissões Inteligentes:
+
 - Filtros automáticos por tipo usuário
 - Validação curso/unidade do usuário
 - Logs de auditoria (created_by)
 
 ### ✅ Performance Otimizada:
+
 - Processamento linha por linha
 - Validação em paralelo
 - Resumo em tempo real
 - Tratamento de erros robusto
 
 ### ✅ UX Excepcional:
+
 - Taxa de sucesso calculada
 - Erros detalhados com linha específica
 - Dados contextuais para debug
