@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste CORS - Sistema IOS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f0f0f0; }
+        .container { background: white; padding: 20px; border-radius: 8px; max-width: 800px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 Teste CORS - Sistema IOS</h1>
+        <div id="output"></div>
+        
+        <script>
+            const output = document.getElementById('output');
+            
+            function log(message, type = 'info') {
+                console.log(message);
+                const div = document.createElement('div');
+                div.className = `status ${type}`;
+                div.innerHTML = message;
+                output.appendChild(div);
+            }
+            
+            const API = "https://sistema-ios-backend.onrender.com/api";
+
+            // Função de teste ping
+            async function testPing() {
+                log("🔔 Testando endpoint /ping...");
+                try {
+                    const response = await fetch(`${API}/ping`);
+                    const data = await response.json();
+                    log(`✅ Ping response: ${JSON.stringify(data)}`, 'success');
+                    return true;
+                } catch (error) {
+                    log(`❌ Ping failed: ${error.message}`, 'error');
+                    return false;
+                }
+            }
+
+            // Função de teste units
+            async function testUnits() {
+                log("🏢 Testando endpoint /units...");
+                try {
+                    const response = await fetch(`${API}/units`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    log(`✅ Units response: ${data.length} unidades encontradas`, 'success');
+                    return true;
+                } catch (error) {
+                    log(`❌ Units failed: ${error.message}`, 'error');
+                    return false;
+                }
+            }
+
+            // Executar testes
+            async function runTests() {
+                log("🚀 Iniciando testes...");
+                
+                const pingOk = await testPing();
+                if (pingOk) {
+                    log("⏳ Aguardando 3 segundos para backend acordar...");
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                    
+                    const unitsOk = await testUnits();
+                    if (unitsOk) {
+                        log("🎉 TODOS OS TESTES PASSARAM!", 'success');
+                    }
+                } else {
+                    log("⚠️ Ping falhou - backend pode estar dormindo", 'error');
+                }
+            }
+
+            // Executar quando a página carregar
+            runTests();
+        </script>
+    </div>
+</body>
+</html>

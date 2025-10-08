@@ -4326,13 +4326,236 @@ const AlunosManager = () => {
     return labels[status] || status;
   };
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+  const handleFixCreatedBy = async () => {
+    const confirmFix = window.confirm(
+      "🔧 CORREÇÃO DE VÍNCULOS\n\n" +
+        "Esta operação irá:\n" +
+        "• Encontrar alunos antigos sem vínculo com instrutor\n" +
+        "• Associá-los automaticamente aos instrutores das turmas onde estão\n" +
+        "• Permitir que instrutores vejam seus alunos corretamente\n\n" +
+        "⚠️ IMPORTANTE: Esta correção é segura e reversível.\n\n" +
+        "Continuar com a correção?"
+    );
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+    if (!confirmFix) return;
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+    try {
+      console.log("🔧 Iniciando correção de vínculos...");
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+      const response = await axios.post(`${API}/students/fix-created-by`);
+      const result = response.data;
+
+      console.log("✅ Resultado da correção:", result);
+
+      toast({
+        title: "Correção concluída com sucesso!",
+        description: `${result.alunos_corrigidos} alunos foram associados aos instrutores corretos.`,
+        className: "bg-green-50 border-green-200",
+      });
+
+      if (result.alunos_corrigidos > 0) {
+        // Mostrar detalhes da correção
+        const detalhesTexto = result.detalhes
+          .filter((d) => d.acao === "associado_ao_instrutor_da_turma")
+          .slice(0, 10)
+          .map((d) => `• ${d.aluno} → ${d.instrutor} (${d.turma})`)
+          .join("\n");
+
+        if (detalhesTexto) {
+          alert(
+            `✅ CORREÇÃO REALIZADA COM SUCESSO\n\n` +
+              `${result.alunos_corrigidos} alunos foram associados aos instrutores:\n\n` +
+              `${detalhesTexto}` +
+              `${
+                result.alunos_corrigidos > 10
+                  ? `\n\n... e mais ${result.alunos_corrigidos - 10} alunos`
+                  : ""
+              }\n\n` +
+              `Agora os instrutores podem ver seus alunos normalmente!`
+          );
+        }
+
+        // Atualizar lista de alunos
+        fetchAlunos();
+      }
+    } catch (error) {
+      console.error("❌ Erro na correção de vínculos:", error);
+      toast({
+        title: "Erro na correção",
+        description:
+          error.response?.data?.detail ||
+          "Erro interno na correção de vínculos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCleanupOrphans = async () => {
+    const confirmCleanup = window.confirm(
+      "🚨 ATENÇÃO: Esta operação irá remover todos os alunos que não estão vinculados a nenhuma turma ativa.\n\nEsta ação não pode ser desfeita. Deseja continuar?"
+    );
+
+    if (!confirmCleanup) return;
+
+    try {
+      console.log("🧹 Iniciando limpeza de alunos órfãos...");
+
+      const response = await axios.post(`${API}/students/cleanup-orphans`);
+      const result = response.data;
+
+      console.log("✅ Resultado da limpeza:", result);
+
+      toast({
+        title: "Limpeza concluída",
+        description: `${result.orphans_removed} alunos órfãos foram removidos do sistema.`,
+      });
+
+      // Atualizar lista de alunos
+      fetchAlunos();
+    } catch (error) {
+      console.error("❌ Erro na limpeza de órfãos:", error);
+      toast({
+        title: "Erro na limpeza",
+        description:
+          error.response?.data?.detail ||
+          "Erro interno na limpeza de alunos órfãos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDebugStudents = async (userId) => {
+    try {
+      const response = await axios.get(`${API}/debug/students/${userId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+
+      const debug = response.data;
+
+      // Mostrar informações detalhadas no console
+      console.log("🔍 DEBUG ALUNOS:", debug);
+
+      toast({
+        title: "Debug Executado",
+        description: `Encontrados: ${debug.totais.alunos_filtrados} alunos (ver console para detalhes)`,
+      });
+
+      // Criar uma janela popup com os detalhes
+      const details = `
+🔍 DEBUG ALUNOS - ${debug.usuario.nome} (${debug.usuario.tipo})
+
+TOTAIS:
+• Todos os alunos no sistema: ${debug.totais.todos_alunos}
+• Alunos criados por você: ${debug.totais.alunos_created_by}
+• Alunos ativos: ${debug.totais.alunos_ativos}
+• Alunos que você vê: ${debug.totais.alunos_filtrados}
+• Alunos SEM created_by: ${debug.totais.alunos_sem_created_by}
+• Alunos de OUTROS usuários: ${debug.totais.alunos_outros_created_by}
+
+ALUNOS CRIADOS POR VOCÊ:
+${
+  debug.alunos_created_by.length > 0
+    ? debug.alunos_created_by
+        .map(
+          (a) =>
+            `• ${a.nome} (CPF: ${a.cpf}) - Ativo: ${a.ativo ? "Sim" : "Não"}`
+        )
+        .join("\n")
+    : "⚠️ Nenhum aluno foi criado por você"
+}
+
+ALUNOS SEM CREATED_BY (órfãos):
+${
+  debug.alunos_sem_created_by?.length > 0
+    ? debug.alunos_sem_created_by
+        .map((a) => `• ${a.nome} (CPF: ${a.cpf})`)
+        .join("\n")
+    : "✅ Nenhum aluno órfão"
+}
+
+ALUNOS DE OUTROS USUÁRIOS:
+${
+  debug.alunos_outros_created_by?.length > 0
+    ? debug.alunos_outros_created_by
+        .map((a) => `• ${a.nome} → ${a.created_by_name || "Desconhecido"}`)
+        .join("\n")
+    : "✅ Nenhum aluno de outros usuários"
+}
+      `;
+
+      alert(details);
+    } catch (error) {
+      console.error("Erro no debug:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao executar debug",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetDatabase = async () => {
+    const confirmReset = window.confirm(
+      "🚨 ATENÇÃO: RESET TOTAL DO BANCO\n\n" +
+        "Esta operação irá APAGAR PERMANENTEMENTE:\n" +
+        "• TODOS os alunos cadastrados\n" +
+        "• TODAS as turmas criadas\n" +
+        "• TODAS as chamadas registradas\n\n" +
+        "⚠️ ESTA AÇÃO NÃO PODE SER DESFEITA!\n\n" +
+        "Tem certeza que deseja LIMPAR COMPLETAMENTE o banco?"
+    );
+
+    if (!confirmReset) return;
+
+    const confirmText = window.prompt(
+      "Para confirmar o RESET TOTAL, digite exatamente: CONFIRMO"
+    );
+
+    if (confirmText !== "CONFIRMO") {
+      toast({
+        title: "Reset cancelado",
+        description: "Texto de confirmação incorreto",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log("🚨 Iniciando RESET TOTAL do banco...");
+
+      const response = await axios.post(`${API}/database/reset-all`);
+      const result = response.data;
+
+      console.log("✅ Reset concluído:", result);
+
+      alert(
+        `🚨 BANCO RESETADO COMPLETAMENTE\n\n` +
+          `Removidos:\n` +
+          `• ${result.removidos.alunos} alunos\n` +
+          `• ${result.removidos.turmas} turmas\n` +
+          `• ${result.removidos.chamadas} chamadas\n\n` +
+          `${result.status}\n\n` +
+          `O banco está limpo e pronto para recomeçar!`
+      );
+
+      // Recarregar dados
+      fetchAlunos();
+
+      toast({
+        title: "✅ Reset Concluído",
+        description: "Banco limpo - pronto para recomeçar",
+        className: "bg-green-50 border-green-200",
+      });
+    } catch (error) {
+      console.error("❌ Erro no reset:", error);
+      toast({
+        title: "Erro no Reset",
+        description:
+          error.response?.data?.detail || "Erro interno no reset do banco",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (loading) return <div>Carregando...</div>;
 

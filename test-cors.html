@@ -1,0 +1,56 @@
+// 🚨 TESTE CORS - Sistema IOS
+// Script para testar comunicação frontend-backend
+
+console.log("🔍 Testando comunicação com backend...");
+
+const API = "https://sistema-ios-backend.onrender.com/api";
+
+// Função de teste ping
+async function testPing() {
+  console.log("🔔 Testando endpoint /ping...");
+  try {
+    const response = await fetch(`${API}/ping`);
+    const data = await response.json();
+    console.log("✅ Ping response:", data);
+    return true;
+  } catch (error) {
+    console.error("❌ Ping failed:", error);
+    return false;
+  }
+}
+
+// Função de teste units
+async function testUnits() {
+  console.log("🏢 Testando endpoint /units...");
+  try {
+    const response = await fetch(`${API}/units`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log("✅ Units response:", data);
+    return true;
+  } catch (error) {
+    console.error("❌ Units failed:", error);
+    return false;
+  }
+}
+
+// Executar testes
+async function runTests() {
+  console.log("🚀 Iniciando testes...");
+  
+  const pingOk = await testPing();
+  if (pingOk) {
+    console.log("⏳ Aguardando 2 segundos para backend acordar...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    const unitsOk = await testUnits();
+    if (unitsOk) {
+      console.log("🎉 TODOS OS TESTES PASSARAM!");
+    }
+  }
+}
+
+// Executar quando a página carregar
+runTests();
