@@ -351,6 +351,7 @@ class TurmaUpdate(BaseModel):
     dias_semana: Optional[List[str]] = None
     tipo_turma: Optional[str] = None  # "regular" ou "extensao"
     vagas_total: Optional[int] = None
+    instrutor_id: Optional[str] = None  # Permitir mudança de instrutor/responsável
 
 class Chamada(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -1779,20 +1780,17 @@ async def delete_turma(turma_id: str, current_user: UserResponse = Depends(get_c
     if not turma:
         raise HTTPException(status_code=404, detail="Turma não encontrada")
     
-    # ⚠️ VERIFICAÇÃO: Turma tem alunos matriculados?
+    # 🗑️ ADMIN PODE DELETAR FORÇADAMENTE
+    # Remover alunos da turma primeiro (se houver)
     if turma.get('alunos_ids') and len(turma.get('alunos_ids', [])) > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Não é possível deletar turma com {len(turma['alunos_ids'])} aluno(s) matriculado(s). Remova os alunos primeiro."
-        )
+        print(f"🔄 Removendo {len(turma['alunos_ids'])} aluno(s) da turma antes de deletar")
+        # Limpar referências da turma nos alunos se necessário (futuro)
     
-    # 🔍 VERIFICAÇÃO: Turma tem chamadas registradas?
+    # Deletar chamadas relacionadas (se houver)
     chamadas_count = await db.chamadas.count_documents({"turma_id": turma_id})
     if chamadas_count > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Não é possível deletar turma com {chamadas_count} chamada(s) registrada(s). Histórico de presença será perdido."
-        )
+        print(f"🗑️ Deletando {chamadas_count} chamada(s) relacionada(s)")
+        await db.chamadas.delete_many({"turma_id": turma_id})
     
     # 🗑️ DELETAR TURMA
     result = await db.turmas.delete_one({"id": turma_id})
@@ -1849,7 +1847,7 @@ async def update_turma(turma_id: str, turma_update: TurmaUpdate, current_user: U
     update_data = {}
     
     # Campos que podem ser atualizados diretamente
-    for field in ["nome", "data_inicio", "data_fim", "horario_inicio", "horario_fim", "dias_semana", "tipo_turma", "vagas_total"]:
+    for field in ["nome", "data_inicio", "data_fim", "horario_inicio", "horario_fim", "dias_semana", "tipo_turma", "vagas_total", "instrutor_id"]:
         value = getattr(turma_update, field)
         if value is not None:
             if field in ["data_inicio", "data_fim"] and isinstance(value, date):
@@ -2968,17 +2966,19 @@ async def get_dynamic_teacher_stats(
                 "status": aluno.get("status", "ativo")
             })
     
-    # 📊 Calcular métricas gerais
-    if alunos_stats:
-        taxa_media = sum(a["taxa_presenca"] for a in alunos_stats) / len(alunos_stats)
-        alunos_em_risco = [a for a in alunos_stats if a["taxa_presenca"] < 75]
+    # 📊 Calcular métricas gerais - APENAS ALUNOS ATIVOS
+    alunos_ativos_stats = [a for a in alunos_stats if a["status"] == "ativo"]
+    
+    if alunos_ativos_stats:
+        taxa_media = sum(a["taxa_presenca"] for a in alunos_ativos_stats) / len(alunos_ativos_stats)
+        alunos_em_risco = [a for a in alunos_ativos_stats if a["taxa_presenca"] < 75]
         desistentes = [a for a in alunos_stats if a["status"] == "desistente"]
         
-        # Top 3 maiores presenças
-        maiores_presencas = sorted(alunos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
+        # Top 3 maiores presenças - APENAS ATIVOS
+        maiores_presencas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
         
-        # Top 3 maiores faltas
-        maiores_faltas = sorted(alunos_stats, key=lambda x: x["taxa_presenca"])[:3]
+        # Top 3 maiores faltas - APENAS ATIVOS
+        maiores_faltas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"])[:3]
     else:
         taxa_media = 0
         alunos_em_risco = []

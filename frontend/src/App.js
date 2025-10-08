@@ -1719,15 +1719,7 @@ const ChamadaManager = () => {
                             }
                             className="min-h-16"
                           />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                            onClick={() => handleUploadAtestadoChamada(aluno)}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload Atestado
-                          </Button>
+
                         </div>
                       )}
                     </div>
@@ -5010,15 +5002,6 @@ ${
                           <UserX className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUploadAtestado(aluno)}
-                        title="Upload atestado médico"
-                        className="text-green-600 border-green-600 hover:bg-green-50"
-                      >
-                        <Upload className="h-4 w-4" />
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
