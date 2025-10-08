@@ -4336,7 +4336,9 @@ const AlunosManager = () => {
       // Construir parâmetros
       const params = new URLSearchParams();
       if (updateExisting) params.append("update_existing", "true");
-      if (selectedTurmaForBulk) params.append("turma_id", selectedTurmaForBulk);
+      if (selectedTurmaForBulk && selectedTurmaForBulk !== "sem_turma_padrao") {
+        params.append("turma_id", selectedTurmaForBulk);
+      }
 
       console.log("🚀 Iniciando bulk upload...");
       console.log("📄 Arquivo:", bulkUploadFile.name);
@@ -5085,7 +5087,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         <SelectValue placeholder="Selecione uma turma padrão ou deixe em branco" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sem turma padrão</SelectItem>
+                        <SelectItem value="sem_turma_padrao">Sem turma padrão</SelectItem>
                         {turmas
                           .filter(
                             (turma) =>
