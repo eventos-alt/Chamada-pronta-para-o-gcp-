@@ -130,7 +130,8 @@ async def test_connection():
 @app.on_event("startup")
 async def startup_event():
     await test_connection()
-    await initialize_system()
+    # 🎯 PRODUÇÃO: Inicialização de dados de exemplo removida
+    print("✅ Sistema iniciado SEM dados de exemplo")
 
 # -------------------------
 # Router e rota de teste
@@ -2724,155 +2725,9 @@ async def migrate_turmas_tipo_endpoint(current_user: UserResponse = Depends(get_
     await migrate_turmas_tipo()
     return {"message": "Migração de tipo_turma executada com sucesso"}
 
-# INITIALIZE SYSTEM
-@api_router.post("/init")
-async def initialize_system():
-    # Create default admin user
-    admin_exists = await db.usuarios.find_one({"tipo": "admin"})
-    if not admin_exists:
-        admin_user = User(
-            nome="Administrador",
-            email="admin@ios.com.br",
-            senha=bcrypt.hash("admin123"),
-            tipo="admin",
-            status="ativo",
-            primeiro_acesso=False
-        )
-        await db.usuarios.insert_one(admin_user.dict())
-    else:
-        # Update existing admin user with missing fields
-        await db.usuarios.update_one(
-            {"email": "admin@ios.com.br"},
-            {"$set": {"status": "ativo", "primeiro_acesso": False}}
-        )
-    
-    # Create sample data for testing
-    await create_sample_data()
-    
-    # 🔄 MIGRAÇÃO: Adicionar campo tipo_turma em turmas existentes
-    await migrate_turmas_tipo()
-    
-    return {"message": "Sistema inicializado com dados de teste"}
+# 🎯 PRODUÇÃO: Sistema de inicialização removido - sem dados de exemplo
 
-async def create_sample_data():
-    # Create sample unidades
-    unidade1_id = str(uuid.uuid4())
-    unidade2_id = str(uuid.uuid4())
-    
-    unidades_sample = [
-        {"id": unidade1_id, "nome": "Unidade Centro", "endereco": "Rua Central, 123", "telefone": "(11) 1234-5678", "ativo": True, "created_at": datetime.now(timezone.utc)},
-        {"id": unidade2_id, "nome": "Unidade Norte", "endereco": "Av. Norte, 456", "telefone": "(11) 8765-4321", "ativo": True, "created_at": datetime.now(timezone.utc)}
-    ]
-    
-    for unidade in unidades_sample:
-        existing = await db.unidades.find_one({"nome": unidade["nome"]})
-        if not existing:
-            await db.unidades.insert_one(unidade)
-    
-    # Create sample cursos
-    curso1_id = str(uuid.uuid4())
-    curso2_id = str(uuid.uuid4())
-    
-    cursos_sample = [
-        {"id": curso1_id, "nome": "Informática Básica", "descricao": "Curso de informática para iniciantes", "carga_horaria": 80, "categoria": "Tecnologia", "ativo": True, "created_at": datetime.now(timezone.utc)},
-        {"id": curso2_id, "nome": "Administração", "descricao": "Curso de administração empresarial", "carga_horaria": 120, "categoria": "Gestão", "ativo": True, "created_at": datetime.now(timezone.utc)}
-    ]
-    
-    for curso in cursos_sample:
-        existing = await db.cursos.find_one({"nome": curso["nome"]})
-        if not existing:
-            await db.cursos.insert_one(curso)
-    
-    # Create sample instructor
-    instrutor_id = str(uuid.uuid4())
-    instrutor_exists = await db.usuarios.find_one({"email": "instrutor@ios.com.br"})
-    if not instrutor_exists:
-        instrutor = User(
-            id=instrutor_id,
-            nome="Professor Silva",
-            email="instrutor@ios.com.br",
-            senha=bcrypt.hash("instrutor123"),
-            tipo="instrutor",
-            unidade_id=unidade1_id,
-            curso_id=curso1_id,  # Associado ao curso de Informática Básica
-            primeiro_acesso=False
-        )
-        await db.usuarios.insert_one(instrutor.dict())
-    else:
-        instrutor_id = instrutor_exists["id"]
-        # Atualizar instrutor existente com curso_id se não tiver
-        await db.usuarios.update_one(
-            {"email": "instrutor@ios.com.br"},
-            {"$set": {"curso_id": curso1_id, "unidade_id": unidade1_id}}
-        )
-    
-    # Create sample alunos (30 alunos for each turma)
-    alunos_ids = []
-    for i in range(60):  # 60 alunos total para 2 turmas de 30 cada
-        aluno_id = str(uuid.uuid4())
-        aluno = {
-            "id": aluno_id,
-            "nome": f"Aluno {i+1:02d}",
-            "cpf": f"{100000000+i:011d}",
-            "telefone": f"(11) 9{1000+i:04d}-{1000+i:04d}",
-            "email": f"aluno{i+1:02d}@email.com",
-            "ativo": True,
-            "status": "ativo",
-            "created_at": datetime.now(timezone.utc)
-        }
-        
-        existing = await db.alunos.find_one({"cpf": aluno["cpf"]})
-        if not existing:
-            await db.alunos.insert_one(aluno)
-            alunos_ids.append(aluno_id)
-    
-    # Create sample turmas
-    turma1_id = str(uuid.uuid4())
-    turma2_id = str(uuid.uuid4())
-    
-    turmas_sample = [
-        {
-            "id": turma1_id,
-            "nome": "Informática Turma A",
-            "unidade_id": unidade1_id,
-            "curso_id": curso1_id,
-            "instrutor_id": instrutor_id,
-            "alunos_ids": alunos_ids[:30],
-            "data_inicio": date.today().isoformat(),
-            "data_fim": (date.today() + timedelta(days=90)).isoformat(),
-            "horario_inicio": "08:00",
-            "horario_fim": "12:00",
-            "dias_semana": ["segunda", "terca", "quarta", "quinta", "sexta"],
-            "vagas_total": 30,
-            "vagas_ocupadas": 30,
-            "ciclo": "01/2025",
-            "ativo": True,
-            "created_at": datetime.now(timezone.utc)
-        },
-        {
-            "id": turma2_id,
-            "nome": "Administração Turma B",
-            "unidade_id": unidade2_id,
-            "curso_id": curso2_id,
-            "instrutor_id": instrutor_id,
-            "alunos_ids": alunos_ids[30:60],
-            "data_inicio": date.today().isoformat(),
-            "data_fim": (date.today() + timedelta(days=120)).isoformat(),
-            "horario_inicio": "14:00",
-            "horario_fim": "18:00",
-            "dias_semana": ["segunda", "terca", "quarta", "quinta", "sexta"],
-            "vagas_total": 30,
-            "vagas_ocupadas": 30,
-            "ciclo": "01/2025",
-            "ativo": True,
-            "created_at": datetime.now(timezone.utc)
-        }
-    ]
-    
-    for turma in turmas_sample:
-        existing = await db.turmas.find_one({"nome": turma["nome"]})
-        if not existing:
-            await db.turmas.insert_one(turma)
+# 🎯 PRODUÇÃO: Função de criação de dados de exemplo removida
 
 # RELATÓRIOS DINÂMICOS - ENDPOINT COMPLETO
 @api_router.get("/reports/teacher-stats")

@@ -4326,13 +4326,13 @@ const AlunosManager = () => {
     return labels[status] || status;
   };
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+  // 🎯 PRODUÇÃO: Função de debug removida
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+  // 🎯 PRODUÇÃO: Função de debug removida
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+  // 🎯 PRODUÇÃO: Função de debug removida
 
-    // 🎯 PRODUÇÃO: Função de debug removida
+  // 🎯 PRODUÇÃO: Função de debug removida
 
   if (loading) return <div>Carregando...</div>;
 
