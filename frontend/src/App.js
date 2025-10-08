@@ -829,7 +829,7 @@ const Login = () => {
           className="h-7 mr-3"
         />
         <span className="text-sm font-normal tracking-wide">
-          by Amaro's Developer – Sistema de Controle de Presença
+          Sistema de Controle de Presença
         </span>
       </div>
     </div>
@@ -1719,7 +1719,6 @@ const ChamadaManager = () => {
                             }
                             className="min-h-16"
                           />
-
                         </div>
                       )}
                     </div>
@@ -1825,8 +1824,27 @@ const UsuariosManager = () => {
     fetchData();
   }, []);
 
+  // 🚀 FUNÇÃO PING PARA ACORDAR RENDER
+  const wakeUpBackend = async () => {
+    console.log("🔔 Acordando backend Render...");
+    try {
+      const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
+      console.log("✅ Backend acordado:", pingResponse.data);
+      return true;
+    } catch (error) {
+      console.error("❌ Erro ao acordar backend:", error);
+      return false;
+    }
+  };
+
   const fetchData = async () => {
     try {
+      // 🚀 PRIMEIRO: Acordar o backend
+      const backendAwake = await wakeUpBackend();
+      if (!backendAwake) {
+        console.warn("⚠️ Backend pode estar dormindo, tentando requisições diretas...");
+      }
+
       const [usuariosRes, unidadesRes, cursosRes] = await Promise.all([
         axios.get(`${API}/users`),
         axios.get(`${API}/units`),
@@ -3108,12 +3126,31 @@ const RelatoriosManager = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // 📊 CONEXÃO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
+  // � FUNÇÃO PING PARA ACORDAR RENDER (DASHBOARD)
+  const wakeUpBackendDashboard = async () => {
+    console.log("🔔 Acordando backend Render para dashboard...");
+    try {
+      const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
+      console.log("✅ Backend acordado para dashboard:", pingResponse.data);
+      return true;
+    } catch (error) {
+      console.error("❌ Erro ao acordar backend:", error);
+      return false;
+    }
+  };
+
+  // �📊 CONEXÃO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
     console.log("🔍 Iniciando carregamento direto MongoDB via Render Backend");
     setDadosCarregando(true);
 
     try {
+      // 🚀 PRIMEIRO: Acordar o backend
+      const backendAwake = await wakeUpBackendDashboard();
+      if (!backendAwake) {
+        console.warn("⚠️ Backend pode estar dormindo, tentando requisições diretas...");
+      }
+
       // 🎯 REQUISIÇÕES DIRETAS PARA ENDPOINTS CORRETOS
       const [alunosResponse, chamadasResponse] = await Promise.all([
         axios.get(`${API}/students`, {

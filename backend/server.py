@@ -51,44 +51,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 🚀 Middleware personalizado CORS - EMERGENCY FIX
+# 🚀 CORS EMERGENCY FIX - VERSÃO ROBUSTA
 @app.middleware("http")
 async def cors_handler(request, call_next):
-    """Middleware personalizado para resolver problemas CORS em produção"""
+    """Middleware CORS super robusto para resolver problemas de produção"""
     
-    # Headers CORS básicos
+    # Headers CORS mais permissivos
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "accept, accept-encoding, authorization, content-type, dnt, origin, user-agent, x-csrftoken, x-requested-with",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Max-Age": "86400"
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Credentials": "false",  # False quando origin é *
+        "Access-Control-Max-Age": "86400",
+        "Access-Control-Expose-Headers": "*"
     }
     
-    # Resposta direta para OPTIONS
+    # 🚨 PREFLIGHT - Resposta direta para OPTIONS
     if request.method == "OPTIONS":
-        response = Response(status_code=200)
+        print(f"🔧 Handling PREFLIGHT for: {request.url}")
+        response = Response(status_code=200, content="OK")
         for key, value in cors_headers.items():
             response.headers[key] = value
         return response
     
     try:
         # Processar requisição normal
+        print(f"🔍 Processing {request.method} {request.url}")
         response = await call_next(request)
         
-        # Adicionar headers CORS na resposta
+        # 🛡️ Força headers CORS em TODAS as respostas
         for key, value in cors_headers.items():
             response.headers[key] = value
             
+        print(f"✅ CORS headers added to response: {response.status_code}")
         return response
         
     except Exception as e:
-        # Em caso de erro, ainda retornar headers CORS
-        print(f"❌ Erro no middleware CORS: {e}")
-        response = Response(status_code=500, content=f"Internal Server Error: {str(e)}")
+        # 🚨 ERRO: Ainda retorna resposta com CORS
+        print(f"❌ Erro no middleware: {e}")
+        error_response = Response(
+            status_code=500, 
+            content=f"Server Error: {str(e)}",
+            media_type="text/plain"
+        )
         for key, value in cors_headers.items():
-            response.headers[key] = value
-        return response
+            error_response.headers[key] = value
+        return error_response
 
 # Log da configuração CORS para debug
 print(f"🔧 CORS configurado para origins: {origins}")
@@ -3092,6 +3100,17 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# 🚀 PING ENDPOINT - WAKE UP RENDER
+@app.get("/ping")
+async def ping_server():
+    """Endpoint para acordar o servidor Render"""
+    return {
+        "status": "alive",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "message": "Backend está funcionando!",
+        "cors_test": "OK"
+    }
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
