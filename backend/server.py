@@ -3381,12 +3381,12 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
     hoje = today_iso_date()
     
     # 1) Buscar turmas do instrutor que estão ativas e cujo período inclua hoje
-    # (assumimos turmas têm fields data_inicio, data_fim em formato date)
+    # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
     try:
         # Converter hoje para objeto date para comparação
         hoje_date = datetime.fromisoformat(hoje).date()
         
-        cursor = db.classes.find({
+        cursor = db.turmas.find({
             "instrutor_id": instrutor_id,
             "ativo": True
         })
@@ -3419,7 +3419,8 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
                 # 3) Buscar dados básicos dos alunos da turma
                 alunos_ids = t.get("alunos_ids", [])
                 if alunos_ids:
-                    alunos_cursor = db.students.find(
+                    # CORREÇÃO: Usar collection 'alunos' que é a correta no sistema
+                    alunos_cursor = db.alunos.find(
                         {"id": {"$in": alunos_ids}}, 
                         {"id": 1, "nome": 1}
                     )
@@ -3447,7 +3448,8 @@ async def get_attendance_today(turma_id: str, current_user: UserResponse = Depen
     hoje = today_iso_date()
     
     # Validar permissão: instrutor dono da turma ou admin
-    turma = await db.classes.find_one({"id": turma_id})
+    # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
+    turma = await db.turmas.find_one({"id": turma_id})
     if not turma:
         raise HTTPException(404, "Turma não encontrada")
     
@@ -3479,7 +3481,8 @@ async def create_attendance_today(
     hoje = today_iso_date()
     
     # Validações
-    turma = await db.classes.find_one({"id": turma_id})
+    # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
+    turma = await db.turmas.find_one({"id": turma_id})
     if not turma:
         raise HTTPException(404, "Turma não encontrada")
     
