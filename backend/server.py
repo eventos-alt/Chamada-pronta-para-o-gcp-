@@ -424,6 +424,10 @@ class AttendanceResponse(BaseModel):
 class PendingAttendanceInfo(BaseModel):
     turma_id: str
     turma_nome: str
+    data_pendente: str  # Data da chamada pendente (ISO format)
+    dias_atras: int     # Quantos dias atrás (0=hoje, 1=ontem, etc.)
+    prioridade: str     # "urgente", "importante", "pendente"
+    status_msg: str     # Mensagem descritiva do status
     alunos: List[Dict[str, str]]  # [{"id": "...", "nome": "..."}]
     vagas: int
     horario: str
@@ -3373,14 +3377,14 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
 
 @api_router.get("/instructor/me/pending-attendances", response_model=PendingAttendancesResponse)
 async def get_pending_attendances_for_instructor(current_user: UserResponse = Depends(get_current_user)):
-    """Lista turmas com chamada pendente para o instrutor atual"""
+    """Lista turmas com chamadas pendentes para o instrutor atual (últimos 7 dias)"""
     if current_user.tipo != "instrutor":
         raise HTTPException(status_code=403, detail="Acesso negado - apenas instrutores")
     
     instrutor_id = current_user.id
     hoje = today_iso_date()
     
-    # 1) Buscar turmas do instrutor que estão ativas e cujo período inclua hoje
+    # 1) Buscar turmas do instrutor que estão ativas
     # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
     try:
         # Converter hoje para objeto date para comparação
@@ -3393,48 +3397,67 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
         turmas = await cursor.to_list(length=1000)
         
         pending = []
+        
+        # 🚀 NOVA LÓGICA: Verificar chamadas pendentes dos últimos 7 dias
+        from datetime import timedelta
+        
         for t in turmas:
-            # Verificar se a data atual está dentro do período da turma
-            data_inicio = t.get("data_inicio")
-            data_fim = t.get("data_fim")
-            
-            # Converter strings para date se necessário
-            if isinstance(data_inicio, str):
-                data_inicio = datetime.fromisoformat(data_inicio).date()
-            if isinstance(data_fim, str):
-                data_fim = datetime.fromisoformat(data_fim).date()
-            
-            # Verificar se hoje está no período da turma
-            if data_inicio and data_fim:
-                if not (data_inicio <= hoje_date <= data_fim):
-                    continue  # Turma não está no período atual
-            
             tid = t.get("id")
+            turma_nome = t.get("nome", "Turma sem nome")
             
-            # 2) Verificar se já existe attendance para hoje
-            # Usar a collection 'attendances' para o novo sistema
-            att = await db.attendances.find_one({"turma_id": tid, "data": hoje})
-            
-            if not att:  # Não tem attendance = pendente
-                # 3) Buscar dados básicos dos alunos da turma
-                alunos_ids = t.get("alunos_ids", [])
-                if alunos_ids:
-                    # CORREÇÃO: Usar collection 'alunos' que é a correta no sistema
-                    alunos_cursor = db.alunos.find(
-                        {"id": {"$in": alunos_ids}}, 
-                        {"id": 1, "nome": 1}
-                    )
-                    alunos = await alunos_cursor.to_list(1000)
-                else:
-                    alunos = []
+            # Verificar cada dia dos últimos 7 dias
+            for dias_atras in range(7):  # 0 = hoje, 1 = ontem, etc.
+                data_verificar = hoje_date - timedelta(days=dias_atras)
+                data_iso = data_verificar.isoformat()
                 
-                pending.append({
-                    "turma_id": tid,
-                    "turma_nome": t.get("nome", "Turma sem nome"),
-                    "alunos": [{"id": a.get("id"), "nome": a.get("nome")} for a in alunos],
-                    "vagas": t.get("vagas_total", 0),
-                    "horario": f"{t.get('horario_inicio', '')}-{t.get('horario_fim', '')}"
-                })
+                # Pular fins de semana (opcional - remova se quiser incluir)
+                # if data_verificar.weekday() >= 5:  # 5=sábado, 6=domingo
+                #     continue
+                
+                # Verificar se já existe attendance para esta data
+                att = await db.attendances.find_one({"turma_id": tid, "data": data_iso})
+                
+                if not att:  # Não tem attendance = pendente
+                    # Buscar dados básicos dos alunos da turma
+                    alunos_ids = t.get("alunos_ids", [])
+                    if alunos_ids:
+                        # CORREÇÃO: Usar collection 'alunos' que é a correta no sistema
+                        alunos_cursor = db.alunos.find(
+                            {"id": {"$in": alunos_ids}}, 
+                            {"id": 1, "nome": 1}
+                        )
+                        alunos = await alunos_cursor.to_list(1000)
+                    else:
+                        alunos = []
+                    
+                    # Determinar prioridade baseada na data
+                    if dias_atras == 0:
+                        prioridade = "urgente"  # Hoje
+                        status_msg = f"Chamada não realizada hoje ({data_iso})"
+                    elif dias_atras == 1:
+                        prioridade = "importante"  # Ontem
+                        status_msg = f"Chamada não realizada ontem ({data_iso})"
+                    else:
+                        prioridade = "pendente"  # Dias anteriores
+                        status_msg = f"Chamada não realizada em {data_iso}"
+                    
+                    pending.append({
+                        "turma_id": tid,
+                        "turma_nome": turma_nome,
+                        "data_pendente": data_iso,
+                        "dias_atras": dias_atras,
+                        "prioridade": prioridade,
+                        "status_msg": status_msg,
+                        "alunos": [{"id": a.get("id"), "nome": a.get("nome")} for a in alunos],
+                        "vagas": t.get("vagas_total", 0),
+                        "horario": f"{t.get('horario_inicio', '')}-{t.get('horario_fim', '')}"
+                    })
+        
+        # Ordenar por prioridade: urgente -> importante -> pendente, depois por data (mais recente primeiro)
+        prioridade_ordem = {"urgente": 0, "importante": 1, "pendente": 2}
+        pending.sort(key=lambda x: (prioridade_ordem.get(x["prioridade"], 3), x["dias_atras"]))
+        
+        return PendingAttendancesResponse(date=hoje, pending=pending)
         
         return PendingAttendancesResponse(date=hoje, pending=pending)
         
@@ -3471,14 +3494,26 @@ async def get_attendance_today(turma_id: str, current_user: UserResponse = Depen
         observacao=att.get("observacao")
     )
 
-@api_router.post("/classes/{turma_id}/attendance/today", status_code=201)
-async def create_attendance_today(
-    turma_id: str, 
+@api_router.post("/classes/{turma_id}/attendance/{data_chamada}", status_code=201)
+async def create_attendance_for_date(
+    turma_id: str,
+    data_chamada: str,  # Data no formato YYYY-MM-DD
     payload: AttendanceCreate, 
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Criar chamada do dia (única ação, imutável)"""
-    hoje = today_iso_date()
+    """Criar chamada para data específica (permite chamadas retroativas - única ação, imutável)"""
+    
+    # Validar formato da data
+    try:
+        data_obj = datetime.fromisoformat(data_chamada).date()
+        data_iso = data_obj.isoformat()
+    except ValueError:
+        raise HTTPException(400, "Data inválida. Use formato YYYY-MM-DD")
+    
+    # Validar que a data não é futura
+    hoje = datetime.now().date()
+    if data_obj > hoje:
+        raise HTTPException(400, "Não é possível registrar chamadas para datas futuras")
     
     # Validações
     # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
@@ -3494,7 +3529,7 @@ async def create_attendance_today(
     doc = {
         "id": str(uuid.uuid4()),
         "turma_id": turma_id,
-        "data": hoje,
+        "data": data_iso,  # Usar a data específica
         "records": [r.dict() for r in payload.records],
         "observacao": payload.observacao,
         "created_by": current_user.id,
@@ -3507,25 +3542,35 @@ async def create_attendance_today(
         res = await db.attendances.insert_one(doc)
         
         # Log para auditoria
-        print(f"✅ Chamada criada: turma={turma_id}, data={hoje}, by={current_user.id}")
+        print(f"✅ Chamada criada: turma={turma_id}, data={data_iso}, by={current_user.id}")
         
         return {
             "id": doc["id"],
             "message": "Chamada salva com sucesso",
-            "data": hoje,
+            "data": data_iso,
             "turma_id": turma_id
         }
         
     except DuplicateKeyError:
         # Já existe uma chamada para essa turma/data
-        print(f"⚠️ Tentativa de criar chamada duplicada: turma={turma_id}, data={hoje}")
+        print(f"⚠️ Tentativa de criar chamada duplicada: turma={turma_id}, data={data_iso}")
         raise HTTPException(
             status_code=409, 
-            detail="Chamada do dia já existe e não pode ser alterada"
+            detail=f"Chamada do dia {data_iso} já existe e não pode ser alterada"
         )
     except Exception as e:
         print(f"❌ Erro ao salvar chamada: {e}")
         raise HTTPException(status_code=500, detail=f"Erro interno ao salvar chamada: {str(e)}")
+
+@api_router.post("/classes/{turma_id}/attendance/today", status_code=201)
+async def create_attendance_today(
+    turma_id: str, 
+    payload: AttendanceCreate, 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Criar chamada de hoje (wrapper para compatibilidade)"""
+    hoje = today_iso_date()
+    return await create_attendance_for_date(turma_id, hoje, payload, current_user)
 
 # Include the router in the main app
 app.include_router(api_router)

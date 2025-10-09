@@ -597,10 +597,16 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
         presente: r.presente,
       }));
 
-      await axios.post(`${API}/classes/${turma.turma_id}/attendance/today`, {
-        records: recordsToSend,
-        observacao,
-      });
+      // Usar endpoint com data específica para permitir chamadas retroativas
+      const dataUrl =
+        turma.data_pendente || new Date().toISOString().split("T")[0];
+      await axios.post(
+        `${API}/classes/${turma.turma_id}/attendance/${dataUrl}`,
+        {
+          records: recordsToSend,
+          observacao,
+        }
+      );
 
       toast({
         title: "✅ Chamada Salva",
@@ -635,10 +641,21 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>📋 Chamada: {turma?.turma_nome}</DialogTitle>
+          <DialogTitle>
+            📋 Chamada: {turma?.turma_nome}
+            {turma?.data_pendente && (
+              <span className="text-sm font-normal text-gray-600 ml-2">
+                (
+                {new Date(turma.data_pendente + "T00:00:00").toLocaleDateString(
+                  "pt-BR"
+                )}
+                )
+              </span>
+            )}
+          </DialogTitle>
           <DialogDescription>
-            Marque os alunos presentes. A chamada será salva e não poderá ser
-            alterada.
+            {turma?.status_msg || "Marque os alunos presentes."} A chamada será
+            salva e não poderá ser alterada.
           </DialogDescription>
         </DialogHeader>
 
@@ -759,25 +776,68 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
     onComplete(turma.turma_id);
   };
 
+  // Definir cores baseadas na prioridade
+  const getPriorityStyle = (prioridade) => {
+    switch (prioridade) {
+      case "urgente":
+        return {
+          cardClass: "border-red-300 bg-red-50",
+          badgeClass: "text-red-700 border-red-400 bg-red-100",
+          textClass: "text-red-800",
+          buttonClass: "bg-red-600 hover:bg-red-700",
+        };
+      case "importante":
+        return {
+          cardClass: "border-orange-300 bg-orange-50",
+          badgeClass: "text-orange-700 border-orange-400 bg-orange-100",
+          textClass: "text-orange-800",
+          buttonClass: "bg-orange-600 hover:bg-orange-700",
+        };
+      default:
+        return {
+          cardClass: "border-yellow-300 bg-yellow-50",
+          badgeClass: "text-yellow-700 border-yellow-400 bg-yellow-100",
+          textClass: "text-yellow-800",
+          buttonClass: "bg-yellow-600 hover:bg-yellow-700",
+        };
+    }
+  };
+
+  const styles = getPriorityStyle(turma.prioridade);
+
+  // Formatar data brasileira
+  const formatDate = (dateStr) => {
+    try {
+      const date = new Date(dateStr + "T00:00:00");
+      return date.toLocaleDateString("pt-BR");
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <>
-      <Card className="border-orange-200 bg-orange-50">
+      <Card className={styles.cardClass}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-orange-800">
+            <CardTitle className={`text-lg ${styles.textClass}`}>
               {turma.turma_nome}
             </CardTitle>
-            <Badge
-              variant="outline"
-              className="text-orange-600 border-orange-300"
-            >
-              Pendente
+            <Badge variant="outline" className={styles.badgeClass}>
+              {turma.prioridade?.charAt(0).toUpperCase() +
+                turma.prioridade?.slice(1)}
             </Badge>
+          </div>
+          {/* Status da chamada */}
+          <div className={`text-sm ${styles.textClass} opacity-90`}>
+            {turma.status_msg}
           </div>
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-4 text-sm text-orange-700">
+          <div
+            className={`flex items-center gap-4 text-sm ${styles.textClass} opacity-80`}
+          >
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span>{turma.horario || "Horário não definido"}</span>
@@ -788,13 +848,13 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>Hoje</span>
+              <span>{formatDate(turma.data_pendente)}</span>
             </div>
           </div>
 
           <Button
             onClick={() => setModalOpen(true)}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+            className={`w-full text-white ${styles.buttonClass}`}
           >
             📋 Fazer Chamada
           </Button>
