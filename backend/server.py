@@ -2896,10 +2896,12 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         
         alunos_ativos = await db.alunos.count_documents({"status": "ativo"})
         alunos_desistentes = await db.alunos.count_documents({"status": "desistente"})
-        chamadas_hoje = await db.chamadas.count_documents({"data": hoje.isoformat()})
+        
+        # 🎯 CORRIGIR: Usar collection 'attendances' (não 'chamadas')
+        chamadas_hoje = await db.attendances.count_documents({"data": hoje.isoformat()})
         
         # Stats mensais
-        chamadas_mes = await db.chamadas.find({"data": {"$gte": primeiro_mes.isoformat()}}).to_list(1000)
+        chamadas_mes = await db.attendances.find({"data": {"$gte": primeiro_mes.isoformat()}}).to_list(1000)
         total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
         total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
         
@@ -2961,14 +2963,14 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
             alunos_ativos = 0
             alunos_desistentes = 0
         
-        # Chamadas do instrutor
-        chamadas_hoje = await db.chamadas.count_documents({
+        # 🎯 CORRIGIR: Chamadas do instrutor usando collection 'attendances'
+        chamadas_hoje = await db.attendances.count_documents({
             "turma_id": {"$in": turmas_ids},
             "data": hoje.isoformat()
         })
         
         # Stats mensais das suas turmas
-        chamadas_mes = await db.chamadas.find({
+        chamadas_mes = await db.attendances.find({
             "turma_id": {"$in": turmas_ids},
             "data": {"$gte": primeiro_mes.isoformat()}
         }).to_list(1000)
@@ -3035,14 +3037,14 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
                 elif aluno.get("status") == "desistente":
                     alunos_desistentes += 1
         
-        # Chamadas das turmas permitidas
-        chamadas_hoje = await db.chamadas.count_documents({
+        # 🎯 CORRIGIR: Chamadas das turmas permitidas usando collection 'attendances'
+        chamadas_hoje = await db.attendances.count_documents({
             "turma_id": {"$in": turmas_ids},
             "data": hoje.isoformat()
         })
         
         # Stats mensais
-        chamadas_mes = await db.chamadas.find({
+        chamadas_mes = await db.attendances.find({
             "turma_id": {"$in": turmas_ids},
             "data": {"$gte": primeiro_mes.isoformat()}
         }).to_list(1000)
@@ -3359,17 +3361,42 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
     for turma in turmas:
         total_alunos += len(turma.get("alunos_ids", []))
     
-    # Count presenças registradas hoje
+    # Count chamadas registradas hoje e calcular taxa de presença
     hoje = datetime.now().date()
-    presencas_hoje = await db.chamadas.count_documents({
+    
+    # 🎯 CORRIGIR: Usar collection 'attendances' (não 'chamadas')
+    chamadas_hoje = await db.attendances.count_documents({
         "turma_id": {"$in": turma_ids},
         "data": hoje.isoformat()
     })
     
+    # 📊 CALCULAR TAXA DE PRESENÇA REAL
+    total_presencas = 0
+    total_possivel = 0
+    
+    for turma_id in turma_ids:
+        # Buscar todas as chamadas da turma
+        chamadas = await db.attendances.find({"turma_id": turma_id}).to_list(1000)
+        
+        for chamada in chamadas:
+            records = chamada.get("records", [])
+            for record in records:
+                total_possivel += 1
+                if record.get("presente", False):
+                    total_presencas += 1
+    
+    # Taxa de presença como porcentagem
+    taxa_presenca = 0
+    if total_possivel > 0:
+        taxa_presenca = round((total_presencas / total_possivel) * 100, 1)
+    
     return {
         "total_turmas": turmas_count,
         "total_alunos": total_alunos,
-        "presencas_hoje": presencas_hoje,
+        "chamadas_hoje": chamadas_hoje,
+        "taxa_presenca": taxa_presenca,
+        "total_presencas": total_presencas,
+        "total_possivel": total_possivel,
         "nome_instrutor": current_user.nome
     }
 
@@ -3427,8 +3454,9 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
             if isinstance(data_fim, str):
                 data_fim = datetime.fromisoformat(data_fim).date()
             
-            # Verificar cada dia dos últimos 14 dias (mais abrangente)
-            for dias_atras in range(14):  # 0 = hoje, 1 = ontem, etc.
+            # 🎯 VERIFICAR APENAS HOJE E ONTEM (máximo 2 dias atrás)
+            # Não mostrar chamadas muito antigas para evitar confusão
+            for dias_atras in range(3):  # 0 = hoje, 1 = ontem, 2 = anteontem
                 data_verificar = hoje_date - timedelta(days=dias_atras)
                 data_iso = data_verificar.isoformat()
                 
@@ -3439,10 +3467,10 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
                     if not (data_inicio <= data_verificar <= data_fim):
                         continue  # Data fora do período da turma
                 
-                # 2) Verificar se é dia de aula (baseado em dias_semana)
+                # 2) Verificar se é dia de aula (baseado em dias_semana do curso)
                 dia_semana = data_verificar.weekday()  # 0=segunda, 6=domingo
                 if dia_semana not in dias_semana:
-                    continue  # Não é dia de aula
+                    continue  # Não é dia de aula programado
                 
                 # Verificar se já existe attendance para esta data
                 att = await db.attendances.find_one({"turma_id": tid, "data": data_iso})
