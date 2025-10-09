@@ -3398,21 +3398,51 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
         
         pending = []
         
-        # 🚀 NOVA LÓGICA: Verificar chamadas pendentes dos últimos 7 dias
+        # 🚀 NOVA LÓGICA: Verificar chamadas pendentes baseado nos dias de aula programados
         from datetime import timedelta
         
         for t in turmas:
             tid = t.get("id")
             turma_nome = t.get("nome", "Turma sem nome")
+            curso_id = t.get("curso_id")
             
-            # Verificar cada dia dos últimos 7 dias
-            for dias_atras in range(7):  # 0 = hoje, 1 = ontem, etc.
+            # 🎯 BUSCAR DIAS DA SEMANA DO CURSO (NÃO DA TURMA!)
+            dias_semana = []
+            if curso_id:
+                curso = await db.cursos.find_one({"id": curso_id})
+                if curso:
+                    dias_semana = curso.get("dias_semana", [])
+            
+            # Se o curso não tem dias específicos, usar dias úteis como padrão (segunda=0 a sexta=4)
+            if not dias_semana:
+                dias_semana = [0, 1, 2, 3, 4]  # Segunda a Sexta
+                
+            # 📅 VERIFICAR PERÍODO DA TURMA
+            data_inicio = t.get("data_inicio")
+            data_fim = t.get("data_fim")
+            
+            # Converter strings para date se necessário
+            if isinstance(data_inicio, str):
+                data_inicio = datetime.fromisoformat(data_inicio).date()
+            if isinstance(data_fim, str):
+                data_fim = datetime.fromisoformat(data_fim).date()
+            
+            # Verificar cada dia dos últimos 14 dias (mais abrangente)
+            for dias_atras in range(14):  # 0 = hoje, 1 = ontem, etc.
                 data_verificar = hoje_date - timedelta(days=dias_atras)
                 data_iso = data_verificar.isoformat()
                 
-                # Pular fins de semana (opcional - remova se quiser incluir)
-                # if data_verificar.weekday() >= 5:  # 5=sábado, 6=domingo
-                #     continue
+                # 🎯 FILTROS IMPORTANTES:
+                
+                # 1) Verificar se está no período da turma
+                if data_inicio and data_fim:
+                    if not (data_inicio <= data_verificar <= data_fim):
+                        continue  # Data fora do período da turma
+                
+                # 2) Verificar se é dia de aula (baseado em dias_semana)
+                dia_semana = data_verificar.weekday()  # 0=segunda, 6=domingo
+                if dia_semana not in dias_semana:
+                    continue  # Não é dia de aula
                 
                 # Verificar se já existe attendance para esta data
                 att = await db.attendances.find_one({"turma_id": tid, "data": data_iso})

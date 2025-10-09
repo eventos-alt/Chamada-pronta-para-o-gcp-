@@ -613,7 +613,9 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
         description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
       });
 
-      onComplete(); // Notificar componente pai
+      // 🎯 FECHAR MODAL E ATUALIZAR LISTA
+      onComplete(); // Notificar componente pai para remover da lista
+      onClose(); // Fechar o modal
     } catch (error) {
       if (error.response?.status === 409) {
         toast({
@@ -1229,8 +1231,11 @@ const NotificationButton = () => {
 
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/notifications/pending-calls`);
-      setNotifications(response.data.chamadas_pendentes || []);
+      // 🎯 USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
+      const response = await axios.get(
+        `${API}/instructor/me/pending-attendances`
+      );
+      setNotifications(response.data.pending || []);
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
     } finally {
