@@ -80,6 +80,7 @@ import {
   Bell,
   BellRing,
   AlertTriangle,
+  TriangleAlert,
 } from "lucide-react";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -497,6 +498,297 @@ const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
+  );
+};
+
+// 🚀 HOOK: Chamadas Pendentes (Sistema de Attendance)
+const usePendingAttendances = () => {
+  const { user } = useAuth();
+  const [pending, setPending] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchPending = async () => {
+    if (user?.tipo !== 'instrutor') {
+      setPending([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.get(`${API}/instructor/me/pending-attendances`);
+      setPending(response.data.pending || []);
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao buscar chamadas pendentes:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPending();
+  }, [user]);
+
+  // Remover turma da lista após chamada feita
+  const markAttendanceComplete = (turmaId) => {
+    setPending(prev => prev.filter(p => p.turma_id !== turmaId));
+  };
+
+  return { pending, loading, error, refetch: fetchPending, markComplete: markAttendanceComplete };
+};
+
+// 🚀 COMPONENTE: Modal de Chamada
+const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [observacao, setObservacao] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+  
+  // Inicializar todos os alunos como presentes
+  const [records, setRecords] = useState(
+    turma?.alunos?.map(aluno => ({
+      aluno_id: aluno.id,
+      nome: aluno.nome,
+      presente: true
+    })) || []
+  );
+
+  // Atualizar records quando turma mudar
+  useEffect(() => {
+    if (turma?.alunos) {
+      setRecords(turma.alunos.map(aluno => ({
+        aluno_id: aluno.id,
+        nome: aluno.nome,
+        presente: true
+      })));
+    }
+  }, [turma]);
+
+  const togglePresence = (index) => {
+    const newRecords = [...records];
+    newRecords[index].presente = !newRecords[index].presente;
+    setRecords(newRecords);
+  };
+
+  const handleSave = async () => {
+    if (!showConfirm) {
+      setShowConfirm(true);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Preparar dados para envio
+      const recordsToSend = records.map(r => ({
+        aluno_id: r.aluno_id,
+        presente: r.presente
+      }));
+
+      await axios.post(
+        `${API}/classes/${turma.turma_id}/attendance/today`,
+        { records: recordsToSend, observacao }
+      );
+      
+      toast({
+        title: "✅ Chamada Salva",
+        description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
+      });
+
+      onComplete(); // Notificar componente pai
+      
+    } catch (error) {
+      if (error.response?.status === 409) {
+        toast({
+          title: "⚠️ Chamada Já Realizada",
+          description: "A chamada desta turma já foi registrada hoje",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "❌ Erro",
+          description: "Erro ao salvar chamada. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } finally {
+      setSaving(false);
+      setShowConfirm(false);
+    }
+  };
+
+  const presenteCount = records.filter(r => r.presente).length;
+  const absentCount = records.length - presenteCount;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            📋 Chamada: {turma?.turma_nome}
+          </DialogTitle>
+          <DialogDescription>
+            Marque os alunos presentes. A chamada será salva e não poderá ser alterada.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Resumo */}
+          <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{presenteCount}</div>
+              <div className="text-sm text-green-700">Presentes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600">{absentCount}</div>
+              <div className="text-sm text-red-700">Ausentes</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{records.length}</div>
+              <div className="text-sm text-blue-700">Total</div>
+            </div>
+          </div>
+
+          {/* Lista de Alunos */}
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {records.map((record, index) => (
+              <div 
+                key={record.aluno_id}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  record.presente 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-red-50 border-red-200'
+                }`}
+              >
+                <span className="font-medium">{record.nome}</span>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={record.presente}
+                    onCheckedChange={() => togglePresence(index)}
+                  />
+                  <span className={`text-sm font-medium ${
+                    record.presente ? 'text-green-700' : 'text-red-700'
+                  }`}>
+                    {record.presente ? 'Presente' : 'Ausente'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Observações */}
+          <div className="space-y-2">
+            <Label>Observações da Aula (opcional)</Label>
+            <Textarea
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              placeholder="Anote observações sobre a aula, conteúdo ministrado, etc..."
+              rows={3}
+            />
+          </div>
+
+          {/* Confirmação */}
+          {showConfirm && (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 font-medium">
+                ⚠️ Confirmação Necessária
+              </p>
+              <p className="text-yellow-700 text-sm mt-1">
+                A chamada será salva e <strong>não poderá ser alterada</strong>. 
+                Deseja continuar?
+              </p>
+            </div>
+          )}
+
+          {/* Botões */}
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={onClose}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSave}
+              disabled={saving}
+              className={showConfirm ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
+            >
+              {saving ? (
+                <span className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Salvando...
+                </span>
+              ) : showConfirm ? (
+                '✅ Confirmar e Salvar'
+              ) : (
+                '💾 Salvar Chamada'
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// 🚀 COMPONENTE: Card de Chamada Pendente
+const PendingAttendanceCard = ({ turma, onComplete }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const handleComplete = () => {
+    setModalOpen(false);
+    onComplete(turma.turma_id);
+  };
+
+  return (
+    <>
+      <Card className="border-orange-200 bg-orange-50">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg text-orange-800">
+              {turma.turma_nome}
+            </CardTitle>
+            <Badge variant="outline" className="text-orange-600 border-orange-300">
+              Pendente
+            </Badge>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-3">
+          <div className="flex items-center gap-4 text-sm text-orange-700">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>{turma.horario || "Horário não definido"}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Users className="h-4 w-4" />
+              <span>{turma.alunos?.length || 0} alunos</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>Hoje</span>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={() => setModalOpen(true)}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            📋 Fazer Chamada
+          </Button>
+        </CardContent>
+      </Card>
+
+      <AttendanceModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        turma={turma}
+        onComplete={handleComplete}
+      />
+    </>
   );
 };
 
@@ -1039,6 +1331,9 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const { user, logout } = useAuth();
   const { toast } = useToast();
+  
+  // 🚀 HOOK: Chamadas Pendentes
+  const { pending, loading: pendingLoading, error: pendingError, refetch: refetchPending, markComplete } = usePendingAttendances();
 
   useEffect(() => {
     fetchStats();
@@ -1253,6 +1548,61 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* 🚀 PAINEL CHAMADAS PENDENTES - APENAS PARA INSTRUTORES */}
+        {user?.tipo === 'instrutor' && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TriangleAlert className="h-5 w-5 text-orange-600" />
+                Chamadas Pendentes
+              </CardTitle>
+              <CardDescription>
+                {pendingLoading 
+                  ? "Carregando chamadas pendentes..." 
+                  : pending.length === 0 
+                    ? "✅ Todas as chamadas do dia foram realizadas!"
+                    : `${pending.length} turma(s) sem chamada registrada para hoje`
+                }
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              {pendingLoading ? (
+                <div className="text-center py-4">
+                  <RefreshCw className="h-6 w-6 animate-spin text-gray-400 mx-auto mb-2" />
+                  <span className="text-gray-600">Carregando chamadas pendentes...</span>
+                </div>
+              ) : pendingError ? (
+                <div className="text-center py-4 text-red-600">
+                  <AlertCircle className="h-6 w-6 mx-auto mb-2" />
+                  <span>Erro ao carregar: {pendingError}</span>
+                  <Button onClick={refetchPending} variant="outline" className="ml-2">
+                    Tentar novamente
+                  </Button>
+                </div>
+              ) : pending.length === 0 ? (
+                <div className="text-center py-8 text-green-600">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <p className="font-medium">Todas as chamadas do dia foram realizadas!</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Não há turmas com chamadas pendentes.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {pending.map(turma => (
+                    <PendingAttendanceCard
+                      key={turma.turma_id}
+                      turma={turma}
+                      onComplete={markComplete}
+                    />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Management Tabs */}
         <Tabs defaultValue="turmas" className="w-full">
@@ -5087,7 +5437,9 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         <SelectValue placeholder="Selecione uma turma padrão ou deixe em branco" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sem_turma_padrao">Sem turma padrão</SelectItem>
+                        <SelectItem value="sem_turma_padrao">
+                          Sem turma padrão
+                        </SelectItem>
                         {turmas
                           .filter(
                             (turma) =>

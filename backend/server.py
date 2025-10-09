@@ -22,6 +22,7 @@ from collections import defaultdict
 import asyncio
 from urllib.parse import quote_plus
 from dateutil import parser as dateutil_parser
+from pymongo.errors import DuplicateKeyError
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -401,6 +402,36 @@ class DesistenteCreate(BaseModel):
     motivo: str
     observacoes: Optional[str] = None
 
+# 🚀 NOVOS MODELOS PARA SISTEMA DE ATTENDANCE (CHAMADAS PENDENTES)
+class AttendanceRecord(BaseModel):
+    aluno_id: str
+    presente: bool
+    nota: Optional[str] = None  # opcional: observações sobre o aluno
+
+class AttendanceCreate(BaseModel):
+    records: List[AttendanceRecord]
+    observacao: Optional[str] = None  # observação geral da aula
+
+class AttendanceResponse(BaseModel):
+    id: str
+    turma_id: str
+    data: str  # YYYY-MM-DD
+    created_by: str
+    created_at: str
+    records: List[AttendanceRecord]
+    observacao: Optional[str] = None
+
+class PendingAttendanceInfo(BaseModel):
+    turma_id: str
+    turma_nome: str
+    alunos: List[Dict[str, str]]  # [{"id": "...", "nome": "..."}]
+    vagas: int
+    horario: str
+
+class PendingAttendancesResponse(BaseModel):
+    date: str
+    pending: List[PendingAttendanceInfo]
+
 # Helper Functions
 def prepare_for_mongo(data):
     """Convert date objects to ISO strings for MongoDB storage"""
@@ -426,6 +457,11 @@ def parse_from_mongo(item):
                 except (ValueError, AttributeError):
                     pass
     return item
+
+# 🚀 NOVA FUNÇÃO HELPER PARA ATTENDANCE
+def today_iso_date(tz=None):
+    """Retorna data ISO YYYY-MM-DD (use timezone UTC ou local se desejar)"""
+    return datetime.now(timezone.utc).date().isoformat()
 
 # Bulk Upload Helper Functions
 def normalize_cpf(raw: str) -> str:
@@ -3332,6 +3368,161 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
         "presencas_hoje": presencas_hoje,
         "nome_instrutor": current_user.nome
     }
+
+# 🚀 NOVOS ENDPOINTS PARA SISTEMA DE CHAMADAS PENDENTES
+
+@api_router.get("/instructor/me/pending-attendances", response_model=PendingAttendancesResponse)
+async def get_pending_attendances_for_instructor(current_user: UserResponse = Depends(get_current_user)):
+    """Lista turmas com chamada pendente para o instrutor atual"""
+    if current_user.tipo != "instrutor":
+        raise HTTPException(status_code=403, detail="Acesso negado - apenas instrutores")
+    
+    instrutor_id = current_user.id
+    hoje = today_iso_date()
+    
+    # 1) Buscar turmas do instrutor que estão ativas e cujo período inclua hoje
+    # (assumimos turmas têm fields data_inicio, data_fim em formato date)
+    try:
+        # Converter hoje para objeto date para comparação
+        hoje_date = datetime.fromisoformat(hoje).date()
+        
+        cursor = db.classes.find({
+            "instrutor_id": instrutor_id,
+            "ativo": True
+        })
+        turmas = await cursor.to_list(length=1000)
+        
+        pending = []
+        for t in turmas:
+            # Verificar se a data atual está dentro do período da turma
+            data_inicio = t.get("data_inicio")
+            data_fim = t.get("data_fim")
+            
+            # Converter strings para date se necessário
+            if isinstance(data_inicio, str):
+                data_inicio = datetime.fromisoformat(data_inicio).date()
+            if isinstance(data_fim, str):
+                data_fim = datetime.fromisoformat(data_fim).date()
+            
+            # Verificar se hoje está no período da turma
+            if data_inicio and data_fim:
+                if not (data_inicio <= hoje_date <= data_fim):
+                    continue  # Turma não está no período atual
+            
+            tid = t.get("id")
+            
+            # 2) Verificar se já existe attendance para hoje
+            # Usar a collection 'attendances' para o novo sistema
+            att = await db.attendances.find_one({"turma_id": tid, "data": hoje})
+            
+            if not att:  # Não tem attendance = pendente
+                # 3) Buscar dados básicos dos alunos da turma
+                alunos_ids = t.get("alunos_ids", [])
+                if alunos_ids:
+                    alunos_cursor = db.students.find(
+                        {"id": {"$in": alunos_ids}}, 
+                        {"id": 1, "nome": 1}
+                    )
+                    alunos = await alunos_cursor.to_list(1000)
+                else:
+                    alunos = []
+                
+                pending.append({
+                    "turma_id": tid,
+                    "turma_nome": t.get("nome", "Turma sem nome"),
+                    "alunos": [{"id": a.get("id"), "nome": a.get("nome")} for a in alunos],
+                    "vagas": t.get("vagas_total", 0),
+                    "horario": f"{t.get('horario_inicio', '')}-{t.get('horario_fim', '')}"
+                })
+        
+        return PendingAttendancesResponse(date=hoje, pending=pending)
+        
+    except Exception as e:
+        print(f"❌ Erro ao buscar chamadas pendentes: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+
+@api_router.get("/classes/{turma_id}/attendance/today")
+async def get_attendance_today(turma_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Verificar se já existe chamada para turma hoje"""
+    hoje = today_iso_date()
+    
+    # Validar permissão: instrutor dono da turma ou admin
+    turma = await db.classes.find_one({"id": turma_id})
+    if not turma:
+        raise HTTPException(404, "Turma não encontrada")
+    
+    if current_user.tipo == "instrutor" and turma.get("instrutor_id") != current_user.id:
+        raise HTTPException(403, "Acesso negado - turma não pertence ao instrutor")
+    
+    att = await db.attendances.find_one({"turma_id": turma_id, "data": hoje})
+    if not att:
+        raise HTTPException(status_code=204, detail="Nenhuma chamada para hoje")
+    
+    # Serializar para resposta
+    return AttendanceResponse(
+        id=att.get("id", str(att.get("_id"))),
+        turma_id=att["turma_id"],
+        data=att["data"],
+        created_by=att["created_by"],
+        created_at=att["created_at"],
+        records=att.get("records", []),
+        observacao=att.get("observacao")
+    )
+
+@api_router.post("/classes/{turma_id}/attendance/today", status_code=201)
+async def create_attendance_today(
+    turma_id: str, 
+    payload: AttendanceCreate, 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Criar chamada do dia (única ação, imutável)"""
+    hoje = today_iso_date()
+    
+    # Validações
+    turma = await db.classes.find_one({"id": turma_id})
+    if not turma:
+        raise HTTPException(404, "Turma não encontrada")
+    
+    # Permissões: só instrutor da turma ou admin
+    if current_user.tipo == "instrutor" and turma.get("instrutor_id") != current_user.id:
+        raise HTTPException(403, "Acesso negado - turma não pertence ao instrutor")
+    
+    # Montar documento
+    doc = {
+        "id": str(uuid.uuid4()),
+        "turma_id": turma_id,
+        "data": hoje,
+        "records": [r.dict() for r in payload.records],
+        "observacao": payload.observacao,
+        "created_by": current_user.id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    try:
+        # Inserir com chave única (turma_id, data)
+        # IMPORTANTE: Criar índice único no MongoDB primeiro!
+        res = await db.attendances.insert_one(doc)
+        
+        # Log para auditoria
+        print(f"✅ Chamada criada: turma={turma_id}, data={hoje}, by={current_user.id}")
+        
+        return {
+            "id": doc["id"],
+            "message": "Chamada salva com sucesso",
+            "data": hoje,
+            "turma_id": turma_id
+        }
+        
+    except DuplicateKeyError:
+        # Já existe uma chamada para essa turma/data
+        print(f"⚠️ Tentativa de criar chamada duplicada: turma={turma_id}, data={hoje}")
+        raise HTTPException(
+            status_code=409, 
+            detail="Chamada do dia já existe e não pode ser alterada"
+        )
+    except Exception as e:
+        print(f"❌ Erro ao salvar chamada: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro interno ao salvar chamada: {str(e)}")
 
 # Include the router in the main app
 app.include_router(api_router)
