@@ -2133,6 +2133,9 @@ async def get_turmas(current_user: UserResponse = Depends(get_current_user)):
                 query["curso_id"] = current_user.curso_id
             if current_user.unidade_id:
                 query["unidade_id"] = current_user.unidade_id
+            # 🎯 CORREÇÃO: Pedagogo só vê turmas de EXTENSÃO
+            if current_user.tipo == "pedagogo":
+                query["tipo_turma"] = "extensao"
         
         turmas = await db.turmas.find(query).to_list(1000)
     
