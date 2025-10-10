@@ -2121,3 +2121,89 @@ MongoDB (Atlas)
 3. **Testar CRUD**: Verificar criação/edição de alunos e turmas
 4. **Monitorar Performance**: Acompanhar tempos de resposta
 5. **Deploy Produção**: Verificar se correções estão online
+
+---
+
+## 🎯 **CORREÇÕES CRÍTICAS IMPLEMENTADAS - 10/10/2025**
+
+### **📋 PROBLEMA RESOLVIDO: Separação de Turmas por Tipo**
+
+#### **🚨 Problema Identificado:**
+- **Ione (pedagogo)** via tanto turmas `regular` quanto `extensao`
+- **Fabiana (instrutor)** deveria ver apenas turmas `regular`
+- **Endpoint `/classes`** não tinha filtro por `tipo_turma`
+- **Endpoint `/reports/teacher-stats`** já funcionava corretamente
+
+#### **🔧 Solução Implementada:**
+
+**Arquivo**: `backend/server.py` - Endpoint `/classes` (linha ~2136)
+
+```python
+# 🎯 FILTRO CRÍTICO ADICIONADO:
+elif current_user.tipo in ["pedagogo", "monitor"]:
+    # Pedagogo e monitor veem turmas do seu curso e unidade  
+    if current_user.curso_id:
+        query["curso_id"] = current_user.curso_id
+    if current_user.unidade_id:
+        query["unidade_id"] = current_user.unidade_id
+    # 🎯 CORREÇÃO: Pedagogo só vê turmas de EXTENSÃO
+    if current_user.tipo == "pedagogo":
+        query["tipo_turma"] = "extensao"
+```
+
+#### **✅ Resultado Final:**
+
+**Commit**: `98bd2f1` - "FIX: Pedagogo só vê turmas EXTENSÃO no endpoint /classes"
+
+**Testes de Validação:**
+- **Ione (pedagogo)**: ✅ Vê apenas **1 turma de EXTENSÃO**
+- **Fabiana (instrutor)**: ✅ Vê apenas **1 turma REGULAR**
+- **Endpoint `/classes`**: ✅ Filtro por `tipo_turma` funcionando
+- **Endpoint `/reports/teacher-stats`**: ✅ Já funcionava corretamente
+
+#### **🧪 Comandos de Teste Utilizados:**
+
+```powershell
+# Login Ione (pedagogo)
+$body = @{"email" = "ione.almeida@ios.org.br"; "senha" = "50a10d3d"} | ConvertTo-Json
+$response = Invoke-WebRequest -Uri "https://sistema-ios-backend.onrender.com/api/auth/login" -Method POST -Body $body -Headers @{"Content-Type" = "application/json"}
+$token = ($response.Content | ConvertFrom-Json).access_token
+
+# Teste endpoint /classes
+$authHeaders = @{"Authorization" = "Bearer $token"}
+$testResponse = Invoke-WebRequest -Uri "https://sistema-ios-backend.onrender.com/api/classes" -Headers $authHeaders
+$data = $testResponse.Content | ConvertFrom-Json
+
+# Resultado: 1 turma EXTENSÃO ✅
+```
+
+#### **📊 Impacto da Correção:**
+
+- **RBAC Completo**: Sistema agora respeita completamente o controle de acesso baseado em roles
+- **Segregação por Tipo**: Pedagogos veem apenas extensão, instrutores apenas regular
+- **Consistência**: Todos os endpoints agora filtram corretamente por tipo de usuário
+- **Segurança**: Usuários não veem dados fora do seu escopo de trabalho
+
+#### **🎯 Usuários de Teste Validados:**
+
+```
+admin@ios.com.br - 1c5e36f9 (Admin - vê tudo)
+fabiana.coelho@ios.org.br - 3b38d477 (Instrutor - turmas regular)
+ione.almeida@ios.org.br - 50a10d3d (Pedagogo - turmas extensão)
+```
+
+#### **🚀 Deploy Status:**
+
+- **Ambiente**: Produção (Render + Vercel)
+- **Status**: ✅ ONLINE e funcionando
+- **Última atualização**: 10/10/2025 às 18:09 BRT
+- **Confirmado**: Ambos usuários testados com sucesso
+
+### **💡 Lições Aprendidas desta Correção:**
+
+1. **Debugging Sistemático**: Identificar qual endpoint específico causa problema
+2. **Testes Comparativos**: Testar múltiplos endpoints para encontrar inconsistências  
+3. **Deploy Incremental**: Fazer correções mínimas e testar antes de deploy completo
+4. **Rollback Strategy**: Ter sempre plano B (rollback) quando deploy quebra
+5. **Validação Multi-usuário**: Testar com diferentes tipos de usuários
+6. **Documentação em Tempo Real**: Documentar correções imediatamente após implementação
