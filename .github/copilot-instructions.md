@@ -2129,6 +2129,7 @@ MongoDB (Atlas)
 ### **📋 PROBLEMA RESOLVIDO: Separação de Turmas por Tipo**
 
 #### **🚨 Problema Identificado:**
+
 - **Ione (pedagogo)** via tanto turmas `regular` quanto `extensao`
 - **Fabiana (instrutor)** deveria ver apenas turmas `regular`
 - **Endpoint `/classes`** não tinha filtro por `tipo_turma`
@@ -2141,7 +2142,7 @@ MongoDB (Atlas)
 ```python
 # 🎯 FILTRO CRÍTICO ADICIONADO:
 elif current_user.tipo in ["pedagogo", "monitor"]:
-    # Pedagogo e monitor veem turmas do seu curso e unidade  
+    # Pedagogo e monitor veem turmas do seu curso e unidade
     if current_user.curso_id:
         query["curso_id"] = current_user.curso_id
     if current_user.unidade_id:
@@ -2156,6 +2157,7 @@ elif current_user.tipo in ["pedagogo", "monitor"]:
 **Commit**: `98bd2f1` - "FIX: Pedagogo só vê turmas EXTENSÃO no endpoint /classes"
 
 **Testes de Validação:**
+
 - **Ione (pedagogo)**: ✅ Vê apenas **1 turma de EXTENSÃO**
 - **Fabiana (instrutor)**: ✅ Vê apenas **1 turma REGULAR**
 - **Endpoint `/classes`**: ✅ Filtro por `tipo_turma` funcionando
@@ -2202,7 +2204,7 @@ ione.almeida@ios.org.br - 50a10d3d (Pedagogo - turmas extensão)
 ### **💡 Lições Aprendidas desta Correção:**
 
 1. **Debugging Sistemático**: Identificar qual endpoint específico causa problema
-2. **Testes Comparativos**: Testar múltiplos endpoints para encontrar inconsistências  
+2. **Testes Comparativos**: Testar múltiplos endpoints para encontrar inconsistências
 3. **Deploy Incremental**: Fazer correções mínimas e testar antes de deploy completo
 4. **Rollback Strategy**: Ter sempre plano B (rollback) quando deploy quebra
 5. **Validação Multi-usuário**: Testar com diferentes tipos de usuários
