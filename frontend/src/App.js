@@ -2001,12 +2001,17 @@ const ChamadaManager = () => {
         )}`,
       });
 
-      // 🎯 IMPORTANTE: Após salvar, remover a turma da lista (não pode fazer chamada novamente hoje)
-      setTurmas((prev) => prev.filter((t) => t.id !== selectedTurma));
+      // 🎯 CORREÇÃO: Limpar estados de forma sequencial para evitar React DOM error
+      // 1. Primeiro limpar seleção e dados
       setSelectedTurma("");
       setAlunos([]);
       setPresencas({});
       setObservacoes("");
+      
+      // 2. Depois remover turma da lista (em callback para evitar conflito)
+      setTimeout(() => {
+        setTurmas((prev) => prev.filter((t) => t.id !== selectedTurma));
+      }, 0);
     } catch (error) {
       toast({
         title: "Erro ao salvar chamada",
@@ -2053,7 +2058,7 @@ const ChamadaManager = () => {
           </Select>
         </div>
 
-        {selectedTurma && (
+        {selectedTurma && turmas.find(t => t.id === selectedTurma) && (
           <div className="grid grid-cols-3 gap-4">
             <Card>
               <CardContent className="p-4">
