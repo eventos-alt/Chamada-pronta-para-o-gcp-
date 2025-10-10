@@ -1315,7 +1315,8 @@ async def reset_all_database(current_user: UserResponse = Depends(get_current_us
         # Contar antes da limpeza
         alunos_count = await db.alunos.count_documents({})
         turmas_count = await db.turmas.count_documents({})
-        chamadas_count = await db.chamadas.count_documents({})
+        # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+        chamadas_count = await db.attendances.count_documents({})
         
         print(f"🚨 RESET TOTAL INICIADO por {current_user.email}")
         print(f"   Alunos a serem removidos: {alunos_count}")
@@ -1325,7 +1326,8 @@ async def reset_all_database(current_user: UserResponse = Depends(get_current_us
         # APAGAR TUDO
         result_alunos = await db.alunos.delete_many({})
         result_turmas = await db.turmas.delete_many({})
-        result_chamadas = await db.chamadas.delete_many({})
+        # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+        result_chamadas = await db.attendances.delete_many({})
         
         print(f"✅ RESET CONCLUÍDO:")
         print(f"   Alunos removidos: {result_alunos.deleted_count}")
@@ -2237,10 +2239,11 @@ async def delete_turma(turma_id: str, current_user: UserResponse = Depends(get_c
         # Limpar referências da turma nos alunos se necessário (futuro)
     
     # Deletar chamadas relacionadas (se houver)
-    chamadas_count = await db.chamadas.count_documents({"turma_id": turma_id})
+    # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+    chamadas_count = await db.attendances.count_documents({"turma_id": turma_id})
     if chamadas_count > 0:
         print(f"🗑️ Deletando {chamadas_count} chamada(s) relacionada(s)")
-        await db.chamadas.delete_many({"turma_id": turma_id})
+        await db.attendances.delete_many({"turma_id": turma_id})
     
     # 🗑️ DELETAR TURMA
     result = await db.turmas.delete_one({"id": turma_id})
@@ -2373,7 +2376,7 @@ async def create_chamada(chamada_create: ChamadaCreate, current_user: UserRespon
         )
     
     # 🔒 VALIDAÇÃO: Verificar se já existe chamada para esta turma hoje
-    chamada_existente = await db.chamadas.find_one({
+    chamada_existente = await db.attendances.find_one({
         "turma_id": chamada_create.turma_id,
         "data": data_hoje.isoformat()
     })
@@ -2427,13 +2430,15 @@ async def create_chamada(chamada_create: ChamadaCreate, current_user: UserRespon
     
     chamada_obj = Chamada(**chamada_dict)
     mongo_data = prepare_for_mongo(chamada_obj.dict())
-    await db.chamadas.insert_one(mongo_data)
+    # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+    await db.attendances.insert_one(mongo_data)
     
     return chamada_obj
 
 @api_router.get("/classes/{turma_id}/attendance", response_model=List[Chamada])
 async def get_chamadas_turma(turma_id: str, current_user: UserResponse = Depends(get_current_user)):
-    chamadas = await db.chamadas.find({"turma_id": turma_id}).to_list(1000)
+    # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+    chamadas = await db.attendances.find({"turma_id": turma_id}).to_list(1000)
     return [Chamada(**parse_from_mongo(chamada)) for chamada in chamadas]
 
 @api_router.get("/classes/{turma_id}/students")
@@ -2646,7 +2651,8 @@ async def get_attendance_report(
     elif data_fim:
         query["data"] = {"$lte": data_fim.isoformat()}
     
-    chamadas = await db.chamadas.find(query).to_list(1000)
+    # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+    chamadas = await db.attendances.find(query).to_list(1000)
     
     if export_csv:
         output = io.StringIO()
@@ -2810,7 +2816,8 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
             
             # 📅 HOJE: Verificar se hoje é dia de aula e se tem chamada
             if eh_dia_de_aula(hoje, dias_aula):
-                chamada_hoje = await db.chamadas.find_one({
+                # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+                chamada_hoje = await db.attendances.find_one({
                     "turma_id": turma["id"],
                     "data": hoje.isoformat()
                 })
@@ -2831,7 +2838,8 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
             
             # 📅 ONTEM: Verificar se ontem era dia de aula e se tem chamada
             if eh_dia_de_aula(ontem, dias_aula):
-                chamada_ontem = await db.chamadas.find_one({
+                # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+                chamada_ontem = await db.attendances.find_one({
                     "turma_id": turma["id"],
                     "data": ontem.isoformat()
                 })
@@ -2852,7 +2860,8 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
             
             # 📅 ANTEONTEM: Verificar se anteontem era dia de aula e se tem chamada
             if eh_dia_de_aula(anteontem, dias_aula):
-                chamada_anteontem = await db.chamadas.find_one({
+                # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+                chamada_anteontem = await db.attendances.find_one({
                     "turma_id": turma["id"],
                     "data": anteontem.isoformat()
                 })
@@ -2902,8 +2911,17 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         
         # Stats mensais
         chamadas_mes = await db.attendances.find({"data": {"$gte": primeiro_mes.isoformat()}}).to_list(1000)
-        total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
-        total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+        
+        # 🎯 CORRIGIR: Calcular presenças e faltas a partir dos records
+        total_presencas_mes = 0
+        total_faltas_mes = 0
+        
+        for chamada in chamadas_mes:
+            records = chamada.get("records", [])
+            presentes = len([r for r in records if r.get("presente", False)])
+            ausentes = len(records) - presentes
+            total_presencas_mes += presentes
+            total_faltas_mes += ausentes
         
         return {
             "total_unidades": total_unidades,
@@ -2975,8 +2993,16 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
             "data": {"$gte": primeiro_mes.isoformat()}
         }).to_list(1000)
         
-        total_presencas_mes = sum(c.get("total_presentes", 0) for c in chamadas_mes)
-        total_faltas_mes = sum(c.get("total_faltas", 0) for c in chamadas_mes)
+        # 🎯 CORRIGIR: Calcular presenças e faltas a partir dos records
+        total_presencas_mes = 0
+        total_faltas_mes = 0
+        
+        for chamada in chamadas_mes:
+            records = chamada.get("records", [])
+            presentes = len([r for r in records if r.get("presente", False)])
+            ausentes = len(records) - presentes
+            total_presencas_mes += presentes
+            total_faltas_mes += ausentes
         
         # Buscar dados do curso do instrutor
         curso_nome = "Seu Curso"
@@ -3242,7 +3268,8 @@ async def get_dynamic_teacher_stats(
             elif data_fim:
                 query_chamadas["data"] = {"$lte": data_fim.isoformat()}
             
-            chamadas = await db.chamadas.find(query_chamadas).to_list(1000)
+            # 🎯 CORREÇÃO CRÍTICA: Usar collection 'attendances' (não 'chamadas')
+            chamadas = await db.attendances.find(query_chamadas).to_list(1000)
             
             total_aulas = len(chamadas)
             presencas = 0
@@ -3404,28 +3431,63 @@ async def get_teacher_stats(current_user: UserResponse = Depends(get_current_use
 
 @api_router.get("/instructor/me/pending-attendances", response_model=PendingAttendancesResponse)
 async def get_pending_attendances_for_instructor(current_user: UserResponse = Depends(get_current_user)):
-    """Lista turmas com chamadas pendentes para o instrutor atual (últimos 7 dias)"""
-    if current_user.tipo != "instrutor":
-        raise HTTPException(status_code=403, detail="Acesso negado - apenas instrutores")
+    """
+    🎯 RBAC - Lista chamadas pendentes baseado no tipo de usuário:
+    - ADMIN: Todas as chamadas pendentes do sistema
+    - INSTRUTOR: Apenas suas turmas
+    - PEDAGOGO: Turmas da sua unidade/curso
+    - MONITOR: Turmas que monitora
     
-    instrutor_id = current_user.id
+    🗓️ REGRAS DE DIAS: Considera apenas dias de aula programados (seg-sex + cursos específicos)
+    - Segunda a Sexta: Padrão para todos os cursos
+    - Sábado: Apenas cursos específicos que têm aula
+    - Domingo: Nenhuma aula
+    - Sexta: Nem sempre (conforme programação do curso)
+    """
+    
     hoje = today_iso_date()
     
-    # 1) Buscar turmas do instrutor que estão ativas
-    # CORREÇÃO: Usar collection 'turmas' que é a correta no sistema
     try:
         # Converter hoje para objeto date para comparação
         hoje_date = datetime.fromisoformat(hoje).date()
         
-        cursor = db.turmas.find({
-            "instrutor_id": instrutor_id,
-            "ativo": True
-        })
-        turmas = await cursor.to_list(length=1000)
+        # 🎯 RBAC - Filtrar turmas baseado no tipo de usuário
+        if current_user.tipo == "admin":
+            # 👑 ADMIN: Ver todas as turmas ativas do sistema
+            cursor = db.turmas.find({"ativo": True})
+            
+        elif current_user.tipo == "instrutor":
+            # 🧑‍🏫 INSTRUTOR: Apenas suas turmas
+            cursor = db.turmas.find({
+                "instrutor_id": current_user.id,
+                "ativo": True
+            })
+            
+        elif current_user.tipo == "pedagogo":
+            # 👩‍🎓 PEDAGOGO: Turmas da sua unidade/curso
+            query_turmas = {"ativo": True}
+            if current_user.curso_id:
+                query_turmas["curso_id"] = current_user.curso_id
+            if current_user.unidade_id:
+                query_turmas["unidade_id"] = current_user.unidade_id
+            cursor = db.turmas.find(query_turmas)
+            
+        elif current_user.tipo == "monitor":
+            # 👨‍💻 MONITOR: Turmas que ele monitora (mesmo critério do pedagogo)
+            query_turmas = {"ativo": True}
+            if current_user.curso_id:
+                query_turmas["curso_id"] = current_user.curso_id
+            if current_user.unidade_id:
+                query_turmas["unidade_id"] = current_user.unidade_id
+            cursor = db.turmas.find(query_turmas)
+            
+        else:
+            raise HTTPException(status_code=403, detail="Tipo de usuário não autorizado")
         
+        turmas = await cursor.to_list(length=1000)
         pending = []
         
-        # 🚀 NOVA LÓGICA: Verificar chamadas pendentes baseado nos dias de aula programados
+        # 🚀 LÓGICA DE CHAMADAS PENDENTES: Verificar baseado nos dias de aula
         from datetime import timedelta
         
         for t in turmas:
