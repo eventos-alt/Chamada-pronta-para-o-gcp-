@@ -2684,25 +2684,32 @@ async def get_attendance_report(
                 
                 # Dados da chamada
                 data_chamada = chamada.get("data", "")
-                presencas = chamada.get("presencas", {})
                 observacoes_gerais = chamada.get("observacoes", "")
                 
                 # Horários da turma (se disponível)
                 hora_inicio = turma.get("horario_inicio", "08:00")
                 hora_fim = turma.get("horario_fim", "12:00")
                 
+                # ✅ CORREÇÃO: Usar 'records' em vez de 'presencas'
+                records = chamada.get("records", [])
+                
                 # Para cada aluno na chamada
-                for aluno_id, dados_presenca in presencas.items():
+                for record in records:
                     try:
+                        # ✅ CORREÇÃO: Usar estrutura correta dos records
+                        aluno_id = record.get("aluno_id")
+                        if not aluno_id:
+                            continue
+                        
                         # Buscar dados completos do aluno
                         aluno = await db.alunos.find_one({"id": aluno_id})
                         if not aluno:
                             continue
                         
                         # Determinar status detalhado
-                        presente = dados_presenca.get("presente", False)
-                        justificativa = dados_presenca.get("justificativa", "")
-                        hora_registro = dados_presenca.get("hora_registro", "")
+                        presente = record.get("presente", False)
+                        justificativa = record.get("justificativa", "")
+                        hora_registro = record.get("hora_registro", "")
                         
                         # Status simplificado: apenas Presente ou Ausente
                         if presente:
@@ -2745,7 +2752,7 @@ async def get_attendance_report(
                         ])
                         
                     except Exception as e:
-                        print(f"Erro ao processar aluno {aluno_id}: {e}")
+                        print(f"✅ Erro ao processar record: {e}")
                         continue
                         
             except Exception as e:
@@ -3359,73 +3366,8 @@ async def get_dynamic_teacher_stats(
         "resumo_turmas": resumo_turmas
     }
 
-# TEACHER STATS ENDPOINT (MANTER COMPATIBILIDADE)
-@api_router.get("/teacher/stats")
-async def get_teacher_stats(current_user: UserResponse = Depends(get_current_user)):
-    """Retorna estatísticas para professores/instrutores/monitores (compatibilidade)"""
-    if current_user.tipo not in ["instrutor", "admin", "monitor"]:
-        raise HTTPException(status_code=403, detail="Acesso restrito a instrutores e monitores")
-    
-    # Lógica adaptada para instrutor e monitor
-    if current_user.tipo == "instrutor":
-        # Instrutor: turmas que ele leciona
-        query_turmas = {"instrutor_id": current_user.id, "ativo": True}
-    elif current_user.tipo == "monitor":
-        # Monitor: turmas que ele monitora
-        query_turmas = {"monitor_id": current_user.id, "ativo": True}
-    else:
-        # Admin: todas as turmas (ou lógica específica se necessário)
-        query_turmas = {"ativo": True}
-    
-    # Count turmas
-    turmas_count = await db.turmas.count_documents(query_turmas)
-    
-    # Count alunos nas turmas
-    turmas = await db.turmas.find(query_turmas).to_list(100)
-    turma_ids = [turma["id"] for turma in turmas]
-    
-    total_alunos = 0
-    for turma in turmas:
-        total_alunos += len(turma.get("alunos_ids", []))
-    
-    # Count chamadas registradas hoje e calcular taxa de presença
-    hoje = datetime.now().date()
-    
-    # 🎯 CORRIGIR: Usar collection 'attendances' (não 'chamadas')
-    chamadas_hoje = await db.attendances.count_documents({
-        "turma_id": {"$in": turma_ids},
-        "data": hoje.isoformat()
-    })
-    
-    # 📊 CALCULAR TAXA DE PRESENÇA REAL
-    total_presencas = 0
-    total_possivel = 0
-    
-    for turma_id in turma_ids:
-        # Buscar todas as chamadas da turma
-        chamadas = await db.attendances.find({"turma_id": turma_id}).to_list(1000)
-        
-        for chamada in chamadas:
-            records = chamada.get("records", [])
-            for record in records:
-                total_possivel += 1
-                if record.get("presente", False):
-                    total_presencas += 1
-    
-    # Taxa de presença como porcentagem
-    taxa_presenca = 0
-    if total_possivel > 0:
-        taxa_presenca = round((total_presencas / total_possivel) * 100, 1)
-    
-    return {
-        "total_turmas": turmas_count,
-        "total_alunos": total_alunos,
-        "chamadas_hoje": chamadas_hoje,
-        "taxa_presenca": taxa_presenca,
-        "total_presencas": total_presencas,
-        "total_possivel": total_possivel,
-        "nome_instrutor": current_user.nome
-    }
+# TEACHER STATS ENDPOINT - CORRIGIDO PARA PEDAGOGO/INSTRUTOR
+# ENDPOINT REMOVIDO - DUPLICADO
 
 # 🚀 NOVOS ENDPOINTS PARA SISTEMA DE CHAMADAS PENDENTES
 
@@ -3732,6 +3674,145 @@ async def shutdown_db_client():
     client.close()
 
 # Railway compatibility - run server if executed directly
+@api_router.get("/teacher/stats")
+async def get_teacher_stats(current_user: dict = Depends(get_current_user)):
+    """✅ CORRIGIDO: Estatísticas por tipo de usuário com cálculos corretos"""
+    try:
+        # 🎯 FILTRAR DADOS BASEADO NO TIPO DE USUÁRIO
+        if current_user["tipo"] == "admin":
+            # Admin: todas as turmas e chamadas
+            query_turmas = {"ativo": True}
+            query_chamadas = {}
+            query_alunos = {}
+        elif current_user["tipo"] == "instrutor":
+            # Instrutor: apenas suas turmas
+            query_turmas = {"instrutor_id": current_user["id"], "ativo": True}
+        elif current_user["tipo"] == "pedagogo":
+            # Pedagogo: turmas da unidade/curso
+            query_turmas = {"ativo": True}
+            if current_user.get("unidade_id"):
+                query_turmas["unidade_id"] = current_user["unidade_id"]
+            if current_user.get("curso_id"):
+                query_turmas["curso_id"] = current_user["curso_id"]
+        elif current_user["tipo"] == "monitor":
+            # Monitor: turmas que monitora
+            query_turmas = {"monitor_id": current_user["id"], "ativo": True}
+        else:
+            # Tipo desconhecido
+            query_turmas = {}
+        
+        # 📊 BUSCAR TURMAS DO USUÁRIO
+        turmas = await db.turmas.find(query_turmas).to_list(1000)
+        turma_ids = [turma["id"] for turma in turmas]
+        
+        if not turma_ids and current_user["tipo"] != "admin":
+            # Usuário sem turmas: retornar dados zerados
+            return {
+                "taxa_media_presenca": "0.0%",
+                "total_alunos": 0,
+                "alunos_em_risco": 0,
+                "desistentes": 0,
+                "chamadas_hoje": 0,
+                "total_turmas": 0,
+                "ultima_atualizacao": datetime.now().isoformat()
+            }
+        
+        # 📅 FILTRAR CHAMADAS POR TURMAS DO USUÁRIO
+        if current_user["tipo"] == "admin":
+            query_chamadas = {}
+        else:
+            query_chamadas = {"turma_id": {"$in": turma_ids}}
+            
+        todas_chamadas = await db.attendances.find(query_chamadas).to_list(1000)
+        
+        # 🧮 CÁLCULOS DE PRESENÇA
+        total_presentes = 0
+        total_registros = 0
+        alunos_stats = {}
+        
+        for chamada in todas_chamadas:
+            records = chamada.get('records', [])
+            for record in records:
+                aluno_id = record.get('aluno_id')
+                presente = record.get('presente', False)
+                
+                total_registros += 1
+                if presente:
+                    total_presentes += 1
+                
+                # Stats por aluno
+                if aluno_id not in alunos_stats:
+                    alunos_stats[aluno_id] = {'presentes': 0, 'faltas': 0}
+                
+                if presente:
+                    alunos_stats[aluno_id]['presentes'] += 1
+                else:
+                    alunos_stats[aluno_id]['faltas'] += 1
+        
+        # ✅ TAXA DE PRESENÇA REAL
+        taxa_presenca = (total_presentes / total_registros * 100) if total_registros > 0 else 0
+        
+        # 🚨 ALUNOS EM RISCO (mais de 25% faltas)
+        alunos_risco = 0
+        for stats in alunos_stats.values():
+            total_aulas = stats['presentes'] + stats['faltas']
+            if total_aulas > 0 and (stats['faltas'] / total_aulas) > 0.25:
+                alunos_risco += 1
+        
+        # 👥 CONTAR ALUNOS ÚNICOS DAS TURMAS DO USUÁRIO
+        alunos_unicos = set()
+        for turma in turmas:
+            alunos_ids = turma.get("alunos_ids", [])
+            alunos_unicos.update(alunos_ids)
+        total_alunos_usuario = len(alunos_unicos)
+        
+        # 📊 FILTRAR DESISTENTES POR ESCOPO DO USUÁRIO
+        if current_user["tipo"] == "admin":
+            desistentes = await db.alunos.count_documents({"status": "desistente"})
+        else:
+            # Desistentes apenas dos alunos das turmas do usuário
+            alunos_ids_list = list(alunos_unicos)
+            desistentes = await db.alunos.count_documents({
+                "id": {"$in": alunos_ids_list},
+                "status": "desistente"
+            }) if alunos_ids_list else 0
+        
+        # 📅 CHAMADAS DE HOJE
+        hoje = date.today().isoformat()
+        if current_user["tipo"] == "admin":
+            chamadas_hoje = await db.attendances.count_documents({"data": hoje})
+        else:
+            chamadas_hoje = await db.attendances.count_documents({
+                "turma_id": {"$in": turma_ids},
+                "data": hoje
+            }) if turma_ids else 0
+        
+        print(f"📊 STATS {current_user['tipo'].upper()}: {taxa_presenca:.1f}% ({total_presentes}/{total_registros}) - Turmas: {len(turmas)}")
+        
+        return {
+            "taxa_media_presenca": f"{taxa_presenca:.1f}%",
+            "total_alunos": total_alunos_usuario,
+            "alunos_em_risco": alunos_risco,
+            "desistentes": desistentes,
+            "chamadas_hoje": chamadas_hoje,
+            "total_turmas": len(turmas),
+            "total_presentes": total_presentes,
+            "total_faltas": total_registros - total_presentes,
+            "usuario_tipo": current_user["tipo"],
+            "ultima_atualizacao": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        print(f"❌ Erro teacher/stats: {e}")
+        return {
+            "taxa_media_presenca": "0.0%",
+            "total_alunos": 0,
+            "alunos_em_risco": 0,
+            "desistentes": 0,
+            "chamadas_hoje": 0,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
