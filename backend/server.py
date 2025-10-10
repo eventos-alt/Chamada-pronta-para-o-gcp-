@@ -3283,12 +3283,14 @@ async def get_dynamic_teacher_stats(
             faltas = 0
             
             for chamada in chamadas:
-                presencas_dict = chamada.get("presencas", {})
-                if aluno["id"] in presencas_dict:
-                    if presencas_dict[aluno["id"]].get("presente", False):
-                        presencas += 1
-                    else:
-                        faltas += 1
+                # ✅ CORREÇÃO: Usar 'records' em vez de 'presencas'
+                records = chamada.get("records", [])
+                for record in records:
+                    if record.get("aluno_id") == aluno["id"]:
+                        if record.get("presente", False):
+                            presencas += 1
+                        else:
+                            faltas += 1
             
             if total_aulas > 0:
                 taxa_presenca = (presencas / total_aulas) * 100
