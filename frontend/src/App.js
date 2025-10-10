@@ -2084,22 +2084,24 @@ const ChamadaManager = () => {
 
       // ⚡ PROTEÇÃO REACT DOM: Limpeza sequencial com delays maiores
       const clearStatesSequentially = () => {
-        debugLog("ChamadaManager: Iniciando limpeza sequencial (VERSÃO CORRIGIDA)");
-        
+        debugLog(
+          "ChamadaManager: Iniciando limpeza sequencial (VERSÃO CORRIGIDA)"
+        );
+
         // 1. Limpar seleção primeiro
         setSelectedTurma("");
-        
+
         // 2. Aguardar renderização antes de limpar outros estados (delay aumentado)
         setTimeout(() => {
           debugLog("ChamadaManager: Limpando demais estados", {
             alunosCount: alunos.length,
             presencasCount: Object.keys(presencas).length,
           });
-          
+
           setAlunos([]);
           setPresencas({});
           setObservacoes("");
-          
+
           // 3. Aguardar mais tempo antes de modificar lista de turmas
           setTimeout(() => {
             debugLog("ChamadaManager: Removendo turma da lista", {
@@ -2123,9 +2125,9 @@ const ChamadaManager = () => {
       } catch (domError) {
         debugLog("ChamadaManager: ERRO DOM CAPTURADO durante limpeza", {
           error: domError.message,
-          stack: domError.stack
+          stack: domError.stack,
         });
-        
+
         // Fallback: tentar novamente após delay maior
         setTimeout(() => {
           debugLog("ChamadaManager: Tentativa de limpeza após erro DOM");
@@ -2134,10 +2136,12 @@ const ChamadaManager = () => {
             setAlunos([]);
             setPresencas({});
             setObservacoes("");
-            setTurmas((prev) => prev.filter((t) => t.id !== turmaIdParaRemover));
+            setTurmas((prev) =>
+              prev.filter((t) => t.id !== turmaIdParaRemover)
+            );
           } catch (secondError) {
             debugLog("ChamadaManager: SEGUNDO ERRO DOM - fallback falhou", {
-              error: secondError.message
+              error: secondError.message,
             });
           }
         }, 100);
@@ -6666,38 +6670,48 @@ const DebugPanel = () => {
     try {
       const response = await axios.get(`${API}/ping`, { timeout: 10000 });
       debugLog("TESTE DE CONEXÃO SUCESSO", response.data);
-      alert(`✅ Conexão OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`);
+      alert(
+        `✅ Conexão OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
+      );
     } catch (error) {
-      debugLog("TESTE DE CONEXÃO ERRO", { 
+      debugLog("TESTE DE CONEXÃO ERRO", {
         message: error.message,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
       });
-      alert(`❌ Erro de Conexão!\nErro: ${error.message}\nStatus: ${error.response?.status || 'N/A'}`);
+      alert(
+        `❌ Erro de Conexão!\nErro: ${error.message}\nStatus: ${
+          error.response?.status || "N/A"
+        }`
+      );
     }
   };
 
   const testReactDOM = () => {
     debugLog("TESTE REACT DOM INICIADO - Simulando mudanças de estado");
-    
+
     // Simular as mudanças de estado que causam o problema
     try {
       // Criar elementos DOM temporários para testar
-      const testDiv = document.createElement('div');
-      testDiv.id = 'react-dom-test';
+      const testDiv = document.createElement("div");
+      testDiv.id = "react-dom-test";
       document.body.appendChild(testDiv);
-      
+
       // Simular remoção imediata (similar ao que acontece na chamada)
       setTimeout(() => {
-        if (document.getElementById('react-dom-test')) {
+        if (document.getElementById("react-dom-test")) {
           document.body.removeChild(testDiv);
           debugLog("TESTE REACT DOM SUCESSO - Remoção de elemento funcionou");
-          alert('✅ Teste React DOM OK - Não há problema de removeChild neste computador');
+          alert(
+            "✅ Teste React DOM OK - Não há problema de removeChild neste computador"
+          );
         }
       }, 10);
-      
     } catch (error) {
-      debugLog("TESTE REACT DOM ERRO", { message: error.message, stack: error.stack });
+      debugLog("TESTE REACT DOM ERRO", {
+        message: error.message,
+        stack: error.stack,
+      });
       alert(`❌ Erro React DOM detectado!\nErro: ${error.message}`);
     }
   };
@@ -6734,7 +6748,7 @@ const DebugPanel = () => {
           <p>3. Faça uma chamada normalmente</p>
           <p>4. Se der erro, exporte os logs e envie</p>
         </div>
-        
+
         <div className="flex justify-between items-center">
           <span className="text-sm">Debug Mode:</span>
           <Button

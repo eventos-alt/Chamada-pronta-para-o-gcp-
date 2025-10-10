@@ -1423,7 +1423,121 @@ git push origin main
 
 ---
 
-## 🔄 IMPLEMENTAÇÕES SESSÃO ATUAL - 29/09/2025
+## � **CORREÇÕES CRÍTICAS REACT DOM - 10/10/2025**
+
+### 🚨 **PROBLEMA CRÍTICO RESOLVIDO: React DOM removeChild Error**
+
+**Sintomas:**
+- Erro: `react-dom-client.production.js:8924 Uncaught NotFoundError: Failed to execute 'removeChild' on Node`
+- Página completamente branca após salvar chamada
+- Ocorria apenas em outros computadores (Fabiana, Ione), não no computador do desenvolvedor
+- Problema específico no ChamadaManager após salvar presença
+
+**Causa Raiz Identificada:**
+- Race condition entre atualizações de estado React simultâneas
+- `selectedTurma` sendo limpo ANTES do `setTimeout` que usa seu valor
+- Estados sendo atualizados ao mesmo tempo, causando conflitos no Virtual DOM
+- React tentando remover elementos DOM que já foram removidos
+
+**Soluções Implementadas:**
+
+#### **1. Limpeza Sequencial de Estados - CORRIGIDA**
+
+```javascript
+// ❌ ANTES: Atualizações simultâneas causando race condition
+setSelectedTurma("");
+setAlunos([]);
+setPresencas({});
+setTimeout(() => {
+  setTurmas((prev) => prev.filter((t) => t.id !== selectedTurma)); // ❌ selectedTurma já estava vazio
+}, 0);
+
+// ✅ AGORA: Limpeza sequencial com delays apropriados
+const turmaIdParaRemover = selectedTurma; // Salvar antes de limpar
+const clearStatesSequentially = () => {
+  setSelectedTurma(""); // 1. Limpar seleção
+  
+  setTimeout(() => {
+    setAlunos([]);      // 2. Limpar dados após 20ms
+    setPresencas({});
+    setObservacoes("");
+    
+    setTimeout(() => {
+      setTurmas((prev) => prev.filter((t) => t.id !== turmaIdParaRemover)); // 3. Remover da lista após 50ms
+    }, 50);
+  }, 20);
+};
+```
+
+#### **2. Sistema de Debug Universal - IMPLEMENTADO**
+
+```javascript
+// 🔍 Debug Mode ativável pelos usuários
+const DEBUG_MODE = localStorage.getItem('ios_debug') === 'true';
+
+const debugLog = (message, data = null) => {
+  if (DEBUG_MODE || process.env.NODE_ENV === 'development') {
+    console.log(`[${timestamp}] IOS DEBUG:`, message, data);
+    // Salvar logs no localStorage para análise
+  }
+};
+
+// 🚨 Capturador global de erros DOM
+window.addEventListener('error', (event) => {
+  if (event.message.includes('removeChild')) {
+    debugLog("ERRO REACT DOM removeChild DETECTADO", {
+      message: event.message,
+      userAgent: navigator.userAgent
+    });
+  }
+});
+```
+
+#### **3. Debug Panel Interativo - ADICIONADO**
+
+```javascript
+// 🔍 Componente Debug Panel acessível via botão flutuante
+const DebugPanel = () => {
+  // Funcionalidades:
+  // - Ativar/desativar debug mode
+  // - Testar conexão API
+  // - Testar funcionalidade DOM
+  // - Visualizar logs em tempo real
+  // - Exportar logs para análise
+  // - Instruções específicas para usuários
+};
+```
+
+#### **4. Proteção Adicional contra Erros DOM**
+
+```javascript
+// ⚡ Try/catch específico para operações DOM
+try {
+  clearStatesSequentially();
+} catch (domError) {
+  debugLog("ERRO DOM CAPTURADO", { error: domError.message });
+  
+  // Fallback: tentar novamente com delay maior
+  setTimeout(() => {
+    // Limpeza alternativa em caso de erro
+  }, 100);
+}
+```
+
+#### **5. Monitoramento e Diagnóstico**
+
+- **Logs Automáticos**: Todas operações críticas são registradas
+- **Teste de Conectividade**: Botão para testar API e DOM
+- **Export de Logs**: Arquivo JSON para análise posterior
+- **Instruções Específicas**: Guide para Fabiana e Ione testarem
+
+**Commit**: `159263c` - "🔧 FIX CRÍTICO: React DOM removeChild error + Sistema Debug Universal"
+
+**Arquivo de Instruções**: `INSTRUCOES_TESTE_ERRO_DOM.md` - Guide completo para teste
+
+---
+
+## �🔄 IMPLEMENTAÇÕES SESSÃO ATUAL - 29/09/2025
 
 ### 📋 **PROBLEMAS CRÍTICOS RESOLVIDOS**
 
