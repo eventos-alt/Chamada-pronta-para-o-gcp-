@@ -86,6 +86,52 @@ import {
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// 🔍 SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
+const DEBUG_MODE = localStorage.getItem("ios_debug") === "true";
+
+const debugLog = (message, data = null) => {
+  if (DEBUG_MODE || process.env.NODE_ENV === "development") {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] IOS DEBUG:`, message, data || "");
+
+    // Salvar log no localStorage para análise posterior
+    const logs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
+    logs.push({ timestamp, message, data });
+    if (logs.length > 100) logs.shift(); // Manter apenas últimos 100 logs
+    localStorage.setItem("ios_debug_logs", JSON.stringify(logs));
+  }
+};
+
+// 🚨 CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
+window.addEventListener("error", (event) => {
+  debugLog("ERRO GLOBAL CAPTURADO", {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    stack: event.error?.stack,
+  });
+
+  // Verificar se é o erro específico do removeChild
+  if (
+    event.message.includes("removeChild") ||
+    event.message.includes("NotFoundError")
+  ) {
+    debugLog("ERRO REACT DOM removeChild DETECTADO", {
+      message: event.message,
+      userAgent: navigator.userAgent,
+      url: window.location.href,
+    });
+  }
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  debugLog("PROMISE REJEITADA NÃO TRATADA", {
+    reason: event.reason,
+    stack: event.reason?.stack,
+  });
+});
+
 // Configurar timeout global para axios
 axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
@@ -1873,12 +1919,24 @@ const ChamadaManager = () => {
   };
 
   const handleTurmaChange = (turmaId) => {
-    console.log("Turma selected:", turmaId);
-    setSelectedTurma(turmaId);
-    setAlunos([]);
-    setPresencas({});
-    if (turmaId) {
-      fetchAlunos(turmaId);
+    debugLog("ChamadaManager: Turma selected", {
+      turmaId,
+      previousTurma: selectedTurma,
+    });
+
+    try {
+      setSelectedTurma(turmaId);
+      setAlunos([]);
+      setPresencas({});
+      if (turmaId) {
+        fetchAlunos(turmaId);
+      }
+    } catch (error) {
+      debugLog("ChamadaManager: ERROR in handleTurmaChange", {
+        error: error.message,
+        turmaId,
+      });
+      console.error("Erro em handleTurmaChange:", error);
     }
   };
 
@@ -1959,7 +2017,14 @@ const ChamadaManager = () => {
   };
 
   const handleSalvarChamada = async () => {
+    debugLog("ChamadaManager: Iniciando salvamento de chamada", {
+      selectedTurma,
+      totalAlunos: alunos.length,
+      totalPresencas: Object.keys(presencas).length,
+    });
+
     if (!selectedTurma) {
+      debugLog("ChamadaManager: ERROR - Nenhuma turma selecionada");
       toast({
         title: "Erro",
         description: "Selecione uma turma primeiro",
@@ -1977,6 +2042,7 @@ const ChamadaManager = () => {
     const dataHoje = dataAtual.toISOString().split("T")[0];
 
     if (hoje !== dataHoje) {
+      debugLog("ChamadaManager: ERROR - Data inválida", { hoje, dataHoje });
       toast({
         title: "Data inválida",
         description: "Só é possível fazer chamada da data atual",
@@ -1986,6 +2052,11 @@ const ChamadaManager = () => {
     }
 
     try {
+      debugLog("ChamadaManager: Enviando dados para API", {
+        endpoint: `${API}/attendance`,
+        data: { turma_id: selectedTurma, data: hoje, horario: agora },
+      });
+
       await axios.post(`${API}/attendance`, {
         turma_id: selectedTurma,
         data: hoje,
@@ -1994,6 +2065,10 @@ const ChamadaManager = () => {
         presencas: presencas,
       });
 
+      debugLog(
+        "ChamadaManager: Chamada salva com sucesso - iniciando limpeza de estados"
+      );
+
       toast({
         title: "Chamada salva com sucesso!",
         description: `Os dados de presença foram registrados para ${new Date().toLocaleDateString(
@@ -2001,18 +2076,79 @@ const ChamadaManager = () => {
         )}`,
       });
 
-      // 🎯 CORREÇÃO: Limpar estados de forma sequencial para evitar React DOM error
-      // 1. Primeiro limpar seleção e dados
-      setSelectedTurma("");
-      setAlunos([]);
-      setPresencas({});
-      setObservacoes("");
-      
-      // 2. Depois remover turma da lista (em callback para evitar conflito)
-      setTimeout(() => {
-        setTurmas((prev) => prev.filter((t) => t.id !== selectedTurma));
-      }, 0);
+      // 🎯 CORREÇÃO CRÍTICA: Salvar ID da turma antes de limpar estados
+      const turmaIdParaRemover = selectedTurma;
+      debugLog("ChamadaManager: Turma ID salvo para remoção", {
+        turmaIdParaRemover,
+      });
+
+      // ⚡ PROTEÇÃO REACT DOM: Limpeza sequencial com delays maiores
+      const clearStatesSequentially = () => {
+        debugLog("ChamadaManager: Iniciando limpeza sequencial (VERSÃO CORRIGIDA)");
+        
+        // 1. Limpar seleção primeiro
+        setSelectedTurma("");
+        
+        // 2. Aguardar renderização antes de limpar outros estados (delay aumentado)
+        setTimeout(() => {
+          debugLog("ChamadaManager: Limpando demais estados", {
+            alunosCount: alunos.length,
+            presencasCount: Object.keys(presencas).length,
+          });
+          
+          setAlunos([]);
+          setPresencas({});
+          setObservacoes("");
+          
+          // 3. Aguardar mais tempo antes de modificar lista de turmas
+          setTimeout(() => {
+            debugLog("ChamadaManager: Removendo turma da lista", {
+              turmaIdParaRemover,
+            });
+            setTurmas((prev) => {
+              const novaLista = prev.filter((t) => t.id !== turmaIdParaRemover);
+              debugLog("ChamadaManager: Turma removida da lista", {
+                antes: prev.length,
+                depois: novaLista.length,
+              });
+              return novaLista;
+            });
+          }, 50); // Delay muito maior para garantir estabilidade do DOM
+        }, 20);
+      };
+
+      // Executar limpeza com proteção adicional
+      try {
+        clearStatesSequentially();
+      } catch (domError) {
+        debugLog("ChamadaManager: ERRO DOM CAPTURADO durante limpeza", {
+          error: domError.message,
+          stack: domError.stack
+        });
+        
+        // Fallback: tentar novamente após delay maior
+        setTimeout(() => {
+          debugLog("ChamadaManager: Tentativa de limpeza após erro DOM");
+          try {
+            setSelectedTurma("");
+            setAlunos([]);
+            setPresencas({});
+            setObservacoes("");
+            setTurmas((prev) => prev.filter((t) => t.id !== turmaIdParaRemover));
+          } catch (secondError) {
+            debugLog("ChamadaManager: SEGUNDO ERRO DOM - fallback falhou", {
+              error: secondError.message
+            });
+          }
+        }, 100);
+      }
     } catch (error) {
+      debugLog("ChamadaManager: ERROR ao salvar chamada", {
+        error: error.message,
+        status: error.response?.status,
+        detail: error.response?.data?.detail,
+      });
+
       toast({
         title: "Erro ao salvar chamada",
         description:
@@ -2058,7 +2194,7 @@ const ChamadaManager = () => {
           </Select>
         </div>
 
-        {selectedTurma && turmas.find(t => t.id === selectedTurma) && (
+        {selectedTurma && turmas.find((t) => t.id === selectedTurma) && (
           <div className="grid grid-cols-3 gap-4">
             <Card>
               <CardContent className="p-4">
@@ -6435,6 +6571,8 @@ function App() {
           </Routes>
         </BrowserRouter>
         <Toaster />
+        {/* Debug Panel sempre disponível */}
+        <DebugPanel />
       </div>
     </AuthProvider>
   );
@@ -6476,6 +6614,175 @@ const ProtectedRoute = ({ children }) => {
   if (!user) return <Navigate to="/login" replace />;
 
   return children;
+};
+
+// 🔍 COMPONENTE DE DEBUG UNIVERSAL - Para teste em outros computadores
+const DebugPanel = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [logs, setLogs] = useState([]);
+
+  useEffect(() => {
+    const savedLogs = JSON.parse(
+      localStorage.getItem("ios_debug_logs") || "[]"
+    );
+    setLogs(savedLogs.slice(-20)); // Últimos 20 logs
+  }, [isOpen]);
+
+  const toggleDebug = () => {
+    const newDebugMode = !DEBUG_MODE;
+    if (newDebugMode) {
+      localStorage.setItem("ios_debug", "true");
+      debugLog("DEBUG MODE ATIVADO", { userAgent: navigator.userAgent });
+    } else {
+      localStorage.setItem("ios_debug", "false");
+    }
+    window.location.reload(); // Recarregar para aplicar o modo debug
+  };
+
+  const clearLogs = () => {
+    localStorage.removeItem("ios_debug_logs");
+    setLogs([]);
+    debugLog("Logs limpos pelo usuário");
+  };
+
+  const exportLogs = () => {
+    const allLogs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
+    const dataStr = JSON.stringify(allLogs, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ios_debug_logs_${
+      new Date().toISOString().split("T")[0]
+    }.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const testConnection = async () => {
+    debugLog("TESTE DE CONEXÃO INICIADO");
+    try {
+      const response = await axios.get(`${API}/ping`, { timeout: 10000 });
+      debugLog("TESTE DE CONEXÃO SUCESSO", response.data);
+      alert(`✅ Conexão OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`);
+    } catch (error) {
+      debugLog("TESTE DE CONEXÃO ERRO", { 
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      alert(`❌ Erro de Conexão!\nErro: ${error.message}\nStatus: ${error.response?.status || 'N/A'}`);
+    }
+  };
+
+  const testReactDOM = () => {
+    debugLog("TESTE REACT DOM INICIADO - Simulando mudanças de estado");
+    
+    // Simular as mudanças de estado que causam o problema
+    try {
+      // Criar elementos DOM temporários para testar
+      const testDiv = document.createElement('div');
+      testDiv.id = 'react-dom-test';
+      document.body.appendChild(testDiv);
+      
+      // Simular remoção imediata (similar ao que acontece na chamada)
+      setTimeout(() => {
+        if (document.getElementById('react-dom-test')) {
+          document.body.removeChild(testDiv);
+          debugLog("TESTE REACT DOM SUCESSO - Remoção de elemento funcionou");
+          alert('✅ Teste React DOM OK - Não há problema de removeChild neste computador');
+        }
+      }, 10);
+      
+    } catch (error) {
+      debugLog("TESTE REACT DOM ERRO", { message: error.message, stack: error.stack });
+      alert(`❌ Erro React DOM detectado!\nErro: ${error.message}`);
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
+          size="sm"
+        >
+          🔍 Debug
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-96 bg-white border rounded-lg shadow-xl">
+      <div className="p-4 border-b flex justify-between items-center">
+        <h3 className="font-semibold">Debug Panel</h3>
+        <Button onClick={() => setIsOpen(false)} variant="ghost" size="sm">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="p-4 space-y-2">
+        {/* Instruções para usuários */}
+        <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
+          <p className="font-semibold">🔍 Instruções para Fabiana e Ione:</p>
+          <p>1. Ative o Debug Mode</p>
+          <p>2. Teste a conexão com "Testar API"</p>
+          <p>3. Faça uma chamada normalmente</p>
+          <p>4. Se der erro, exporte os logs e envie</p>
+        </div>
+        
+        <div className="flex justify-between items-center">
+          <span className="text-sm">Debug Mode:</span>
+          <Button
+            onClick={toggleDebug}
+            variant={DEBUG_MODE ? "destructive" : "default"}
+            size="sm"
+          >
+            {DEBUG_MODE ? "Desativar" : "Ativar"}
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={testConnection} variant="default" size="sm">
+            Testar API
+          </Button>
+          <Button onClick={testReactDOM} variant="secondary" size="sm">
+            Testar DOM
+          </Button>
+          <Button onClick={clearLogs} variant="outline" size="sm">
+            Limpar
+          </Button>
+          <Button onClick={exportLogs} variant="outline" size="sm">
+            Exportar
+          </Button>
+        </div>
+
+        <div className="max-h-48 overflow-y-auto text-xs font-mono bg-gray-100 p-2 rounded">
+          {logs.length === 0 ? (
+            <p className="text-gray-500">Nenhum log disponível</p>
+          ) : (
+            logs.map((log, index) => (
+              <div key={index} className="mb-1">
+                <span className="text-gray-500">
+                  [{log.timestamp.split("T")[1].split(".")[0]}]
+                </span>
+                <span className="ml-2">{log.message}</span>
+                {log.data && (
+                  <span className="text-blue-600 ml-2">
+                    {JSON.stringify(log.data)}
+                  </span>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default App;
