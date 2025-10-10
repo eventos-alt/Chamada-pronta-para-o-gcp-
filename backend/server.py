@@ -2586,8 +2586,11 @@ async def get_attendance_report(
     
     # 🔒 FILTROS DE PERMISSÃO POR TIPO DE USUÁRIO
     if current_user.tipo == "instrutor":
-        # Instrutor só pode ver suas próprias turmas
-        turmas_instrutor = await db.turmas.find({"instrutor_id": current_user.id}).to_list(1000)
+        # ✅ Instrutor só pode ver suas turmas REGULARES
+        turmas_instrutor = await db.turmas.find({
+            "instrutor_id": current_user.id,
+            "tipo_turma": "regular"
+        }).to_list(1000)
         turmas_ids = [turma["id"] for turma in turmas_instrutor]
         
         if turmas_ids:
@@ -2596,8 +2599,25 @@ async def get_attendance_report(
             # Se não tem turmas, retorna vazio
             return [] if not export_csv else {"csv_data": ""}
             
-    elif current_user.tipo in ["pedagogo", "monitor"]:
-        # Pedagogo/Monitor só vê turmas do seu curso/unidade
+    elif current_user.tipo == "pedagogo":
+        # ✅ Pedagogo só vê turmas de EXTENSÃO do seu curso/unidade
+        turmas_query = {"tipo_turma": "extensao"}
+        if current_user.curso_id:
+            turmas_query["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            turmas_query["unidade_id"] = current_user.unidade_id
+            
+        turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_permitidas]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            # Se não tem turmas permitidas, retorna vazio
+            return [] if not export_csv else {"csv_data": ""}
+    
+    elif current_user.tipo == "monitor":
+        # Monitor pode ver qualquer tipo de turma do seu curso/unidade
         turmas_query = {}
         if current_user.curso_id:
             turmas_query["curso_id"] = current_user.curso_id
@@ -3231,8 +3251,18 @@ async def get_dynamic_teacher_stats(
         if turma_id:
             query_turmas["id"] = turma_id
     elif current_user.tipo == "instrutor":
+        # ✅ Instrutor: apenas turmas REGULARES que ele instrui
         query_turmas["instrutor_id"] = current_user.id
-    elif current_user.tipo in ["pedagogo", "monitor"]:
+        query_turmas["tipo_turma"] = "regular"
+    elif current_user.tipo == "pedagogo":
+        # ✅ Pedagogo: apenas turmas de EXTENSÃO da sua unidade/curso
+        if current_user.curso_id:
+            query_turmas["curso_id"] = current_user.curso_id
+        if current_user.unidade_id:
+            query_turmas["unidade_id"] = current_user.unidade_id
+        query_turmas["tipo_turma"] = "extensao"
+    elif current_user.tipo == "monitor":
+        # Monitor: pode ver qualquer tipo de turma que monitora
         if current_user.curso_id:
             query_turmas["curso_id"] = current_user.curso_id
         if current_user.unidade_id:
@@ -3319,8 +3349,8 @@ async def get_dynamic_teacher_stats(
         # Top 3 maiores presenças - APENAS ATIVOS
         maiores_presencas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
         
-        # Top 3 maiores faltas - APENAS ATIVOS
-        maiores_faltas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"])[:3]
+        # ✅ CORREÇÃO: Top 3 maiores faltas ordenado por número de faltas
+        maiores_faltas = sorted(alunos_ativos_stats, key=lambda x: x["faltas"], reverse=True)[:3]
     else:
         taxa_media = 0
         alunos_em_risco = []
@@ -3687,11 +3717,11 @@ async def get_teacher_stats(current_user: dict = Depends(get_current_user)):
             query_chamadas = {}
             query_alunos = {}
         elif current_user["tipo"] == "instrutor":
-            # Instrutor: apenas suas turmas
-            query_turmas = {"instrutor_id": current_user["id"], "ativo": True}
+            # ✅ Instrutor: apenas suas turmas REGULARES
+            query_turmas = {"instrutor_id": current_user["id"], "ativo": True, "tipo_turma": "regular"}
         elif current_user["tipo"] == "pedagogo":
-            # Pedagogo: turmas da unidade/curso
-            query_turmas = {"ativo": True}
+            # ✅ Pedagogo: apenas turmas de EXTENSÃO da unidade/curso
+            query_turmas = {"ativo": True, "tipo_turma": "extensao"}
             if current_user.get("unidade_id"):
                 query_turmas["unidade_id"] = current_user["unidade_id"]
             if current_user.get("curso_id"):
@@ -3772,12 +3802,17 @@ async def get_teacher_stats(current_user: dict = Depends(get_current_user)):
         if current_user["tipo"] == "admin":
             desistentes = await db.alunos.count_documents({"status": "desistente"})
         else:
-            # Desistentes apenas dos alunos das turmas do usuário
+            # ✅ CORREÇÃO: Desistentes apenas dos alunos das turmas do usuário (com tipo de turma)
             alunos_ids_list = list(alunos_unicos)
-            desistentes = await db.alunos.count_documents({
-                "id": {"$in": alunos_ids_list},
-                "status": "desistente"
-            }) if alunos_ids_list else 0
+            if alunos_ids_list:
+                # Buscar alunos desistentes que estão nas turmas do usuário
+                desistentes = await db.alunos.count_documents({
+                    "id": {"$in": alunos_ids_list},
+                    "status": "desistente"
+                })
+                print(f"🔍 DEBUG Desistentes {current_user['tipo']}: {desistentes} alunos desistentes de {len(alunos_ids_list)} alunos totais")
+            else:
+                desistentes = 0
         
         # 📅 CHAMADAS DE HOJE
         hoje = date.today().isoformat()
