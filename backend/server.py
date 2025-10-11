@@ -3919,6 +3919,13 @@ async def get_dynamic_teacher_stats(
     turmas = await db.turmas.find(query_turmas).to_list(1000)
     turma_ids = [turma["id"] for turma in turmas]
     
+    # 🔍 DEBUG: Log para debugar desistentes
+    print(f"📊 STATS DEBUG - Usuário: {current_user.nome} ({current_user.tipo})")
+    print(f"   📝 Query turmas: {query_turmas}")
+    print(f"   🎯 Turmas encontradas: {len(turmas)}")
+    for turma in turmas:
+        print(f"      • {turma['nome']} (ID: {turma['id']}) - Alunos: {len(turma.get('alunos_ids', []))}")
+    
     if not turma_ids:
         return {
             "taxa_media_presenca": 0,
@@ -3988,10 +3995,26 @@ async def get_dynamic_teacher_stats(
     # 📊 Calcular métricas gerais - APENAS ALUNOS ATIVOS
     alunos_ativos_stats = [a for a in alunos_stats if a["status"] == "ativo"]
     
+    # 🔍 DEBUG: Log detalhado de alunos
+    print(f"   📈 Total alunos processados: {len(alunos_stats)}")
+    print(f"   ✅ Alunos ativos: {len(alunos_ativos_stats)}")
+    
+    # Debug por status
+    status_count = {}
+    for aluno in alunos_stats:
+        status = aluno["status"]
+        status_count[status] = status_count.get(status, 0) + 1
+        if status == "desistente":
+            print(f"      🚫 Desistente encontrado: {aluno['nome']} (Turma: {aluno['turma']})")
+    
+    print(f"   📊 Status breakdown: {status_count}")
+    
     if alunos_ativos_stats:
         taxa_media = sum(a["taxa_presenca"] for a in alunos_ativos_stats) / len(alunos_ativos_stats)
         alunos_em_risco = [a for a in alunos_ativos_stats if a["taxa_presenca"] < 75]
         desistentes = [a for a in alunos_stats if a["status"] == "desistente"]
+        
+        print(f"   🎯 RESULTADO: {len(desistentes)} desistentes calculados")
         
         # Top 3 maiores presenças - APENAS ATIVOS
         maiores_presencas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
@@ -4026,6 +4049,7 @@ async def get_dynamic_teacher_stats(
         "total_alunos": len(alunos_stats),
         "alunos_em_risco": len(alunos_em_risco),
         "desistentes": len(desistentes),
+        "alunos_desistentes": len(desistentes),  # ✅ ADICIONADO: Compatibilidade com frontend
         "maiores_presencas": [
             {
                 "nome": a["nome"],
