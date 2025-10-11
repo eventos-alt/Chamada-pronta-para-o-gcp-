@@ -1428,12 +1428,14 @@ git push origin main
 ### 🚨 **PROBLEMA CRÍTICO RESOLVIDO: React DOM removeChild Error**
 
 **Sintomas:**
+
 - Erro: `react-dom-client.production.js:8924 Uncaught NotFoundError: Failed to execute 'removeChild' on Node`
 - Página completamente branca após salvar chamada
 - Ocorria apenas em outros computadores (Fabiana, Ione), não no computador do desenvolvedor
 - Problema específico no ChamadaManager após salvar presença
 
 **Causa Raiz Identificada:**
+
 - Race condition entre atualizações de estado React simultâneas
 - `selectedTurma` sendo limpo ANTES do `setTimeout` que usa seu valor
 - Estados sendo atualizados ao mesmo tempo, causando conflitos no Virtual DOM
@@ -1456,12 +1458,12 @@ setTimeout(() => {
 const turmaIdParaRemover = selectedTurma; // Salvar antes de limpar
 const clearStatesSequentially = () => {
   setSelectedTurma(""); // 1. Limpar seleção
-  
+
   setTimeout(() => {
-    setAlunos([]);      // 2. Limpar dados após 20ms
+    setAlunos([]); // 2. Limpar dados após 20ms
     setPresencas({});
     setObservacoes("");
-    
+
     setTimeout(() => {
       setTurmas((prev) => prev.filter((t) => t.id !== turmaIdParaRemover)); // 3. Remover da lista após 50ms
     }, 50);
@@ -1473,21 +1475,21 @@ const clearStatesSequentially = () => {
 
 ```javascript
 // 🔍 Debug Mode ativável pelos usuários
-const DEBUG_MODE = localStorage.getItem('ios_debug') === 'true';
+const DEBUG_MODE = localStorage.getItem("ios_debug") === "true";
 
 const debugLog = (message, data = null) => {
-  if (DEBUG_MODE || process.env.NODE_ENV === 'development') {
+  if (DEBUG_MODE || process.env.NODE_ENV === "development") {
     console.log(`[${timestamp}] IOS DEBUG:`, message, data);
     // Salvar logs no localStorage para análise
   }
 };
 
 // 🚨 Capturador global de erros DOM
-window.addEventListener('error', (event) => {
-  if (event.message.includes('removeChild')) {
+window.addEventListener("error", (event) => {
+  if (event.message.includes("removeChild")) {
     debugLog("ERRO REACT DOM removeChild DETECTADO", {
       message: event.message,
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
     });
   }
 });
@@ -1516,7 +1518,7 @@ try {
   clearStatesSequentially();
 } catch (domError) {
   debugLog("ERRO DOM CAPTURADO", { error: domError.message });
-  
+
   // Fallback: tentar novamente com delay maior
   setTimeout(() => {
     // Limpeza alternativa em caso de erro

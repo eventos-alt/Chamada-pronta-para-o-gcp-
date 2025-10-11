@@ -48,8 +48,9 @@ import {
   BookOpen,
   UserCheck,
   UserX,
-  Calendar,
   FileText,
+  AlertCircle,
+  Calendar,
   Upload,
   Download,
   LogOut,
@@ -61,7 +62,6 @@ import {
   Key,
   TrendingUp,
   TrendingDown,
-  AlertCircle,
   CheckCircle,
   Phone,
   Mail,
@@ -1870,11 +1870,104 @@ const ChamadaManager = () => {
     useState(false);
   const [selectedAlunoAtestado, setSelectedAlunoAtestado] = useState(null);
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
+
+  // Estados para modal de justificativa
+  const [isJustificativaDialogOpen, setIsJustificativaDialogOpen] =
+    useState(false);
+  const [selectedAlunoJustificativa, setSelectedAlunoJustificativa] =
+    useState(null);
+  const [justificationReasons, setJustificationReasons] = useState([]);
+  const [justificationForm, setJustificationForm] = useState({
+    reason_code: "",
+    observations: "",
+    file: null,
+  });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTurmas();
+    fetchJustificationReasons();
   }, []);
+
+  const fetchJustificationReasons = async () => {
+    try {
+      const response = await axios.get(`${API}/justifications/reasons`);
+      setJustificationReasons(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar motivos de justificativa:", error);
+    }
+  };
+
+  const handleJustificarFalta = (aluno) => {
+    setSelectedAlunoJustificativa(aluno);
+    setJustificationForm({
+      reason_code: "",
+      observations: "",
+      file: null,
+    });
+    setIsJustificativaDialogOpen(true);
+  };
+
+  const submitJustificativa = async () => {
+    if (!justificationForm.reason_code) {
+      toast({
+        title: "Erro",
+        description: "Selecione um motivo para a justificativa",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("reason_code", justificationForm.reason_code);
+      if (justificationForm.observations) {
+        formData.append("observations", justificationForm.observations);
+      }
+      if (justificationForm.file) {
+        formData.append("file", justificationForm.file);
+      }
+
+      await axios.post(
+        `${API}/students/${selectedAlunoJustificativa.id}/justifications`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      // Marcar falta como justificada na presença
+      const updatedPresencas = {
+        ...presencas,
+        [selectedAlunoJustificativa.id]: {
+          ...presencas[selectedAlunoJustificativa.id],
+          presente: false,
+          justificativa: `Falta justificada: ${
+            justificationReasons.find(
+              (r) => r.code === justificationForm.reason_code
+            )?.label || justificationForm.reason_code
+          }`,
+        },
+      };
+      setPresencas(updatedPresencas);
+
+      toast({
+        title: "Sucesso",
+        description: "Justificativa registrada com sucesso!",
+      });
+
+      setIsJustificativaDialogOpen(false);
+    } catch (error) {
+      console.error("Erro ao registrar justificativa:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao registrar justificativa",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchTurmas = async () => {
     try {
@@ -2297,9 +2390,20 @@ const ChamadaManager = () => {
 
                       {!presencas[aluno.id]?.presente && (
                         <div className="flex-1 space-y-2">
-                          <Label className="text-sm">
-                            Justificativa da Falta
-                          </Label>
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">
+                              Justificativa da Falta
+                            </Label>
+                            <Button
+                              onClick={() => handleJustificarFalta(aluno)}
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                            >
+                              <FileText className="h-4 w-4 mr-1" />
+                              Justificar com Documento
+                            </Button>
+                          </div>
                           <Textarea
                             placeholder="Digite o motivo da falta..."
                             value={presencas[aluno.id]?.justificativa || ""}
@@ -2384,6 +2488,107 @@ const ChamadaManager = () => {
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Anexar Atestado
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para justificativa de falta */}
+      <Dialog
+        open={isJustificativaDialogOpen}
+        onOpenChange={setIsJustificativaDialogOpen}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              Justificar Falta
+            </DialogTitle>
+            <DialogDescription>
+              Registrar justificativa para {selectedAlunoJustificativa?.nome}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Motivo da justificativa */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center">
+                <AlertCircle className="h-4 w-4 mr-1" />
+                Motivo da falta *
+              </Label>
+              <Select
+                value={justificationForm.reason_code}
+                onValueChange={(value) =>
+                  setJustificationForm((prev) => ({
+                    ...prev,
+                    reason_code: value,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o motivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {justificationReasons.map((reason) => (
+                    <SelectItem key={reason.code} value={reason.code}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Observações */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Observações</Label>
+              <Textarea
+                placeholder="Observações adicionais sobre a falta..."
+                value={justificationForm.observations}
+                onChange={(e) =>
+                  setJustificationForm((prev) => ({
+                    ...prev,
+                    observations: e.target.value,
+                  }))
+                }
+                className="min-h-20"
+              />
+            </div>
+
+            {/* Upload de arquivo */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Documento (opcional)
+              </Label>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) =>
+                  setJustificationForm((prev) => ({
+                    ...prev,
+                    file: e.target.files[0],
+                  }))
+                }
+              />
+              <p className="text-xs text-gray-500">
+                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+              </p>
+            </div>
+
+            {/* Botões */}
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsJustificativaDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={submitJustificativa}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Registrar Justificativa
               </Button>
             </div>
           </div>
@@ -4595,6 +4800,12 @@ const AlunosManager = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
 
+  // Estados para visualização detalhada do aluno
+  const [isViewAlunoDialogOpen, setIsViewAlunoDialogOpen] = useState(false);
+  const [viewingAluno, setViewingAluno] = useState(null);
+  const [studentJustifications, setStudentJustifications] = useState([]);
+  const [loadingJustifications, setLoadingJustifications] = useState(false);
+
   // 🚀 BULK UPLOAD STATES
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkUploadFile, setBulkUploadFile] = useState(null);
@@ -4769,24 +4980,80 @@ const AlunosManager = () => {
   };
 
   const handleViewAluno = (aluno) => {
-    alert(
-      `👤 DETALHES DO ALUNO\n\n` +
-        `📋 DADOS OBRIGATÓRIOS:\n` +
-        `Nome: ${aluno.nome}\n` +
-        `CPF: ${aluno.cpf}\n` +
-        `Idade: ${aluno.idade ? `${aluno.idade} anos` : "N/A"}\n\n` +
-        `📄 DADOS COMPLEMENTARES:\n` +
-        `RG: ${aluno.rg || "N/A"}\n` +
-        `Data Nascimento: ${aluno.data_nascimento || "N/A"}\n` +
-        `Gênero: ${aluno.genero || "N/A"}\n` +
-        `Telefone: ${aluno.telefone || "N/A"}\n` +
-        `Email: ${aluno.email || "N/A"}\n` +
-        `Endereço: ${aluno.endereco || "N/A"}\n` +
-        `Responsável: ${aluno.nome_responsavel || "N/A"}\n` +
-        `Tel. Responsável: ${aluno.telefone_responsavel || "N/A"}\n` +
-        `Status: ${aluno.ativo ? "Ativo" : "Inativo"}\n` +
-        `Observações: ${aluno.observacoes || "Nenhuma"}`
-    );
+    setViewingAluno(aluno);
+    setIsViewAlunoDialogOpen(true);
+    fetchStudentJustifications(aluno.id);
+  };
+
+  const fetchStudentJustifications = async (studentId) => {
+    try {
+      setLoadingJustifications(true);
+      const response = await axios.get(
+        `${API}/students/${studentId}/justifications`
+      );
+      setStudentJustifications(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar justificativas:", error);
+      setStudentJustifications([]);
+    } finally {
+      setLoadingJustifications(false);
+    }
+  };
+
+  const downloadJustificationFile = async (justificationId, filename) => {
+    try {
+      const response = await axios.get(
+        `${API}/justifications/${justificationId}/file`,
+        {
+          responseType: "blob",
+        }
+      );
+
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename || "documento";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Sucesso",
+        description: "Arquivo baixado com sucesso!",
+      });
+    } catch (error) {
+      console.error("Erro ao baixar arquivo:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar arquivo",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteJustification = async (justificationId) => {
+    try {
+      await axios.delete(`${API}/justifications/${justificationId}`);
+
+      toast({
+        title: "Sucesso",
+        description: "Justificativa removida com sucesso!",
+      });
+
+      // Recarregar justificativas
+      if (viewingAluno) {
+        fetchStudentJustifications(viewingAluno.id);
+      }
+    } catch (error) {
+      console.error("Erro ao remover justificativa:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao remover justificativa",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (aluno) => {
@@ -5911,6 +6178,308 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             >
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar Lista
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de visualização detalhada do aluno */}
+      <Dialog
+        open={isViewAlunoDialogOpen}
+        onOpenChange={setIsViewAlunoDialogOpen}
+      >
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Users className="h-5 w-5 mr-2" />
+              Perfil Completo - {viewingAluno?.nome}
+            </DialogTitle>
+            <DialogDescription>
+              Visualize informações detalhadas e justificativas do aluno
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingAluno && (
+            <Tabs defaultValue="dados" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
+                <TabsTrigger value="justificativas">
+                  Justificativas ({studentJustifications.length})
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Aba de Dados Pessoais */}
+              <TabsContent value="dados" className="space-y-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Dados Obrigatórios */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <UserCheck className="h-5 w-5 mr-2" />
+                        Dados Obrigatórios
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Nome Completo
+                        </Label>
+                        <p className="text-base font-medium">
+                          {viewingAluno.nome}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          CPF
+                        </Label>
+                        <p className="text-base font-mono">
+                          {viewingAluno.cpf}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Idade
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.idade
+                            ? `${viewingAluno.idade} anos`
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Data de Nascimento
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.data_nascimento || "N/A"}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Dados Complementares */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <BookOpen className="h-5 w-5 mr-2" />
+                        Dados Complementares
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          RG
+                        </Label>
+                        <p className="text-base">{viewingAluno.rg || "N/A"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Gênero
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.genero || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Telefone
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.telefone || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Email
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.email || "N/A"}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Dados do Responsável */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <Users className="h-5 w-5 mr-2" />
+                        Dados do Responsável
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Nome do Responsável
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.nome_responsavel || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Telefone do Responsável
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.telefone_responsavel || "N/A"}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Endereço e Observações */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center">
+                        <Building2 className="h-5 w-5 mr-2" />
+                        Outras Informações
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Endereço
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.endereco || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Observações
+                        </Label>
+                        <p className="text-base">
+                          {viewingAluno.observacoes || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Status
+                        </Label>
+                        <Badge variant={getStatusColor(viewingAluno.status)}>
+                          {getStatusLabel(viewingAluno.status)}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Aba de Justificativas */}
+              <TabsContent value="justificativas" className="space-y-4 mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
+                      Histórico de Justificativas
+                    </CardTitle>
+                    <CardDescription>
+                      Justificativas de faltas registradas para este aluno
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingJustifications ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="text-sm text-gray-500 mt-2">
+                          Carregando justificativas...
+                        </p>
+                      </div>
+                    ) : studentJustifications.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">
+                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>Nenhuma justificativa registrada</p>
+                        <p className="text-sm">
+                          Este aluno não possui justificativas de faltas
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {studentJustifications.map((justification) => (
+                          <Card
+                            key={justification.id}
+                            className="border-l-4 border-l-blue-500"
+                          >
+                            <CardContent className="pt-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    <Badge variant="outline">
+                                      {justification.reason_label}
+                                    </Badge>
+                                    <span className="text-sm text-gray-500">
+                                      {new Date(
+                                        justification.created_at
+                                      ).toLocaleDateString("pt-BR")}
+                                    </span>
+                                  </div>
+
+                                  {justification.observations && (
+                                    <div className="mb-3">
+                                      <Label className="text-sm font-medium text-gray-600">
+                                        Observações:
+                                      </Label>
+                                      <p className="text-sm bg-gray-50 p-2 rounded border">
+                                        {justification.observations}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {justification.attendance_id && (
+                                    <div className="text-xs text-gray-500">
+                                      Vinculada à chamada:{" "}
+                                      {justification.attendance_id}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="flex space-x-2 ml-4">
+                                  {justification.has_file && (
+                                    <Button
+                                      onClick={() =>
+                                        downloadJustificationFile(
+                                          justification.id,
+                                          justification.filename
+                                        )
+                                      }
+                                      variant="outline"
+                                      size="sm"
+                                      title="Baixar documento"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                  )}
+
+                                  <Button
+                                    onClick={() =>
+                                      deleteJustification(justification.id)
+                                    }
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-red-600 border-red-600 hover:bg-red-50"
+                                    title="Remover justificativa"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
+
+          <div className="flex justify-end pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsViewAlunoDialogOpen(false)}
+            >
+              Fechar
             </Button>
           </div>
         </DialogContent>

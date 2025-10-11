@@ -1,9 +1,9 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Query
-from fastapi.responses import Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Query, Form
+from fastapi.responses import Response, StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 import os
 import logging
 from pathlib import Path
@@ -15,7 +15,6 @@ import jwt
 from passlib.hash import bcrypt
 import base64
 import csv
-import io
 import re
 from io import StringIO, BytesIO
 from collections import defaultdict
@@ -23,11 +22,11 @@ import asyncio
 from urllib.parse import quote_plus
 from dateutil import parser as dateutil_parser
 from pymongo.errors import DuplicateKeyError
+from bson import ObjectId
 
+# Carregamento de variáveis de ambiente
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-load_dotenv()
 
 # -------------------------
 # Criação do FastAPI app
@@ -117,6 +116,9 @@ DB_NAME = "IOS-SISTEMA-CHAMADA"
 
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
+
+# 📁 GridFS para armazenamento de arquivos (atestados/justificativas)
+fs_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="justifications")
 
 # -------------------------
 # Teste de conexão MongoDB
@@ -436,6 +438,61 @@ class PendingAttendancesResponse(BaseModel):
     date: str
     pending: List[PendingAttendanceInfo]
 
+# 📋 SISTEMA DE JUSTIFICATIVAS/ATESTADOS - CÓDIGOS PADRONIZADOS
+ALLOWED_REASON_CODES = {
+    "NOT_IDENTIFIED_WITH_COURSE": "Não se identificou com o curso",
+    "DIFFICULTY_FOLLOWING_COURSE": "Dificuldade para acompanhar o curso", 
+    "OPTED_OTHER_COURSE": "Optou por outro curso",
+    "NO_TRANSPORT_FUNDS": "Falta de recursos para transporte",
+    "MOVED_ADDRESS": "Mudança de endereço",
+    "NEEDS_TO_CARE_FOR_FAMILY": "Necessidade de cuidar da família",
+    "NO_CONTACT_RETURN": "Não retornou contato",
+    "HEALTH_PROBLEMS": "Problemas de saúde",
+    "GOT_A_JOB": "Conseguiu emprego",
+    "PREGNANCY_OR_LACTATION": "Gravidez ou lactação",
+    "CUSTOM": "Outro motivo (especificar)"
+}
+
+# 📋 MODELOS PARA SISTEMA DE JUSTIFICATIVAS/ATESTADOS
+class Justification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    student_id: str
+    attendance_id: Optional[str] = None  # Vincula à chamada específica (opcional)
+    uploaded_by: str  # ID do usuário que enviou
+    uploaded_by_name: str  # Nome do usuário que enviou
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    reason_code: str  # Código padronizado do motivo
+    reason_text: Optional[str] = None  # Descrição livre (obrigatória se reason_code = CUSTOM)
+    file_id: Optional[str] = None  # GridFS file ID
+    file_name: Optional[str] = None
+    file_mime: Optional[str] = None
+    file_size: Optional[int] = None
+    status: str = "registered"  # "registered", "reviewed", "rejected"
+    visible_to_student: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class JustificationCreate(BaseModel):
+    student_id: str
+    attendance_id: Optional[str] = None
+    reason_code: str
+    reason_text: Optional[str] = None
+
+class JustificationResponse(BaseModel):
+    id: str
+    student_id: str
+    attendance_id: Optional[str] = None
+    uploaded_by: str
+    uploaded_by_name: str
+    uploaded_at: datetime
+    reason_code: str
+    reason_text: Optional[str] = None
+    file_name: Optional[str] = None
+    file_mime: Optional[str] = None
+    file_size: Optional[int] = None
+    status: str
+    visible_to_student: bool
+    has_file: bool = False  # Computed field
+
 # Helper Functions
 def prepare_for_mongo(data):
     """Convert date objects to ISO strings for MongoDB storage"""
@@ -540,6 +597,51 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 def check_admin_permission(current_user: UserResponse):
     if current_user.tipo != "admin":
         raise HTTPException(status_code=403, detail="Apenas administradores podem realizar esta ação")
+
+# 🔒 PERMISSÕES RBAC PARA JUSTIFICATIVAS
+async def user_can_manage_student(current_user: UserResponse, student_id: str) -> bool:
+    """
+    Verifica se o usuário pode gerenciar um aluno específico baseado em suas permissões:
+    - Admin: pode gerenciar qualquer aluno
+    - Instrutor: pode gerenciar alunos de suas turmas
+    - Pedagogo: pode gerenciar alunos de sua unidade/curso
+    - Monitor: pode gerenciar alunos das turmas que monitora
+    """
+    if current_user.tipo == "admin":
+        return True
+    
+    if current_user.tipo == "instrutor":
+        # Verificar se aluno está em alguma turma do instrutor
+        turmas_instrutor = await db.turmas.find({"instrutor_id": current_user.id}).to_list(1000)
+        for turma in turmas_instrutor:
+            if student_id in turma.get("alunos_ids", []):
+                return True
+        return False
+    
+    if current_user.tipo == "pedagogo":
+        # Verificar se aluno pertence à unidade/curso do pedagogo
+        # Primeiro buscar turmas da unidade/curso do pedagogo
+        query = {}
+        if current_user.unidade_id:
+            query["unidade_id"] = current_user.unidade_id
+        if current_user.curso_id:
+            query["curso_id"] = current_user.curso_id
+            
+        turmas_pedagogo = await db.turmas.find(query).to_list(1000)
+        for turma in turmas_pedagogo:
+            if student_id in turma.get("alunos_ids", []):
+                return True
+        return False
+    
+    if current_user.tipo == "monitor":
+        # Verificar se aluno está em turmas que o monitor acompanha
+        turmas_monitor = await db.turmas.find({"monitor_id": current_user.id}).to_list(1000)
+        for turma in turmas_monitor:
+            if student_id in turma.get("alunos_ids", []):
+                return True
+        return False
+    
+    return False
 
 # AUTH ROUTES
 @api_router.post("/auth/login")
@@ -1834,7 +1936,7 @@ async def import_students_csv(
     delimiter = ',' if ',' in csv_content.split('\n')[0] else ';'
     print(f"🔍 CSV Delimiter detectado: '{delimiter}'")
     
-    csv_reader = csv.DictReader(io.StringIO(csv_content), delimiter=delimiter)
+    csv_reader = csv.DictReader(StringIO(csv_content), delimiter=delimiter)
     
     # Validar campos obrigatórios no CSV
     required_fields = ['nome', 'cpf', 'data_nascimento', 'curso']
@@ -2574,6 +2676,239 @@ async def get_desistentes(
     desistentes = await db.desistentes.find(query).skip(skip).limit(limit).to_list(limit)
     return [Desistente(**parse_from_mongo(desistente)) for desistente in desistentes]
 
+# 📋 JUSTIFICATIVAS/ATESTADOS ROUTES
+@api_router.post("/students/{student_id}/justifications")
+async def create_justification(
+    student_id: str,
+    attendance_id: Optional[str] = Form(None),
+    reason_code: str = Form(...),
+    reason_text: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Criar nova justificativa/atestado para um aluno
+    - Pode ser vinculada a uma chamada específica (attendance_id)
+    - Arquivo opcional (PDF, PNG, JPG até 5MB)
+    - Motivo obrigatório usando códigos padronizados
+    """
+    
+    # 1. Verificar permissões
+    can_manage = await user_can_manage_student(current_user, student_id)
+    if not can_manage:
+        raise HTTPException(
+            status_code=403, 
+            detail="Você não tem permissão para gerenciar este aluno"
+        )
+    
+    # 2. Validar código do motivo
+    if reason_code not in ALLOWED_REASON_CODES:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Código de motivo inválido. Use um dos: {list(ALLOWED_REASON_CODES.keys())}"
+        )
+    
+    # 3. Validar reason_text quando CUSTOM
+    if reason_code == "CUSTOM" and not reason_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Campo 'reason_text' é obrigatório quando reason_code = CUSTOM"
+        )
+    
+    # 4. Validar arquivo se fornecido
+    file_meta = {}
+    if file:
+        # Validar tipo de arquivo
+        allowed_types = ["application/pdf", "image/png", "image/jpeg", "image/jpg"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400,
+                detail="Tipo de arquivo não permitido. Use PDF, PNG ou JPG"
+            )
+        
+        # Ler conteúdo e validar tamanho
+        contents = await file.read()
+        if len(contents) > 5 * 1024 * 1024:  # 5MB
+            raise HTTPException(
+                status_code=400,
+                detail="Arquivo muito grande. Máximo 5MB"
+            )
+        
+        # Salvar no GridFS
+        try:
+            file_id = await fs_bucket.upload_from_stream(
+                file.filename,
+                contents,
+                metadata={
+                    "content_type": file.content_type,
+                    "uploaded_by": current_user.id,
+                    "student_id": student_id
+                }
+            )
+            file_meta = {
+                "file_id": str(file_id),
+                "file_name": file.filename,
+                "file_mime": file.content_type,
+                "file_size": len(contents)
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro ao salvar arquivo: {str(e)}")
+    
+    # 5. Criar documento de justificativa
+    justification_data = {
+        "id": str(uuid.uuid4()),
+        "student_id": student_id,
+        "attendance_id": attendance_id,
+        "uploaded_by": current_user.id,
+        "uploaded_by_name": current_user.nome,
+        "uploaded_at": datetime.now(timezone.utc),
+        "reason_code": reason_code,
+        "reason_text": reason_text,
+        "status": "registered",
+        "visible_to_student": True,
+        **file_meta
+    }
+    
+    # 6. Salvar no banco
+    await db.justifications.insert_one(justification_data)
+    
+    # 7. Se vinculado a uma chamada, marcar como justificado
+    if attendance_id:
+        await db.chamadas.update_one(
+            {"id": attendance_id, f"presencas.{student_id}": {"$exists": True}},
+            {"$set": {f"presencas.{student_id}.justificado": True, f"presencas.{student_id}.justification_id": justification_data["id"]}}
+        )
+    
+    return {"ok": True, "justification_id": justification_data["id"], "message": "Justificativa criada com sucesso"}
+
+@api_router.get("/students/{student_id}/justifications", response_model=List[JustificationResponse])
+async def get_student_justifications(
+    student_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Listar todas as justificativas de um aluno"""
+    
+    # Verificar permissões
+    can_manage = await user_can_manage_student(current_user, student_id)
+    if not can_manage:
+        raise HTTPException(
+            status_code=403,
+            detail="Você não tem permissão para ver as justificativas deste aluno"
+        )
+    
+    # Buscar justificativas
+    justifications = await db.justifications.find({"student_id": student_id}).to_list(1000)
+    
+    # Converter para response model
+    response_list = []
+    for just in justifications:
+        response_data = {
+            "id": just["id"],
+            "student_id": just["student_id"],
+            "attendance_id": just.get("attendance_id"),
+            "uploaded_by": just["uploaded_by"],
+            "uploaded_by_name": just["uploaded_by_name"],
+            "uploaded_at": just["uploaded_at"],
+            "reason_code": just["reason_code"],
+            "reason_text": just.get("reason_text"),
+            "file_name": just.get("file_name"),
+            "file_mime": just.get("file_mime"),
+            "file_size": just.get("file_size"),
+            "status": just["status"],
+            "visible_to_student": just["visible_to_student"],
+            "has_file": bool(just.get("file_id"))
+        }
+        response_list.append(JustificationResponse(**response_data))
+    
+    return response_list
+
+@api_router.get("/justifications/{justification_id}/file")
+async def get_justification_file(
+    justification_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Baixar arquivo de uma justificativa"""
+    
+    # 1. Buscar justificativa
+    justification = await db.justifications.find_one({"id": justification_id})
+    if not justification:
+        raise HTTPException(status_code=404, detail="Justificativa não encontrada")
+    
+    # 2. Verificar se tem arquivo
+    if not justification.get("file_id"):
+        raise HTTPException(status_code=404, detail="Esta justificativa não possui arquivo")
+    
+    # 3. Verificar permissões
+    can_manage = await user_can_manage_student(current_user, justification["student_id"])
+    if not can_manage:
+        raise HTTPException(
+            status_code=403,
+            detail="Você não tem permissão para acessar este arquivo"
+        )
+    
+    # 4. Buscar arquivo no GridFS
+    try:
+        file_id = ObjectId(justification["file_id"])
+        grid_out = await fs_bucket.open_download_stream(file_id)
+        
+        # Ler conteúdo
+        contents = await grid_out.read()
+        
+        # Retornar como streaming response
+        return StreamingResponse(
+            BytesIO(contents),
+            media_type=justification.get("file_mime", "application/octet-stream"),
+            headers={
+                "Content-Disposition": f'inline; filename="{justification.get("file_name", "arquivo")}"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao recuperar arquivo: {str(e)}")
+
+@api_router.delete("/justifications/{justification_id}")
+async def delete_justification(
+    justification_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Remover uma justificativa (apenas admin ou quem criou)"""
+    
+    # 1. Buscar justificativa
+    justification = await db.justifications.find_one({"id": justification_id})
+    if not justification:
+        raise HTTPException(status_code=404, detail="Justificativa não encontrada")
+    
+    # 2. Verificar permissões (admin ou quem criou)
+    if current_user.tipo != "admin" and justification["uploaded_by"] != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas admin ou quem criou a justificativa pode removê-la"
+        )
+    
+    # 3. Remover arquivo do GridFS se existir
+    if justification.get("file_id"):
+        try:
+            await fs_bucket.delete(ObjectId(justification["file_id"]))
+        except Exception as e:
+            print(f"Erro ao remover arquivo do GridFS: {e}")
+    
+    # 4. Remover justificativa do banco
+    await db.justifications.delete_one({"id": justification_id})
+    
+    # 5. Remover referência da chamada se existir
+    if justification.get("attendance_id"):
+        student_id = justification["student_id"]
+        await db.chamadas.update_one(
+            {"id": justification["attendance_id"]},
+            {"$unset": {f"presencas.{student_id}.justificado": "", f"presencas.{student_id}.justification_id": ""}}
+        )
+    
+    return {"ok": True, "message": "Justificativa removida com sucesso"}
+
+@api_router.get("/justifications/reasons")
+async def get_reason_codes():
+    """Listar todos os códigos de motivo disponíveis"""
+    return ALLOWED_REASON_CODES
+
 # REPORTS AND CSV EXPORT
 @api_router.get("/reports/attendance")
 async def get_attendance_report(
@@ -2678,7 +3013,7 @@ async def get_attendance_report(
     chamadas = await db.attendances.find(query).to_list(1000)
     
     if export_csv:
-        output = io.StringIO()
+        output = StringIO()
         writer = csv.writer(output)
         
         # 📊 FORMATO CSV COMPLETO CONFORME ESPECIFICAÇÃO
@@ -3465,7 +3800,6 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
         pending = []
         
         # 🚀 LÓGICA DE CHAMADAS PENDENTES: Verificar baseado nos dias de aula
-        from datetime import timedelta
         
         for t in turmas:
             tid = t.get("id")
