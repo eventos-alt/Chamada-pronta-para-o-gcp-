@@ -2039,6 +2039,7 @@ const ChamadaManager = () => {
 
     try {
       const formData = new FormData();
+      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório adicionado
       formData.append("reason_text", justificationForm.reason_text.trim());
       if (justificationForm.observations) {
         formData.append("observations", justificationForm.observations);
