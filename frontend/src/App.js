@@ -4923,6 +4923,15 @@ const AlunosManager = () => {
   // ✅ Estados para motivos de desistência (MOVIDO DO APP PRINCIPAL)
   const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
+  // 📋 Estados para justificativas/atestados fora da chamada
+  const [isJustifyDialogOpen, setIsJustifyDialogOpen] = useState(false);
+  const [selectedAlunoJustify, setSelectedAlunoJustify] = useState(null);
+  const [justifyForm, setJustifyForm] = useState({
+    reason_text: "",
+    observations: "",
+    file: null,
+  });
+
   // Estados para visualização detalhada do aluno
   const [isViewAlunoDialogOpen, setIsViewAlunoDialogOpen] = useState(false);
   const [viewingAluno, setViewingAluno] = useState(null);
@@ -5235,6 +5244,17 @@ const AlunosManager = () => {
     setIsDropoutDialogOpen(true);
   };
 
+  // 📋 Função para justificar falta/anexar atestado fora da chamada
+  const handleJustifyStudent = (aluno) => {
+    setSelectedAlunoJustify(aluno);
+    setJustifyForm({
+      reason_text: "",
+      observations: "",
+      file: null,
+    });
+    setIsJustifyDialogOpen(true);
+  };
+
   const handleUploadAtestado = (aluno) => {
     setSelectedAluno(aluno);
     setSelectedFile(null);
@@ -5305,6 +5325,60 @@ const AlunosManager = () => {
       console.error("Error marking as dropout:", error);
       toast({
         title: "Erro ao registrar desistência",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // 📋 Submeter justificativa/atestado fora da chamada
+  const submitJustification = async () => {
+    if (!justifyForm.reason_text.trim()) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, descreva o motivo da justificativa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório
+      formData.append("reason_text", justifyForm.reason_text.trim());
+      if (justifyForm.observations.trim()) {
+        formData.append("observations", justifyForm.observations.trim());
+      }
+      if (justifyForm.file) {
+        formData.append("file", justifyForm.file);
+      }
+
+      await axios.post(
+        `${API}/students/${selectedAlunoJustify.id}/justifications`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast({
+        title: "✅ Justificativa registrada",
+        description: `Justificativa de ${selectedAlunoJustify.nome} registrada com sucesso.`,
+      });
+
+      setIsJustifyDialogOpen(false);
+      setJustifyForm({
+        reason_text: "",
+        observations: "",
+        file: null,
+      });
+      setSelectedAlunoJustify(null);
+    } catch (error) {
+      console.error("❌ Erro na justificativa:", error);
+      toast({
+        title: "Erro ao registrar justificativa",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
@@ -5930,6 +6004,17 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => handleJustifyStudent(aluno)}
+                          title="Justificar falta / Anexar atestado"
+                          className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {aluno.status === "ativo" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleMarkAsDropout(aluno)}
                           title="Registrar desistência"
                           className="text-red-600 border-red-600 hover:bg-red-50"
@@ -5946,7 +6031,86 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardContent>
 
-      {/* 🚪 Dialog para registrar desistência - SISTEMA ESTRUTURADO */}
+      {/* � Dialog para justificar falta/anexar atestado */}
+      <Dialog open={isJustifyDialogOpen} onOpenChange={setIsJustifyDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Justificar Falta / Anexar Atestado</DialogTitle>
+            <DialogDescription>
+              Registrar justificativa para {selectedAlunoJustify?.nome}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Campo de motivo */}
+            <div>
+              <Label>Motivo da falta *</Label>
+              <Textarea
+                placeholder="Descreva o motivo da falta (ex: consulta médica, problema familiar, etc.)"
+                value={justifyForm.reason_text}
+                onChange={(e) =>
+                  setJustifyForm((prev) => ({
+                    ...prev,
+                    reason_text: e.target.value,
+                  }))
+                }
+                className="min-h-[80px]"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                💡 Seja específico para facilitar o controle de frequência
+              </p>
+            </div>
+
+            {/* Campo de observações */}
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                placeholder="Observações adicionais sobre a falta (opcional)"
+                value={justifyForm.observations}
+                onChange={(e) =>
+                  setJustifyForm((prev) => ({
+                    ...prev,
+                    observations: e.target.value,
+                  }))
+                }
+                className="min-h-[60px]"
+              />
+            </div>
+
+            {/* Upload de arquivo */}
+            <div>
+              <Label>Documento (opcional)</Label>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) =>
+                  setJustifyForm((prev) => ({
+                    ...prev,
+                    file: e.target.files[0] || null,
+                  }))
+                }
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setIsJustifyDialogOpen(false)}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={submitJustification} className="flex-1">
+              Registrar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* �🚪 Dialog para registrar desistência - SISTEMA ESTRUTURADO */}
       <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
