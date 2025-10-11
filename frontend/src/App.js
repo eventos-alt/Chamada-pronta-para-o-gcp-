@@ -1870,6 +1870,18 @@ const ChamadaManager = () => {
     useState(false);
   const [selectedAlunoAtestado, setSelectedAlunoAtestado] = useState(null);
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
+  const [observacaoAtestado, setObservacaoAtestado] = useState("");
+
+  // 🏥 Estados para sistema de atestados avançado
+  const [alunoDetalheDialog, setAlunoDetalheDialog] = useState(false);
+  const [selectedAlunoDetalhes, setSelectedAlunoDetalhes] = useState(null);
+  const [atestadosAluno, setAtestadosAluno] = useState([]);
+  const [isUploadAtestadoAlunoDialogOpen, setIsUploadAtestadoAlunoDialogOpen] = useState(false);
+  const [fileAtestadoAluno, setFileAtestadoAluno] = useState(null);
+  const [observacaoAtestadoAluno, setObservacaoAtestadoAluno] = useState("");
+
+  // 🚪 Estados para sistema de desistências melhorado
+  const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
   // Estados para modal de justificativa
   const [isJustificativaDialogOpen, setIsJustificativaDialogOpen] =
@@ -1887,6 +1899,7 @@ const ChamadaManager = () => {
   useEffect(() => {
     fetchTurmas();
     fetchJustificationReasons();
+    fetchMotivosDesistencia();
   }, []);
 
   const fetchJustificationReasons = async () => {
@@ -1904,8 +1917,117 @@ const ChamadaManager = () => {
         { code: "familiar", label: "Problema familiar" },
         { code: "transporte", label: "Problema de transporte" },
         { code: "trabalho", label: "Compromisso de trabalho" },
-        { code: "outros", label: "Outros motivos" }
+        { code: "outros", label: "Outros motivos" },
       ]);
+    }
+  };
+
+  // 🚪 CARREGAR MOTIVOS DE DESISTÊNCIA
+  const fetchMotivosDesistencia = async () => {
+    try {
+      const response = await axios.get(`${API}/desistencias/motivos`);
+      setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error("Erro ao carregar motivos de desistência:", error);
+      // Fallback com motivos básicos
+      setMotivosDesistencia([
+        { codigo: "nao_identificou", descricao: "NÃO SE IDENTIFICOU COM O CURSO" },
+        { codigo: "dificuldade_acompanhamento", descricao: "DIFICULDADE DE ACOMPANHAMENTO DO CURSO" },
+        { codigo: "outro", descricao: "OUTRO (PREENCHIMENTO PERSONALIZADO)" }
+      ]);
+    }
+  };
+
+  // 🏥 FUNÇÕES PARA GESTÃO DE ATESTADOS
+  const handleVisualizarAlunoDetalhes = async (aluno) => {
+    setSelectedAlunoDetalhes(aluno);
+    try {
+      const response = await axios.get(`${API}/alunos/${aluno.id}/atestados`);
+      setAtestadosAluno(response.data.atestados || []);
+    } catch (error) {
+      console.error("Erro ao carregar atestados do aluno:", error);
+      setAtestadosAluno([]);
+    }
+    setAlunoDetalheDialog(true);
+  };
+
+  const handleUploadAtestadoAluno = (aluno) => {
+    setSelectedAlunoDetalhes(aluno);
+    setFileAtestadoAluno(null);
+    setObservacaoAtestadoAluno("");
+    setIsUploadAtestadoAlunoDialogOpen(true);
+  };
+
+  const submitAtestadoAluno = async () => {
+    if (!fileAtestadoAluno) {
+      toast({
+        title: "Arquivo obrigatório",
+        description: "Por favor, selecione um arquivo de atestado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", fileAtestadoAluno);
+      formData.append("aluno_id", selectedAlunoDetalhes.id);
+      formData.append("observacao", observacaoAtestadoAluno || "");
+
+      const response = await axios.post(`${API}/upload/atestado`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      toast({
+        title: "✅ Atestado anexado",
+        description: `Atestado de ${selectedAlunoDetalhes.nome} salvo com sucesso.`,
+      });
+
+      setIsUploadAtestadoAlunoDialogOpen(false);
+      setFileAtestadoAluno(null);
+      setObservacaoAtestadoAluno("");
+      
+      // Recarregar atestados se tela de detalhes estiver aberta
+      if (alunoDetalheDialog) {
+        handleVisualizarAlunoDetalhes(selectedAlunoDetalhes);
+      }
+    } catch (error) {
+      console.error("Error uploading atestado:", error);
+      toast({
+        title: "Erro ao anexar atestado",
+        description: error.response?.data?.detail || "Verifique o arquivo e tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadAtestado = async (atestadoId, filename) => {
+    try {
+      const response = await axios.get(`${API}/atestados/${atestadoId}/download`, {
+        responseType: 'blob',
+      });
+      
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "✅ Download realizado",
+        description: `Arquivo ${filename} baixado com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error downloading atestado:", error);
+      toast({
+        title: "Erro ao baixar arquivo",
+        description: "Tente novamente em alguns instantes.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -1956,11 +2078,11 @@ const ChamadaManager = () => {
           ...presencas[selectedAlunoJustificativa.id],
           presente: false,
           justificativa: `Falta justificada: ${
-            Array.isArray(justificationReasons) ? 
-            justificationReasons.find(
-              (r) => r.code === justificationForm.reason_code
-            )?.label || justificationForm.reason_code
-            : justificationForm.reason_code
+            Array.isArray(justificationReasons)
+              ? justificationReasons.find(
+                  (r) => r.code === justificationForm.reason_code
+                )?.label || justificationForm.reason_code
+              : justificationForm.reason_code
           }`,
         },
       };
@@ -2086,7 +2208,7 @@ const ChamadaManager = () => {
       const formData = new FormData();
       formData.append("file", selectedFileAtestado);
       formData.append("aluno_id", selectedAlunoAtestado.id);
-      formData.append("tipo", "atestado_medico");
+      formData.append("observacao", observacaoAtestado || "");
 
       const response = await axios.post(`${API}/upload/atestado`, formData, {
         headers: {
@@ -2099,24 +2221,28 @@ const ChamadaManager = () => {
         ...prev,
         [selectedAlunoAtestado.id]: {
           ...prev[selectedAlunoAtestado.id],
+          presente: false,
           atestado_id: response.data.id,
           justificativa: "Falta justificada com atestado médico",
         },
       }));
 
       toast({
-        title: "Atestado enviado",
-        description: `Atestado médico de ${selectedAlunoAtestado.nome} foi registrado na chamada.`,
+        title: "✅ Atestado anexado com sucesso",
+        description: `Atestado de ${selectedAlunoAtestado.nome} registrado e falta justificada.`,
       });
 
       setIsAtestadoChamadaDialogOpen(false);
       setSelectedAlunoAtestado(null);
       setSelectedFileAtestado(null);
+      setObservacaoAtestado("");
     } catch (error) {
       console.error("Error uploading atestado:", error);
       toast({
-        title: "Erro ao enviar atestado",
-        description: error.response?.data?.detail || "Tente novamente",
+        title: "Erro ao anexar atestado",
+        description:
+          error.response?.data?.detail ||
+          "Verifique o arquivo e tente novamente",
         variant: "destructive",
       });
     }
@@ -2543,11 +2669,12 @@ const ChamadaManager = () => {
                   <SelectValue placeholder="Selecione o motivo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.isArray(justificationReasons) && justificationReasons.map((reason) => (
-                    <SelectItem key={reason.code} value={reason.code}>
-                      {reason.label}
-                    </SelectItem>
-                  ))}
+                  {Array.isArray(justificationReasons) &&
+                    justificationReasons.map((reason) => (
+                      <SelectItem key={reason.code} value={reason.code}>
+                        {reason.label}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -4809,7 +4936,12 @@ const AlunosManager = () => {
   const [isDropoutDialogOpen, setIsDropoutDialogOpen] = useState(false);
   const [isAtestadoDialogOpen, setIsAtestadoDialogOpen] = useState(false);
   const [selectedAluno, setSelectedAluno] = useState(null);
-  const [dropoutReason, setDropoutReason] = useState("");
+  const [selectedStudentDropout, setSelectedStudentDropout] = useState(null);
+  const [dropoutForm, setDropoutForm] = useState({
+    motivo_codigo: "",
+    motivo_personalizado: "",
+    observacoes: ""
+  });
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
 
@@ -5095,8 +5227,12 @@ const AlunosManager = () => {
   };
 
   const handleMarkAsDropout = (aluno) => {
-    setSelectedAluno(aluno);
-    setDropoutReason("");
+    setSelectedStudentDropout(aluno);
+    setDropoutForm({
+      motivo_codigo: "",
+      motivo_personalizado: "",
+      observacoes: ""
+    });
     setIsDropoutDialogOpen(true);
   };
 
@@ -5107,37 +5243,56 @@ const AlunosManager = () => {
   };
 
   const submitDropout = async () => {
-    if (!dropoutReason.trim()) {
+    if (!dropoutForm.motivo_codigo) {
       toast({
         title: "Motivo obrigatório",
-        description: "Por favor, informe o motivo da desistência.",
+        description: "Por favor, selecione o motivo da desistência.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar motivo personalizado se for "outro"
+    if (dropoutForm.motivo_codigo === "outro" && !dropoutForm.motivo_personalizado?.trim()) {
+      toast({
+        title: "Descrição obrigatória",
+        description: "Para 'Outro motivo', descreva o motivo específico.",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      const motivoSelecionado = motivosDesistencia.find(m => m.codigo === dropoutForm.motivo_codigo);
+      
       await axios.post(`${API}/dropouts`, {
-        aluno_id: selectedAluno.id,
-        motivo: dropoutReason,
+        aluno_id: selectedStudentDropout.id,
+        motivo_codigo: dropoutForm.motivo_codigo,
+        motivo_descricao: motivoSelecionado?.descricao || "Motivo não especificado",
+        motivo_personalizado: dropoutForm.motivo_codigo === "outro" ? dropoutForm.motivo_personalizado : null,
+        observacoes: dropoutForm.observacoes || null,
         data_desistencia: new Date().toISOString().split("T")[0],
       });
 
       // Atualizar status do aluno para desistente
-      await axios.put(`${API}/students/${selectedAluno.id}`, {
-        ...selectedAluno,
+      await axios.put(`${API}/students/${selectedStudentDropout.id}`, {
+        ...selectedStudentDropout,
         status: "desistente",
       });
 
       toast({
-        title: "Desistência registrada",
-        description: `${selectedAluno.nome} foi marcado como desistente.`,
+        title: "✅ Desistência registrada",
+        description: `${selectedStudentDropout.nome} foi marcado como desistente.`,
       });
 
       fetchAlunos();
       setIsDropoutDialogOpen(false);
-      setSelectedAluno(null);
-      setDropoutReason("");
+      setSelectedStudentDropout(null);
+      setDropoutForm({
+        motivo_codigo: "",
+        motivo_personalizado: "",
+        observacoes: ""
+      });
     } catch (error) {
       console.error("Error marking as dropout:", error);
       toast({

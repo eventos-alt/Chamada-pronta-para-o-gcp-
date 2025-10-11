@@ -390,19 +390,36 @@ class ChamadaCreate(BaseModel):
 class Desistente(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     aluno_id: str
+    aluno_nome: Optional[str] = None  # Nome do aluno para facilitar exibição
     turma_id: Optional[str] = None  # Tornar opcional para permitir desistência sem turma específica
     data_desistencia: date
-    motivo: str
+    motivo_codigo: str  # Código do motivo (ex: "nao_identificou")
+    motivo_descricao: str  # Descrição legível do motivo
+    motivo_personalizado: Optional[str] = None  # Texto personalizado se motivo for "outro"
     observacoes: Optional[str] = None
     registrado_por: str
+    registrado_por_nome: Optional[str] = None  # Nome de quem registrou
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class DesistenteCreate(BaseModel):
     aluno_id: str
     turma_id: Optional[str] = None  # Tornar opcional para permitir desistência sem turma específica
     data_desistencia: date
-    motivo: str
+    motivo_codigo: str  # Código do motivo
+    motivo_descricao: str  # Descrição do motivo
+    motivo_personalizado: Optional[str] = None  # Texto personalizado
     observacoes: Optional[str] = None
+
+# 📋 MODELO PARA ATESTADOS
+class AtestadoResponse(BaseModel):
+    id: str
+    aluno_id: str
+    aluno_nome: str
+    filename: str
+    data_envio: date
+    observacao: str
+    uploaded_by_nome: str
+    created_at: datetime
 
 # 🚀 NOVOS MODELOS PARA SISTEMA DE ATTENDANCE (CHAMADAS PENDENTES)
 class AttendanceRecord(BaseModel):
@@ -2575,28 +2592,253 @@ async def get_turma_students(turma_id: str, current_user: UserResponse = Depends
     
     return result
 
-# UPLOAD ROUTES
+# 🏥 SISTEMA DE ATESTADOS MÉDICOS COMPLETO
 @api_router.post("/upload/atestado")
-async def upload_atestado(file: UploadFile = File(...), current_user: UserResponse = Depends(get_current_user)):
+async def upload_atestado(
+    file: UploadFile = File(...), 
+    aluno_id: str = Form(...),
+    observacao: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """📋 Upload de atestado médico para justificar falta de aluno"""
+    
+    # 🔒 VALIDAÇÃO DE PERMISSÕES
+    if current_user.tipo not in ["admin", "instrutor", "pedagogo"]:
+        raise HTTPException(status_code=403, detail="Apenas admin, instrutor e pedagogo podem anexar atestados")
+    
+    # ✅ VALIDAÇÃO DE ARQUIVO
     if file.content_type not in ["image/jpeg", "image/png", "application/pdf"]:
-        raise HTTPException(status_code=400, detail="Formato de arquivo não suportado")
+        raise HTTPException(status_code=400, detail="Apenas arquivos PDF, JPG e PNG são aceitos")
     
-    # Convert file to base64 for storage (simple solution)
+    # Verificar tamanho (máx 5MB)
     contents = await file.read()
-    file_base64 = base64.b64encode(contents).decode('utf-8')
+    if len(contents) > 5 * 1024 * 1024:  # 5MB
+        raise HTTPException(status_code=400, detail="Arquivo muito grande. Máximo 5MB")
     
-    file_id = str(uuid.uuid4())
-    file_data = {
-        "id": file_id,
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "data": file_base64,
-        "uploaded_by": current_user.id,
-        "created_at": datetime.now(timezone.utc)
+    # 🔍 VERIFICAR SE ALUNO EXISTE E PERMISSÕES
+    aluno = await db.alunos.find_one({"id": aluno_id})
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    
+    # Para não-admin: verificar permissões do aluno
+    if current_user.tipo != "admin":
+        tem_permissao = False
+        
+        if current_user.tipo == "instrutor":
+            # Instrutor: só pode anexar atestado de alunos das suas turmas
+            turmas_instrutor = await db.turmas.find({
+                "instrutor_id": current_user.id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_instrutor) > 0
+            
+        elif current_user.tipo == "pedagogo":
+            # Pedagogo: só pode anexar atestado de alunos da sua unidade
+            turmas_unidade = await db.turmas.find({
+                "unidade_id": current_user.unidade_id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_unidade) > 0
+        
+        if not tem_permissao:
+            raise HTTPException(
+                status_code=403, 
+                detail="Você só pode anexar atestados de alunos das suas turmas/unidade"
+            )
+    
+    # 💾 SALVAR NO GRIDFS
+    try:
+        file_id = await fs_bucket.upload_from_stream(
+            file.filename,
+            BytesIO(contents),
+            metadata={
+                "content_type": file.content_type,
+                "aluno_id": aluno_id,
+                "uploaded_by": current_user.id,
+                "observacao": observacao,
+                "tipo": "atestado_medico"
+            }
+        )
+        
+        # 📝 REGISTRAR ATESTADO
+        atestado_data = {
+            "id": str(uuid.uuid4()),
+            "aluno_id": aluno_id,
+            "aluno_nome": aluno.get("nome", ""),
+            "file_id": str(file_id),
+            "filename": file.filename,
+            "content_type": file.content_type,
+            "observacao": observacao or "",
+            "data_envio": date.today(),
+            "uploaded_by": current_user.id,
+            "uploaded_by_nome": current_user.nome,
+            "created_at": datetime.now(timezone.utc)
+        }
+        
+        await db.atestados.insert_one(atestado_data)
+        
+        return {
+            "id": atestado_data["id"],
+            "file_id": str(file_id),
+            "filename": file.filename,
+            "message": "Atestado anexado com sucesso"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar atestado: {str(e)}")
+
+@api_router.get("/alunos/{aluno_id}/atestados")
+async def listar_atestados_aluno(
+    aluno_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """📋 Listar todos os atestados de um aluno específico"""
+    
+    # 🔒 VALIDAÇÃO DE PERMISSÕES (mesmo padrão do upload)
+    if current_user.tipo not in ["admin", "instrutor", "pedagogo"]:
+        raise HTTPException(status_code=403, detail="Permissão negada")
+    
+    # Verificar se aluno existe
+    aluno = await db.alunos.find_one({"id": aluno_id})
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    
+    # Para não-admin: verificar permissões
+    if current_user.tipo != "admin":
+        tem_permissao = False
+        
+        if current_user.tipo == "instrutor":
+            turmas_instrutor = await db.turmas.find({
+                "instrutor_id": current_user.id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_instrutor) > 0
+            
+        elif current_user.tipo == "pedagogo":
+            turmas_unidade = await db.turmas.find({
+                "unidade_id": current_user.unidade_id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_unidade) > 0
+        
+        if not tem_permissao:
+            raise HTTPException(status_code=403, detail="Sem permissão para visualizar atestados deste aluno")
+    
+    # 📋 BUSCAR ATESTADOS
+    atestados = await db.atestados.find({"aluno_id": aluno_id}).sort("created_at", -1).to_list(100)
+    
+    return {
+        "aluno_id": aluno_id,
+        "aluno_nome": aluno.get("nome", ""),
+        "total_atestados": len(atestados),
+        "atestados": atestados
     }
+
+@api_router.get("/atestados/{atestado_id}/download")
+async def download_atestado(
+    atestado_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """📥 Download de arquivo de atestado"""
     
-    await db.atestados.insert_one(file_data)
-    return {"file_id": file_id, "filename": file.filename}
+    # 🔍 BUSCAR ATESTADO
+    atestado = await db.atestados.find_one({"id": atestado_id})
+    if not atestado:
+        raise HTTPException(status_code=404, detail="Atestado não encontrado")
+    
+    # 🔒 VALIDAÇÃO DE PERMISSÕES (mesmo padrão)
+    if current_user.tipo not in ["admin", "instrutor", "pedagogo"]:
+        raise HTTPException(status_code=403, detail="Permissão negada")
+    
+    if current_user.tipo != "admin":
+        tem_permissao = False
+        aluno_id = atestado["aluno_id"]
+        
+        if current_user.tipo == "instrutor":
+            turmas_instrutor = await db.turmas.find({
+                "instrutor_id": current_user.id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_instrutor) > 0
+            
+        elif current_user.tipo == "pedagogo":
+            turmas_unidade = await db.turmas.find({
+                "unidade_id": current_user.unidade_id,
+                "alunos_ids": aluno_id
+            }).to_list(10)
+            tem_permissao = len(turmas_unidade) > 0
+        
+        if not tem_permissao:
+            raise HTTPException(status_code=403, detail="Sem permissão para baixar este atestado")
+    
+    # 📥 BUSCAR ARQUIVO NO GRIDFS
+    try:
+        file_id = ObjectId(atestado["file_id"])
+        grid_out = await fs_bucket.open_download_stream(file_id)
+        
+        contents = await grid_out.read()
+        
+        return StreamingResponse(
+            BytesIO(contents),
+            media_type=atestado["content_type"],
+            headers={"Content-Disposition": f"attachment; filename={atestado['filename']}"}
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao baixar arquivo: {str(e)}")
+
+@api_router.get("/desistencias/motivos")
+async def get_motivos_desistencia(current_user: UserResponse = Depends(get_current_user)):
+    """📝 Lista de motivos padrão para desistência"""
+    
+    MOTIVOS_DESISTENCIA = [
+        {
+            "codigo": "nao_identificou",
+            "descricao": "NÃO SE IDENTIFICOU COM O CURSO"
+        },
+        {
+            "codigo": "dificuldade_acompanhamento",
+            "descricao": "DIFICULDADE DE ACOMPANHAMENTO DO CURSO"
+        },
+        {
+            "codigo": "curso_fora_ios",
+            "descricao": "OPTOU POR UM CURSO FORA DO IOS"
+        },
+        {
+            "codigo": "sem_recursos_transporte",
+            "descricao": "SEM RECURSOS FINANCEIROS PARA TRANSPORTE"
+        },
+        {
+            "codigo": "mudou_endereco",
+            "descricao": "MUDOU DE ENDEREÇO"
+        },
+        {
+            "codigo": "cuidar_familiar",
+            "descricao": "PRECISOU CUIDAR DE FAMILIAR"
+        },
+        {
+            "codigo": "sem_retorno_conflito",
+            "descricao": "SEM RETORNO DE CONTATO / CONFLITO DE HORÁRIOS"
+        },
+        {
+            "codigo": "problemas_saude",
+            "descricao": "PROBLEMAS DE SAÚDE (COM O ALUNO OU FAMILIAR)"
+        },
+        {
+            "codigo": "conseguiu_trabalho",
+            "descricao": "CONSEGUIU UM TRABALHO"
+        },
+        {
+            "codigo": "lactante_gestante",
+            "descricao": "LACTANTE OU GESTANTE"
+        },
+        {
+            "codigo": "outro",
+            "descricao": "OUTRO (PREENCHIMENTO PERSONALIZADO)"
+        }
+    ]
+    
+    return MOTIVOS_DESISTENCIA
 
 # DESISTENTES ROUTES
 @api_router.post("/dropouts", response_model=Desistente)
@@ -2641,8 +2883,11 @@ async def create_desistente(desistente_create: DesistenteCreate, current_user: U
                 detail="Você só pode registrar desistência de alunos das suas turmas/unidade"
             )
     
+    # 📝 PREPARAR DADOS DA DESISTÊNCIA
     desistente_dict = prepare_for_mongo(desistente_create.dict())
     desistente_dict["registrado_por"] = current_user.id
+    desistente_dict["registrado_por_nome"] = current_user.nome
+    desistente_dict["aluno_nome"] = aluno.get("nome", "")
     
     desistente_obj = Desistente(**desistente_dict)
     mongo_data = prepare_for_mongo(desistente_obj.dict())
