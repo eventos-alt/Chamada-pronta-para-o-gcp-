@@ -5255,6 +5255,57 @@ const AlunosManager = () => {
     setIsJustifyDialogOpen(true);
   };
 
+  // 🔄 Função para reativar aluno desistente (APENAS ADMIN)
+  const handleReactivateStudent = async (aluno) => {
+    if (user?.tipo !== "admin") {
+      toast({
+        title: "Acesso negado",
+        description: "Apenas administradores podem reativar alunos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Confirmação dupla para ação crítica
+    const confirmReactivation = window.confirm(
+      `🔄 REATIVAÇÃO DE ALUNO\n\n` +
+        `Aluno: ${aluno.nome}\n` +
+        `Status atual: Desistente\n\n` +
+        `Esta ação irá:\n` +
+        `• Alterar status para "Ativo"\n` +
+        `• Remover registros de desistência\n` +
+        `• Permitir nova matrícula em turmas\n\n` +
+        `Deseja continuar?`
+    );
+
+    if (!confirmReactivation) return;
+
+    try {
+      console.log(`🔄 Iniciando reativação do aluno: ${aluno.nome}`);
+
+      const response = await axios.post(
+        `${API}/students/${aluno.id}/reactivate`
+      );
+
+      toast({
+        title: "✅ Aluno reativado com sucesso",
+        description: `${aluno.nome} foi reativado e pode ser matriculado novamente.`,
+      });
+
+      console.log("✅ Resposta da reativação:", response.data);
+
+      // Atualizar lista de alunos
+      fetchAlunos();
+    } catch (error) {
+      console.error("❌ Erro na reativação:", error);
+      toast({
+        title: "Erro ao reativar aluno",
+        description: error.response?.data?.detail || "Tente novamente",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleUploadAtestado = (aluno) => {
     setSelectedAluno(aluno);
     setSelectedFile(null);
@@ -6022,6 +6073,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           <UserX className="h-4 w-4" />
                         </Button>
                       )}
+                      {/* 🔄 Botão de reativação - APENAS ADMIN */}
+                      {user?.tipo === "admin" &&
+                        aluno.status === "desistente" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleReactivateStudent(aluno)}
+                            title="Reativar aluno desistente"
+                            className="text-green-600 border-green-600 hover:bg-green-50"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        )}
                     </div>
                   </TableCell>
                 </TableRow>

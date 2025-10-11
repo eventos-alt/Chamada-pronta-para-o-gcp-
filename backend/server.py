@@ -2921,7 +2921,71 @@ async def get_desistentes(
     desistentes = await db.desistentes.find(query).skip(skip).limit(limit).to_list(limit)
     return [Desistente(**parse_from_mongo(desistente)) for desistente in desistentes]
 
-# 📋 JUSTIFICATIVAS/ATESTADOS ROUTES
+# � REATIVAÇÃO DE ALUNOS DESISTENTES (APENAS ADMIN)
+@api_router.post("/students/{student_id}/reactivate")
+async def reactivate_student(
+    student_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    ⚡ Reativar aluno desistente (APENAS ADMIN)
+    - Altera status de 'desistente' para 'ativo'
+    - Remove registro da tabela de desistentes
+    - Permite que aluno seja matriculado em novas turmas
+    """
+    
+    # 🔒 VALIDAÇÃO: Apenas admin pode reativar alunos
+    if current_user.tipo != "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="Apenas administradores podem reativar alunos desistentes"
+        )
+    
+    # 🔍 VERIFICAR SE ALUNO EXISTE
+    aluno = await db.alunos.find_one({"id": student_id})
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    
+    # ✅ VERIFICAR SE ALUNO ESTÁ REALMENTE COMO DESISTENTE
+    if aluno.get("status") != "desistente":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Aluno está com status '{aluno.get('status')}', não pode ser reativado"
+        )
+    
+    try:
+        # 🔄 ATUALIZAR STATUS DO ALUNO PARA ATIVO
+        await db.alunos.update_one(
+            {"id": student_id},
+            {"$set": {"status": "ativo", "data_reativacao": datetime.now(timezone.utc)}}
+        )
+        
+        # 🗑️ REMOVER DA TABELA DE DESISTENTES
+        result = await db.desistentes.delete_many({"aluno_id": student_id})
+        
+        # 📊 LOG DA OPERAÇÃO
+        print(f"🔄 REATIVAÇÃO: Aluno {aluno.get('nome')} reativado por admin {current_user.nome}")
+        print(f"   📝 Registros de desistência removidos: {result.deleted_count}")
+        
+        return {
+            "message": "Aluno reativado com sucesso",
+            "student_id": student_id,
+            "student_name": aluno.get("nome"),
+            "previous_status": "desistente",
+            "new_status": "ativo",
+            "reactivated_by": current_user.nome,
+            "reactivated_at": datetime.now(timezone.utc).isoformat(),
+            "dropout_records_removed": result.deleted_count
+        }
+        
+    except Exception as e:
+        print(f"❌ Erro na reativação: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Erro interno ao reativar aluno: {str(e)}"
+        )
+
+# �📋 JUSTIFICATIVAS/ATESTADOS ROUTES
 @api_router.post("/students/{student_id}/justifications")
 async def create_justification(
     student_id: str,
