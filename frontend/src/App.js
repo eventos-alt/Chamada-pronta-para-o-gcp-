@@ -1892,9 +1892,20 @@ const ChamadaManager = () => {
   const fetchJustificationReasons = async () => {
     try {
       const response = await axios.get(`${API}/justifications/reasons`);
-      setJustificationReasons(response.data);
+      // ✅ Garantir que sempre seja um array
+      const reasons = Array.isArray(response.data) ? response.data : [];
+      setJustificationReasons(reasons);
     } catch (error) {
       console.error("Erro ao carregar motivos de justificativa:", error);
+      // ✅ Fallback com motivos padrão se API falhar
+      setJustificationReasons([
+        { code: "doenca", label: "Doença" },
+        { code: "medico", label: "Consulta médica" },
+        { code: "familiar", label: "Problema familiar" },
+        { code: "transporte", label: "Problema de transporte" },
+        { code: "trabalho", label: "Compromisso de trabalho" },
+        { code: "outros", label: "Outros motivos" }
+      ]);
     }
   };
 
@@ -1945,9 +1956,11 @@ const ChamadaManager = () => {
           ...presencas[selectedAlunoJustificativa.id],
           presente: false,
           justificativa: `Falta justificada: ${
+            Array.isArray(justificationReasons) ? 
             justificationReasons.find(
               (r) => r.code === justificationForm.reason_code
             )?.label || justificationForm.reason_code
+            : justificationForm.reason_code
           }`,
         },
       };
@@ -2530,7 +2543,7 @@ const ChamadaManager = () => {
                   <SelectValue placeholder="Selecione o motivo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {justificationReasons.map((reason) => (
+                  {Array.isArray(justificationReasons) && justificationReasons.map((reason) => (
                     <SelectItem key={reason.code} value={reason.code}>
                       {reason.label}
                     </SelectItem>
