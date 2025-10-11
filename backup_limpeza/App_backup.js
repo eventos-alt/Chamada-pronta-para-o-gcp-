@@ -1870,16 +1870,6 @@ const ChamadaManager = () => {
     useState(false);
   const [selectedAlunoAtestado, setSelectedAlunoAtestado] = useState(null);
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
-  const [observacaoAtestado, setObservacaoAtestado] = useState("");
-
-  // 🏥 Estados para sistema de atestados avançado
-  const [alunoDetalheDialog, setAlunoDetalheDialog] = useState(false);
-  const [selectedAlunoDetalhes, setSelectedAlunoDetalhes] = useState(null);
-  const [atestadosAluno, setAtestadosAluno] = useState([]);
-  const [isUploadAtestadoAlunoDialogOpen, setIsUploadAtestadoAlunoDialogOpen] =
-    useState(false);
-  const [fileAtestadoAluno, setFileAtestadoAluno] = useState(null);
-  const [observacaoAtestadoAluno, setObservacaoAtestadoAluno] = useState("");
 
   // Estados para modal de justificativa
   const [isJustificativaDialogOpen, setIsJustificativaDialogOpen] =
@@ -1888,7 +1878,7 @@ const ChamadaManager = () => {
     useState(null);
   const [justificationReasons, setJustificationReasons] = useState([]);
   const [justificationForm, setJustificationForm] = useState({
-    reason_text: "", // Campo de texto livre para motivo
+    reason_code: "",
     observations: "",
     file: null,
   });
@@ -1902,125 +1892,16 @@ const ChamadaManager = () => {
   const fetchJustificationReasons = async () => {
     try {
       const response = await axios.get(`${API}/justifications/reasons`);
-      // ✅ Garantir que sempre seja um array
-      const reasons = Array.isArray(response.data) ? response.data : [];
-      setJustificationReasons(reasons);
+      setJustificationReasons(response.data);
     } catch (error) {
       console.error("Erro ao carregar motivos de justificativa:", error);
-      // ✅ Fallback com motivos padrão se API falhar
-      setJustificationReasons([
-        { code: "doenca", label: "Doença" },
-        { code: "medico", label: "Consulta médica" },
-        { code: "familiar", label: "Problema familiar" },
-        { code: "transporte", label: "Problema de transporte" },
-        { code: "trabalho", label: "Compromisso de trabalho" },
-        { code: "outros", label: "Outros motivos" },
-      ]);
-    }
-  };
-
-  // 🏥 FUNÇÕES PARA GESTÃO DE ATESTADOS
-  const handleVisualizarAlunoDetalhes = async (aluno) => {
-    setSelectedAlunoDetalhes(aluno);
-    try {
-      const response = await axios.get(`${API}/alunos/${aluno.id}/atestados`);
-      setAtestadosAluno(response.data.atestados || []);
-    } catch (error) {
-      console.error("Erro ao carregar atestados do aluno:", error);
-      setAtestadosAluno([]);
-    }
-    setAlunoDetalheDialog(true);
-  };
-
-  const handleUploadAtestadoAluno = (aluno) => {
-    setSelectedAlunoDetalhes(aluno);
-    setFileAtestadoAluno(null);
-    setObservacaoAtestadoAluno("");
-    setIsUploadAtestadoAlunoDialogOpen(true);
-  };
-
-  const submitAtestadoAluno = async () => {
-    if (!fileAtestadoAluno) {
-      toast({
-        title: "Arquivo obrigatório",
-        description: "Por favor, selecione um arquivo de atestado.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append("file", fileAtestadoAluno);
-      formData.append("aluno_id", selectedAlunoDetalhes.id);
-      formData.append("observacao", observacaoAtestadoAluno || "");
-
-      const response = await axios.post(`${API}/upload/atestado`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      toast({
-        title: "✅ Atestado anexado",
-        description: `Atestado de ${selectedAlunoDetalhes.nome} salvo com sucesso.`,
-      });
-
-      setIsUploadAtestadoAlunoDialogOpen(false);
-      setFileAtestadoAluno(null);
-      setObservacaoAtestadoAluno("");
-
-      // Recarregar atestados se tela de detalhes estiver aberta
-      if (alunoDetalheDialog) {
-        handleVisualizarAlunoDetalhes(selectedAlunoDetalhes);
-      }
-    } catch (error) {
-      console.error("Error uploading atestado:", error);
-      toast({
-        title: "Erro ao anexar atestado",
-        description:
-          error.response?.data?.detail ||
-          "Verifique o arquivo e tente novamente",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDownloadAtestado = async (atestadoId, filename) => {
-    try {
-      const response = await axios.get(
-        `${API}/atestados/${atestadoId}/download`,
-        {
-          responseType: "blob",
-        }
-      );
-
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast({
-        title: "✅ Download realizado",
-        description: `Arquivo ${filename} baixado com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Error downloading atestado:", error);
-      toast({
-        title: "Erro ao baixar arquivo",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
-      });
     }
   };
 
   const handleJustificarFalta = (aluno) => {
     setSelectedAlunoJustificativa(aluno);
     setJustificationForm({
-      reason_text: "",
+      reason_code: "",
       observations: "",
       file: null,
     });
@@ -2028,10 +1909,10 @@ const ChamadaManager = () => {
   };
 
   const submitJustificativa = async () => {
-    if (!justificationForm.reason_text?.trim()) {
+    if (!justificationForm.reason_code) {
       toast({
         title: "Erro",
-        description: "Digite o motivo da falta",
+        description: "Selecione um motivo para a justificativa",
         variant: "destructive",
       });
       return;
@@ -2039,7 +1920,7 @@ const ChamadaManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("reason_text", justificationForm.reason_text.trim());
+      formData.append("reason_code", justificationForm.reason_code);
       if (justificationForm.observations) {
         formData.append("observations", justificationForm.observations);
       }
@@ -2063,7 +1944,11 @@ const ChamadaManager = () => {
         [selectedAlunoJustificativa.id]: {
           ...presencas[selectedAlunoJustificativa.id],
           presente: false,
-          justificativa: `Falta justificada: ${justificationForm.reason_text.trim()}`,
+          justificativa: `Falta justificada: ${
+            justificationReasons.find(
+              (r) => r.code === justificationForm.reason_code
+            )?.label || justificationForm.reason_code
+          }`,
         },
       };
       setPresencas(updatedPresencas);
@@ -2188,7 +2073,7 @@ const ChamadaManager = () => {
       const formData = new FormData();
       formData.append("file", selectedFileAtestado);
       formData.append("aluno_id", selectedAlunoAtestado.id);
-      formData.append("observacao", observacaoAtestado || "");
+      formData.append("tipo", "atestado_medico");
 
       const response = await axios.post(`${API}/upload/atestado`, formData, {
         headers: {
@@ -2201,28 +2086,24 @@ const ChamadaManager = () => {
         ...prev,
         [selectedAlunoAtestado.id]: {
           ...prev[selectedAlunoAtestado.id],
-          presente: false,
           atestado_id: response.data.id,
           justificativa: "Falta justificada com atestado médico",
         },
       }));
 
       toast({
-        title: "✅ Atestado anexado com sucesso",
-        description: `Atestado de ${selectedAlunoAtestado.nome} registrado e falta justificada.`,
+        title: "Atestado enviado",
+        description: `Atestado médico de ${selectedAlunoAtestado.nome} foi registrado na chamada.`,
       });
 
       setIsAtestadoChamadaDialogOpen(false);
       setSelectedAlunoAtestado(null);
       setSelectedFileAtestado(null);
-      setObservacaoAtestado("");
     } catch (error) {
       console.error("Error uploading atestado:", error);
       toast({
-        title: "Erro ao anexar atestado",
-        description:
-          error.response?.data?.detail ||
-          "Verifique o arquivo e tente novamente",
+        title: "Erro ao enviar atestado",
+        description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
     }
@@ -2630,27 +2511,32 @@ const ChamadaManager = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* 📝 Motivo da falta - CAMPO DE TEXTO LIVRE */}
+            {/* Motivo da justificativa */}
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
                 Motivo da falta *
               </Label>
-              <Textarea
-                value={justificationForm.reason_text || ""}
-                onChange={(e) =>
+              <Select
+                value={justificationForm.reason_code}
+                onValueChange={(value) =>
                   setJustificationForm((prev) => ({
                     ...prev,
-                    reason_text: e.target.value,
+                    reason_code: value,
                   }))
                 }
-                placeholder="Digite o motivo da falta (ex: Consulta médica, Problema familiar, etc.)"
-                rows={3}
-                className="resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                💡 Seja específico para facilitar o controle de frequência
-              </p>
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o motivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {justificationReasons.map((reason) => (
+                    <SelectItem key={reason.code} value={reason.code}>
+                      {reason.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Observações */}
@@ -4910,17 +4796,9 @@ const AlunosManager = () => {
   const [isDropoutDialogOpen, setIsDropoutDialogOpen] = useState(false);
   const [isAtestadoDialogOpen, setIsAtestadoDialogOpen] = useState(false);
   const [selectedAluno, setSelectedAluno] = useState(null);
-  const [selectedStudentDropout, setSelectedStudentDropout] = useState(null);
-  const [dropoutForm, setDropoutForm] = useState({
-    motivo_codigo: "",
-    motivo_personalizado: "",
-    observacoes: "",
-  });
+  const [dropoutReason, setDropoutReason] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
-
-  // ✅ Estados para motivos de desistência (MOVIDO DO APP PRINCIPAL)
-  const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
   // Estados para visualização detalhada do aluno
   const [isViewAlunoDialogOpen, setIsViewAlunoDialogOpen] = useState(false);
@@ -4956,7 +4834,6 @@ const AlunosManager = () => {
   useEffect(() => {
     fetchAlunos();
     fetchTurmas();
-    fetchMotivosDesistencia(); // ✅ Carregar motivos de desistência
   }, []);
 
   const fetchAlunos = async () => {
@@ -4981,26 +4858,6 @@ const AlunosManager = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  // ✅ Função para buscar motivos de desistência (ADICIONADA NO ALUNOSMANAGER)
-  const fetchMotivosDesistencia = async () => {
-    try {
-      console.log("🔍 Buscando motivos de desistência...");
-      const response = await axios.get(`${API}/desistencias/motivos`);
-      setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
-      console.log("✅ Motivos carregados:", response.data.length, "motivos");
-    } catch (error) {
-      console.error("❌ Erro ao buscar motivos:", error);
-      // Fallback com motivos básicos
-      setMotivosDesistencia([
-        {
-          codigo: "nao_identificou",
-          descricao: "NÃO SE IDENTIFICOU COM O CURSO",
-        },
-        { codigo: "outro", descricao: "OUTRO (PREENCHIMENTO PERSONALIZADO)" },
-      ]);
     }
   };
 
@@ -5225,12 +5082,8 @@ const AlunosManager = () => {
   };
 
   const handleMarkAsDropout = (aluno) => {
-    setSelectedStudentDropout(aluno);
-    setDropoutForm({
-      motivo_codigo: "",
-      motivo_personalizado: "",
-      observacoes: "",
-    });
+    setSelectedAluno(aluno);
+    setDropoutReason("");
     setIsDropoutDialogOpen(true);
   };
 
@@ -5241,65 +5094,37 @@ const AlunosManager = () => {
   };
 
   const submitDropout = async () => {
-    if (!dropoutForm.motivo_codigo) {
+    if (!dropoutReason.trim()) {
       toast({
         title: "Motivo obrigatório",
-        description: "Por favor, selecione o motivo da desistência.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validar motivo personalizado se for "outro"
-    if (
-      dropoutForm.motivo_codigo === "outro" &&
-      !dropoutForm.motivo_personalizado?.trim()
-    ) {
-      toast({
-        title: "Descrição obrigatória",
-        description: "Para 'Outro motivo', descreva o motivo específico.",
+        description: "Por favor, informe o motivo da desistência.",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const motivoSelecionado = motivosDesistencia.find(
-        (m) => m.codigo === dropoutForm.motivo_codigo
-      );
-
       await axios.post(`${API}/dropouts`, {
-        aluno_id: selectedStudentDropout.id,
-        motivo_codigo: dropoutForm.motivo_codigo,
-        motivo_descricao:
-          motivoSelecionado?.descricao || "Motivo não especificado",
-        motivo_personalizado:
-          dropoutForm.motivo_codigo === "outro"
-            ? dropoutForm.motivo_personalizado
-            : null,
-        observacoes: dropoutForm.observacoes || null,
+        aluno_id: selectedAluno.id,
+        motivo: dropoutReason,
         data_desistencia: new Date().toISOString().split("T")[0],
       });
 
       // Atualizar status do aluno para desistente
-      await axios.put(`${API}/students/${selectedStudentDropout.id}`, {
-        ...selectedStudentDropout,
+      await axios.put(`${API}/students/${selectedAluno.id}`, {
+        ...selectedAluno,
         status: "desistente",
       });
 
       toast({
-        title: "✅ Desistência registrada",
-        description: `${selectedStudentDropout.nome} foi marcado como desistente.`,
+        title: "Desistência registrada",
+        description: `${selectedAluno.nome} foi marcado como desistente.`,
       });
 
       fetchAlunos();
       setIsDropoutDialogOpen(false);
-      setSelectedStudentDropout(null);
-      setDropoutForm({
-        motivo_codigo: "",
-        motivo_personalizado: "",
-        observacoes: "",
-      });
+      setSelectedAluno(null);
+      setDropoutReason("");
     } catch (error) {
       console.error("Error marking as dropout:", error);
       toast({
@@ -5945,70 +5770,23 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardContent>
 
-      {/* 🚪 Dialog para registrar desistência - SISTEMA ESTRUTURADO */}
+      {/* Dialog para registrar desistência */}
       <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Registrar Desistência</DialogTitle>
             <DialogDescription>
-              Registrar a desistência de {selectedStudentDropout?.nome}
+              Registrar a desistência de {selectedAluno?.nome}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Seletor de motivo estruturado */}
             <div>
               <Label>Motivo da desistência *</Label>
-              <Select
-                value={dropoutForm.motivo_codigo}
-                onValueChange={(value) =>
-                  setDropoutForm((prev) => ({ ...prev, motivo_codigo: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o motivo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.isArray(motivosDesistencia) &&
-                    motivosDesistencia.map((motivo) => (
-                      <SelectItem key={motivo.codigo} value={motivo.codigo}>
-                        {motivo.descricao}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Campo personalizado para motivo "outro" */}
-            {dropoutForm.motivo_codigo === "outro" && (
-              <div>
-                <Label>Especifique o motivo *</Label>
-                <Textarea
-                  value={dropoutForm.motivo_personalizado}
-                  onChange={(e) =>
-                    setDropoutForm((prev) => ({
-                      ...prev,
-                      motivo_personalizado: e.target.value,
-                    }))
-                  }
-                  placeholder="Descreva o motivo específico da desistência..."
-                  rows={3}
-                />
-              </div>
-            )}
-
-            {/* Observações adicionais */}
-            <div>
-              <Label>Observações (opcional)</Label>
               <Textarea
-                value={dropoutForm.observacoes}
-                onChange={(e) =>
-                  setDropoutForm((prev) => ({
-                    ...prev,
-                    observacoes: e.target.value,
-                  }))
-                }
-                placeholder="Informações adicionais sobre a desistência..."
-                rows={2}
+                value={dropoutReason}
+                onChange={(e) => setDropoutReason(e.target.value)}
+                placeholder="Descreva o motivo da desistência..."
+                rows={3}
               />
             </div>
             <div className="flex justify-end space-x-2">
