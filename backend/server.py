@@ -218,6 +218,11 @@ class UserResponse(BaseModel):
     email: str
     tipo: str
     ativo: bool
+
+class FirstAccessRequest(BaseModel):
+    nome: str
+    email: EmailStr
+    tipo: str
     status: str
     primeiro_acesso: bool
     unidade_id: Optional[str] = None
@@ -687,27 +692,33 @@ async def login(user_login: UserLogin):
     }
 
 @api_router.post("/auth/first-access")
-async def first_access_request(user_data: dict):
+async def first_access_request(user_data: FirstAccessRequest):
+    print(f"🔍 Recebida solicitação de primeiro acesso: {user_data.email} - {user_data.tipo}")
+    
     # Check if user already exists
-    existing_user = await db.usuarios.find_one({"email": user_data["email"]})
+    existing_user = await db.usuarios.find_one({"email": user_data.email})
     if existing_user:
+        print(f"❌ Email já cadastrado: {user_data.email}")
         raise HTTPException(status_code=400, detail="Email já cadastrado")
     
     # Generate temporary password
     temp_password = str(uuid.uuid4())[:8]
     hashed_password = bcrypt.hash(temp_password)
     
+    print(f"✅ Criando usuário pendente: {user_data.nome}")
+    
     user_obj = User(
-        nome=user_data["nome"],
-        email=user_data["email"],
+        nome=user_data.nome,
+        email=user_data.email,
         senha=hashed_password,
-        tipo=user_data["tipo"],
+        tipo=user_data.tipo,
         status="pendente",
         primeiro_acesso=True
     )
     
     await db.usuarios.insert_one(user_obj.dict())
     
+    print(f"✅ Usuário criado com sucesso: {user_data.email}")
     return {"message": "Solicitação de acesso enviada com sucesso", "temp_password": temp_password}
 
 @api_router.get("/auth/me", response_model=UserResponse)
@@ -2788,17 +2799,41 @@ async def download_atestado(
         raise HTTPException(status_code=500, detail=f"Erro ao baixar arquivo: {str(e)}")
 
 @api_router.get("/desistencias/motivos")
-async def get_motivos_desistencia(current_user: UserResponse = Depends(get_current_user)):
-    """📝 Lista de motivos padrão para desistência"""
+async def get_motivos_desistencia():
+    """📝 Lista de motivos padrão para desistência - endpoint público"""
     
     MOTIVOS_DESISTENCIA = [
         {
-            "codigo": "nao_identificou",
+            "codigo": "conflito_horario_escola",
+            "descricao": "CONFLITO ENTRE O HORÁRIO DO CURSO E ESCOLA"
+        },
+        {
+            "codigo": "conflito_curso_trabalho",
+            "descricao": "CONFLITO ENTRE CURSO E TRABALHO"
+        },
+        {
+            "codigo": "problemas_saude",
+            "descricao": "PROBLEMAS DE SAÚDE (ALUNO OU FAMILIAR)"
+        },
+        {
+            "codigo": "sem_retorno_contato",
+            "descricao": "SEM RETORNO DE CONTATO"
+        },
+        {
+            "codigo": "conseguiu_trabalho",
+            "descricao": "CONSEGUIU UM TRABALHO"
+        },
+        {
+            "codigo": "lactantes_gestantes",
+            "descricao": "LACTANTES, GESTANTES OU EM INÍCIO DE GESTAÇÃO"
+        },
+        {
+            "codigo": "nao_identificou_curso",
             "descricao": "NÃO SE IDENTIFICOU COM O CURSO"
         },
         {
-            "codigo": "dificuldade_acompanhamento",
-            "descricao": "DIFICULDADE DE ACOMPANHAMENTO DO CURSO"
+            "codigo": "dificuldades_acompanhamento",
+            "descricao": "DIFICULDADES DE ACOMPANHAMENTO DO CURSO"
         },
         {
             "codigo": "curso_fora_ios",
@@ -2806,7 +2841,7 @@ async def get_motivos_desistencia(current_user: UserResponse = Depends(get_curre
         },
         {
             "codigo": "sem_recursos_transporte",
-            "descricao": "SEM RECURSOS FINANCEIROS PARA TRANSPORTE"
+            "descricao": "SEM RECURSOS FINANCEIROS PARA O TRANSPORTE"
         },
         {
             "codigo": "mudou_endereco",
@@ -2814,23 +2849,11 @@ async def get_motivos_desistencia(current_user: UserResponse = Depends(get_curre
         },
         {
             "codigo": "cuidar_familiar",
-            "descricao": "PRECISOU CUIDAR DE FAMILIAR"
+            "descricao": "PRECISOU CUIDAR DA/O IRMÃ/ÃO OU DE OUTRO FAMILIAR"
         },
         {
-            "codigo": "sem_retorno_conflito",
-            "descricao": "SEM RETORNO DE CONTATO / CONFLITO DE HORÁRIOS"
-        },
-        {
-            "codigo": "problemas_saude",
-            "descricao": "PROBLEMAS DE SAÚDE (COM O ALUNO OU FAMILIAR)"
-        },
-        {
-            "codigo": "conseguiu_trabalho",
-            "descricao": "CONSEGUIU UM TRABALHO"
-        },
-        {
-            "codigo": "lactante_gestante",
-            "descricao": "LACTANTE OU GESTANTE"
+            "codigo": "servico_militar",
+            "descricao": "CONVOCAÇÃO DO SERVIÇO MILITAR"
         },
         {
             "codigo": "outro",
@@ -4093,13 +4116,17 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
     hoje = today_iso_date()
     
     try:
+        print(f"🔍 [DEBUG] Buscando chamadas pendentes para {current_user.email} (tipo: {current_user.tipo})")
+        
         # Converter hoje para objeto date para comparação
         hoje_date = datetime.fromisoformat(hoje).date()
+        print(f"🔍 [DEBUG] Data hoje: {hoje_date}")
         
         # 🎯 RBAC - Filtrar turmas baseado no tipo de usuário
         if current_user.tipo == "admin":
             # 👑 ADMIN: Ver todas as turmas ativas do sistema
             cursor = db.turmas.find({"ativo": True})
+            print(f"🔍 [DEBUG] Admin - buscando todas as turmas ativas")
             
         elif current_user.tipo == "instrutor":
             # 🧑‍🏫 INSTRUTOR: Apenas suas turmas
@@ -4107,6 +4134,7 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
                 "instrutor_id": current_user.id,
                 "ativo": True
             })
+            print(f"🔍 [DEBUG] Instrutor - buscando turmas do instrutor_id: {current_user.id}")
             
         elif current_user.tipo == "pedagogo":
             # 👩‍🎓 PEDAGOGO: Turmas da sua unidade/curso
@@ -4130,6 +4158,7 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
             raise HTTPException(status_code=403, detail="Tipo de usuário não autorizado")
         
         turmas = await cursor.to_list(length=1000)
+        print(f"🔍 [DEBUG] Encontradas {len(turmas)} turmas")
         pending = []
         
         # 🚀 LÓGICA DE CHAMADAS PENDENTES: Verificar baseado nos dias de aula
@@ -4221,8 +4250,7 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
         prioridade_ordem = {"urgente": 0, "importante": 1, "pendente": 2}
         pending.sort(key=lambda x: (prioridade_ordem.get(x["prioridade"], 3), x["dias_atras"]))
         
-        return PendingAttendancesResponse(date=hoje, pending=pending)
-        
+        print(f"🔍 [DEBUG] Retornando {len(pending)} chamadas pendentes")
         return PendingAttendancesResponse(date=hoje, pending=pending)
         
     except Exception as e:

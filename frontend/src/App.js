@@ -87,7 +87,9 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // 🔍 SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
-const DEBUG_MODE = localStorage.getItem("ios_debug") === "true";
+const DEBUG_MODE =
+  localStorage.getItem("ios_debug") === "true" ||
+  process.env.NODE_ENV === "development";
 
 const debugLog = (message, data = null) => {
   if (DEBUG_MODE || process.env.NODE_ENV === "development") {
@@ -555,7 +557,8 @@ const usePendingAttendances = () => {
   const [error, setError] = useState(null);
 
   const fetchPending = async () => {
-    if (user?.tipo !== "instrutor") {
+    // ✅ CORREÇÃO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
+    if (!user || !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)) {
       setPending([]);
       setLoading(false);
       return;
@@ -929,13 +932,34 @@ const Login = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [showBrandCard, setShowBrandCard] = useState(false);
-  const [firstAccessData, setFirstAccessData] = useState({
-    nome: "",
-    email: "",
-    tipo: "instrutor",
+  const [firstAccessData, setFirstAccessData] = useState(() => {
+    console.log("🔧 Inicializando firstAccessData");
+    const initialData = {
+      nome: "",
+      email: "",
+      tipo: "instrutor",
+    };
+    console.log("📝 Dados iniciais:", initialData);
+    return initialData;
   });
   const { login } = useAuth();
   const { toast } = useToast();
+
+  // Error boundary para capturar erros que causam tela branca
+  useEffect(() => {
+    const handleError = (error) => {
+      console.error("❌ Erro capturado no Login Component:", error);
+      toast({
+        title: "Erro detectado",
+        description:
+          "Um erro foi detectado. Verifique o console para detalhes.",
+        variant: "destructive",
+      });
+    };
+
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, [toast]);
 
   // Animação do card temporal da marca
   useEffect(() => {
@@ -988,8 +1012,17 @@ const Login = () => {
 
   const handleFirstAccessSubmit = async (e) => {
     e.preventDefault();
+
+    // Debug log para diagnosticar problemas
+    console.log("🔍 Dados do primeiro acesso:", firstAccessData);
+
     try {
-      await axios.post(`${API}/auth/first-access`, firstAccessData);
+      const response = await axios.post(
+        `${API}/auth/first-access`,
+        firstAccessData
+      );
+      console.log("✅ Resposta do servidor:", response.data);
+
       toast({
         title: "Solicitação enviada!",
         description:
@@ -998,6 +1031,7 @@ const Login = () => {
       setShowFirstAccess(false);
       setFirstAccessData({ nome: "", email: "", tipo: "instrutor" });
     } catch (error) {
+      console.error("❌ Erro na solicitação de primeiro acesso:", error);
       toast({
         title: "Erro na solicitação",
         description: error.response?.data?.detail || "Tente novamente",
@@ -1064,7 +1098,7 @@ const Login = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@ios.com.br"
+                    placeholder="seu.email@ios.org.br"
                     required
                   />
                 </div>
@@ -1123,7 +1157,7 @@ const Login = () => {
                   type="email"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="seu@email.com"
+                  placeholder="seu.nome@ios.org.br"
                   required
                 />
               </div>
@@ -1157,6 +1191,13 @@ const Login = () => {
                 </p>
               </div>
 
+              {/* Debug info */}
+              {DEBUG_MODE && (
+                <div className="p-2 bg-gray-100 rounded text-xs">
+                  <strong>Debug:</strong> {JSON.stringify(firstAccessData)}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome Completo</Label>
                 <Input
@@ -1184,6 +1225,7 @@ const Login = () => {
                       email: e.target.value,
                     })
                   }
+                  placeholder="seu.nome@ios.org.br"
                   required
                 />
               </div>
@@ -1192,23 +1234,36 @@ const Login = () => {
                 <Label>Tipo de Usuário</Label>
                 <Select
                   value={firstAccessData.tipo}
-                  onValueChange={(value) =>
-                    setFirstAccessData({ ...firstAccessData, tipo: value })
-                  }
+                  onValueChange={(value) => {
+                    console.log("🔄 Selecionando tipo de usuário:", value);
+                    try {
+                      setFirstAccessData((prevData) => {
+                        console.log("📝 Estado anterior:", prevData);
+                        const newData = { ...prevData, tipo: value };
+                        console.log("📝 Novo estado:", newData);
+                        return newData;
+                      });
+                    } catch (error) {
+                      console.error(
+                        "❌ Erro ao selecionar tipo de usuário:",
+                        error
+                      );
+                      toast({
+                        title: "Erro",
+                        description:
+                          "Erro ao selecionar tipo de usuário. Tente novamente.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="instrutor">
-                      {getUserTypeLabel("instrutor")}
-                    </SelectItem>
-                    <SelectItem value="pedagogo">
-                      {getUserTypeLabel("pedagogo")}
-                    </SelectItem>
-                    <SelectItem value="monitor">
-                      {getUserTypeLabel("monitor")}
-                    </SelectItem>
+                    <SelectItem value="instrutor">Professor(a)</SelectItem>
+                    <SelectItem value="pedagogo">Coord. Pedagógico</SelectItem>
+                    <SelectItem value="monitor">Assistente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1273,7 +1328,11 @@ const NotificationButton = () => {
   }, [user]);
 
   const fetchNotifications = async () => {
-    if (!user) return;
+    // ✅ CORREÇÃO: Verificar se usuário pode ver notificações
+    if (!user || !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)) {
+      setNotifications([]);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -1284,6 +1343,7 @@ const NotificationButton = () => {
       setNotifications(response.data.pending || []);
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
+      setNotifications([]); // ✅ Garantir array vazio em caso de erro
     } finally {
       setLoading(false);
     }
@@ -1685,8 +1745,8 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* 🚀 PAINEL CHAMADAS PENDENTES - APENAS PARA INSTRUTORES */}
-        {user?.tipo === "instrutor" && (
+        {/* 🚀 PAINEL CHAMADAS PENDENTES - PARA TODOS OS USUÁRIOS AUTORIZADOS */}
+        {user && ["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -5003,11 +5063,59 @@ const AlunosManager = () => {
       console.log("✅ Motivos carregados:", response.data.length, "motivos");
     } catch (error) {
       console.error("❌ Erro ao buscar motivos:", error);
-      // Fallback com motivos básicos
+      // Fallback com motivos oficiais do IOS
       setMotivosDesistencia([
         {
-          codigo: "nao_identificou",
+          codigo: "conflito_horario_escola",
+          descricao: "CONFLITO ENTRE O HORÁRIO DO CURSO E ESCOLA",
+        },
+        {
+          codigo: "conflito_curso_trabalho",
+          descricao: "CONFLITO ENTRE CURSO E TRABALHO",
+        },
+        {
+          codigo: "problemas_saude",
+          descricao: "PROBLEMAS DE SAÚDE (ALUNO OU FAMILIAR)",
+        },
+        {
+          codigo: "sem_retorno_contato",
+          descricao: "SEM RETORNO DE CONTATO",
+        },
+        {
+          codigo: "conseguiu_trabalho",
+          descricao: "CONSEGUIU UM TRABALHO",
+        },
+        {
+          codigo: "lactantes_gestantes",
+          descricao: "LACTANTES, GESTANTES OU EM INÍCIO DE GESTAÇÃO",
+        },
+        {
+          codigo: "nao_identificou_curso",
           descricao: "NÃO SE IDENTIFICOU COM O CURSO",
+        },
+        {
+          codigo: "dificuldades_acompanhamento",
+          descricao: "DIFICULDADES DE ACOMPANHAMENTO DO CURSO",
+        },
+        {
+          codigo: "curso_fora_ios",
+          descricao: "OPTOU POR UM CURSO FORA DO IOS",
+        },
+        {
+          codigo: "sem_recursos_transporte",
+          descricao: "SEM RECURSOS FINANCEIROS PARA O TRANSPORTE",
+        },
+        {
+          codigo: "mudou_endereco",
+          descricao: "MUDOU DE ENDEREÇO",
+        },
+        {
+          codigo: "cuidar_familiar",
+          descricao: "PRECISOU CUIDAR DA/O IRMÃ/ÃO OU DE OUTRO FAMILIAR",
+        },
+        {
+          codigo: "servico_militar",
+          descricao: "CONVOCAÇÃO DO SERVIÇO MILITAR",
         },
         { codigo: "outro", descricao: "OUTRO (PREENCHIMENTO PERSONALIZADO)" },
       ]);
