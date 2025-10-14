@@ -644,10 +644,10 @@ async def user_can_manage_student(current_user: UserResponse, student_id: str) -
         # Verificar se aluno pertence à unidade/curso do pedagogo
         # Primeiro buscar turmas da unidade/curso do pedagogo
         query = {}
-        if current_user.unidade_id:
-            query["unidade_id"] = current_user.unidade_id
-        if current_user.curso_id:
-            query["curso_id"] = current_user.curso_id
+        if getattr(current_user, 'unidade_id', None):
+            query["unidade_id"] = getattr(current_user, 'unidade_id', None)
+        if getattr(current_user, 'curso_id', None):
+            query["curso_id"] = getattr(current_user, 'curso_id', None)
             
         turmas_pedagogo = await db.turmas.find(query).to_list(1000)
         for turma in turmas_pedagogo:
@@ -1057,25 +1057,25 @@ async def create_aluno(aluno_create: AlunoCreate, current_user: UserResponse = D
         
     # 👨‍🏫 INSTRUTOR: Apenas no seu curso específico
     elif current_user.tipo == "instrutor":
-        if not current_user.curso_id or not current_user.unidade_id:
+        if not getattr(current_user, 'curso_id', None) or not getattr(current_user, 'unidade_id', None):
             raise HTTPException(
                 status_code=403, 
                 detail="Instrutor deve ter curso e unidade atribuídos"
             )
         
         # Aluno será automaticamente vinculado ao curso do instrutor
-        print(f"👨‍🏫 Instrutor {current_user.email} cadastrando aluno no curso {current_user.curso_id}")
+        print(f"👨‍🏫 Instrutor {current_user.email} cadastrando aluno no curso {getattr(current_user, 'curso_id', None)}")
         
     # 📊 PEDAGOGO: Qualquer curso da sua unidade
     elif current_user.tipo == "pedagogo":
-        if not current_user.unidade_id:
+        if not getattr(current_user, 'unidade_id', None):
             raise HTTPException(
                 status_code=403, 
                 detail="Pedagogo deve ter unidade atribuída"
             )
         
         # Pedagogo pode escolher curso da unidade dele (validado no frontend)
-        print(f"📊 Pedagogo {current_user.email} cadastrando aluno na unidade {current_user.unidade_id}")
+        print(f"📊 Pedagogo {current_user.email} cadastrando aluno na unidade {getattr(current_user, 'unidade_id', None)}")
         
     else:
         raise HTTPException(status_code=403, detail="Tipo de usuário não autorizado para cadastrar alunos")
@@ -1119,8 +1119,8 @@ async def get_alunos(
     """🎯 LISTAGEM DE ALUNOS: Filtrada por permissões do usuário"""
     
     print(f"🔍 Buscando alunos para usuário: {current_user.email} (tipo: {current_user.tipo})")
-    print(f"   Curso ID: {current_user.curso_id}")
-    print(f"   Unidade ID: {current_user.unidade_id}")
+    print(f"   Curso ID: {getattr(current_user, 'curso_id', None)}")
+    print(f"   Unidade ID: {getattr(current_user, 'unidade_id', None)}")
     
     # 👁️ FILTROS POR TIPO DE USUÁRIO - LÓGICA DETALHADA 29/09/2025
     if current_user.tipo == "admin":
@@ -1133,14 +1133,14 @@ async def get_alunos(
         # 👨‍🏫 INSTRUTOR: VÊ APENAS ALUNOS DAS TURMAS QUE ELE LECIONA
         # NOVA LÓGICA: Similar ao pedagogo, mas filtrado por curso específico do instrutor
         
-        if not current_user.curso_id or not current_user.unidade_id:
+        if not getattr(current_user, 'curso_id', None) or not getattr(current_user, 'unidade_id', None):
             print("❌ Instrutor sem curso ou unidade definida")
             return []
             
         # Buscar todas as turmas do curso específico do instrutor na sua unidade
         turmas_instrutor = await db.turmas.find({
-            "curso_id": current_user.curso_id,
-            "unidade_id": current_user.unidade_id,
+            "curso_id": getattr(current_user, 'curso_id', None),
+            "unidade_id": getattr(current_user, 'unidade_id', None),
             "instrutor_id": current_user.id,  # Apenas turmas que ele leciona
             "ativo": True
         }).to_list(1000)
@@ -1163,13 +1163,13 @@ async def get_alunos(
             
     elif current_user.tipo == "pedagogo":
         # 📊 Pedagogo: vê todos os cursos da unidade
-        if not current_user.unidade_id:
+        if not getattr(current_user, 'unidade_id', None):
             print("❌ Pedagogo sem unidade definida")
             return []
             
         # Buscar todas as turmas da unidade
         turmas_unidade = await db.turmas.find({
-            "unidade_id": current_user.unidade_id,
+            "unidade_id": getattr(current_user, 'unidade_id', None),
             "ativo": True
         }).to_list(1000)
         
@@ -1180,24 +1180,24 @@ async def get_alunos(
         
         if aluno_ids:
             query = {"id": {"$in": list(aluno_ids)}, "ativo": True}
-            print(f"📊 Pedagogo vendo {len(aluno_ids)} alunos da unidade {current_user.unidade_id}")
+            print(f"📊 Pedagogo vendo {len(aluno_ids)} alunos da unidade {getattr(current_user, 'unidade_id', None)}")
         else:
             print("📊 Pedagogo: nenhum aluno nas turmas da unidade")
             return []
             
     elif current_user.tipo == "monitor":
         # 👩‍💻 MONITOR: VÊ TODOS OS ALUNOS DA UNIDADE (igual ao pedagogo)
-        if not current_user.unidade_id:
+        if not getattr(current_user, 'unidade_id', None):
             print("❌ Monitor sem unidade definida")
             return []
             
         # Buscar todas as turmas da unidade (igual lógica do pedagogo)
         turmas_unidade = await db.turmas.find({
-            "unidade_id": current_user.unidade_id,
+            "unidade_id": getattr(current_user, 'unidade_id', None),
             "ativo": True
         }).to_list(1000)
         
-        print(f"🔍 Monitor {current_user.email} da unidade {current_user.unidade_id}")
+        print(f"🔍 Monitor {current_user.email} da unidade {getattr(current_user, 'unidade_id', None)}")
         print(f"   Turmas na unidade: {len(turmas_unidade)}")
         
         # Coletar IDs de todos os alunos da unidade
@@ -1843,8 +1843,8 @@ async def bulk_upload_students(
                     doc["curso_id"] = curso_id
                 
                 # Adicionar unidade do usuário se disponível
-                if hasattr(current_user, 'unidade_id') and current_user.unidade_id:
-                    doc["unidade_id"] = current_user.unidade_id
+                if hasattr(current_user, 'unidade_id') and getattr(current_user, 'unidade_id', None):
+                    doc["unidade_id"] = getattr(current_user, 'unidade_id', None)
                 
                 await db.alunos.insert_one(doc)
                 inserted += 1
@@ -1867,7 +1867,7 @@ async def bulk_upload_students(
                                 can_add_to_turma = True
                         elif current_user.tipo == "pedagogo":
                             # Pedagogo: turmas da sua unidade
-                            if turma.get("unidade_id") == current_user.unidade_id:
+                            if turma.get("unidade_id") == getattr(current_user, 'unidade_id', None):
                                 can_add_to_turma = True
                         
                         if can_add_to_turma:
@@ -2042,7 +2042,7 @@ async def import_students_csv(
             # 🔒 VALIDAÇÃO POR TIPO DE USUÁRIO
             if current_user.tipo == "instrutor":
                 # Instrutor: só aceita seu curso
-                if curso['id'] != current_user.curso_id:
+                if curso['id'] != getattr(current_user, 'curso_id', None):
                     results['unauthorized'].append(
                         f"Linha {row_num}: Instrutor não pode importar alunos para curso '{curso['nome']}'"
                     )
@@ -2050,7 +2050,7 @@ async def import_students_csv(
                     
             elif current_user.tipo == "pedagogo":
                 # Pedagogo: só aceita cursos da sua unidade
-                if curso.get('unidade_id') != current_user.unidade_id:
+                if curso.get('unidade_id') != getattr(current_user, 'unidade_id', None):
                     results['unauthorized'].append(
                         f"Linha {row_num}: Pedagogo não pode importar alunos para curso fora da sua unidade"
                     )
@@ -2083,7 +2083,7 @@ async def import_students_csv(
                             'id': str(uuid.uuid4()),
                             'nome': turma_nome,
                             'curso_id': curso['id'],
-                            'unidade_id': curso.get('unidade_id', current_user.unidade_id),
+                            'unidade_id': curso.get('unidade_id', getattr(current_user, 'unidade_id', None)),
                             'instrutor_id': current_user.id if current_user.tipo == "instrutor" else None,
                             'alunos_ids': [],
                             'ativa': True,
@@ -2172,14 +2172,14 @@ async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = D
     
     # Instrutor só pode criar turmas do seu próprio curso e unidade
     elif current_user.tipo == "instrutor":
-        if not current_user.curso_id or not current_user.unidade_id:
+        if not getattr(current_user, 'curso_id', None) or not getattr(current_user, 'unidade_id', None):
             raise HTTPException(status_code=400, detail="Instrutor deve estar associado a um curso e unidade")
         
         # Validar se a turma é do curso e unidade do instrutor
-        if turma_create.curso_id != current_user.curso_id:
+        if turma_create.curso_id != getattr(current_user, 'curso_id', None):
             raise HTTPException(status_code=403, detail="Instrutor só pode criar turmas do seu curso")
         
-        if turma_create.unidade_id != current_user.unidade_id:
+        if turma_create.unidade_id != getattr(current_user, 'unidade_id', None):
             raise HTTPException(status_code=403, detail="Instrutor só pode criar turmas da sua unidade")
         
         # Definir instrutor automaticamente
@@ -2188,14 +2188,14 @@ async def create_turma(turma_create: TurmaCreate, current_user: UserResponse = D
     
     # Pedagogo pode criar turmas de extensão
     elif current_user.tipo == "pedagogo":
-        if not current_user.curso_id or not current_user.unidade_id:
+        if not getattr(current_user, 'curso_id', None) or not getattr(current_user, 'unidade_id', None):
             raise HTTPException(status_code=400, detail="Pedagogo deve estar associado a um curso e unidade")
         
         # Validar se a turma é do curso e unidade do pedagogo
-        if turma_create.curso_id != current_user.curso_id:
+        if turma_create.curso_id != getattr(current_user, 'curso_id', None):
             raise HTTPException(status_code=403, detail="Pedagogo só pode criar turmas do seu curso")
         
-        if turma_create.unidade_id != current_user.unidade_id:
+        if turma_create.unidade_id != getattr(current_user, 'unidade_id', None):
             raise HTTPException(status_code=403, detail="Pedagogo só pode criar turmas da sua unidade")
         
         # Definir pedagogo automaticamente
@@ -2252,17 +2252,17 @@ async def get_turmas(current_user: UserResponse = Depends(get_current_user)):
         if current_user.tipo == "instrutor":
             # Instrutor vê suas próprias turmas do curso
             query["instrutor_id"] = current_user.id
-            if current_user.curso_id:
-                query["curso_id"] = current_user.curso_id
-            if current_user.unidade_id:
-                query["unidade_id"] = current_user.unidade_id
+            if getattr(current_user, 'curso_id', None):
+                query["curso_id"] = getattr(current_user, 'curso_id', None)
+            if getattr(current_user, 'unidade_id', None):
+                query["unidade_id"] = getattr(current_user, 'unidade_id', None)
         
         elif current_user.tipo in ["pedagogo", "monitor"]:
             # Pedagogo e monitor veem turmas do seu curso e unidade
-            if current_user.curso_id:
-                query["curso_id"] = current_user.curso_id
-            if current_user.unidade_id:
-                query["unidade_id"] = current_user.unidade_id
+            if getattr(current_user, 'curso_id', None):
+                query["curso_id"] = getattr(current_user, 'curso_id', None)
+            if getattr(current_user, 'unidade_id', None):
+                query["unidade_id"] = getattr(current_user, 'unidade_id', None)
             # 🎯 CORREÇÃO: Pedagogo só vê turmas de EXTENSÃO
             if current_user.tipo == "pedagogo":
                 query["tipo_turma"] = "extensao"
@@ -2310,8 +2310,8 @@ async def add_aluno_to_turma(turma_id: str, aluno_id: str, current_user: UserRes
             raise HTTPException(status_code=403, detail="Instrutor só pode gerenciar suas próprias turmas")
     elif current_user.tipo in ["pedagogo", "monitor"]:
         # Pedagogo/monitor só pode adicionar em turmas do seu curso e unidade
-        if (current_user.curso_id and turma["curso_id"] != current_user.curso_id) or \
-           (current_user.unidade_id and turma["unidade_id"] != current_user.unidade_id):
+        if (getattr(current_user, 'curso_id', None) and turma["curso_id"] != getattr(current_user, 'curso_id', None)) or \
+           (getattr(current_user, 'unidade_id', None) and turma["unidade_id"] != getattr(current_user, 'unidade_id', None)):
             raise HTTPException(status_code=403, detail="Acesso negado: turma fora do seu curso/unidade")
     else:
         raise HTTPException(status_code=403, detail="Acesso negado")
@@ -2415,8 +2415,8 @@ async def update_turma(turma_id: str, turma_update: TurmaUpdate, current_user: U
             )
     elif current_user.tipo == "pedagogo":
         # Pedagogo só pode atualizar turmas do seu curso/unidade
-        if (current_user.curso_id and turma_existente["curso_id"] != current_user.curso_id) or \
-           (current_user.unidade_id and turma_existente["unidade_id"] != current_user.unidade_id):
+        if (getattr(current_user, 'curso_id', None) and turma_existente["curso_id"] != getattr(current_user, 'curso_id', None)) or \
+           (getattr(current_user, 'unidade_id', None) and turma_existente["unidade_id"] != getattr(current_user, 'unidade_id', None)):
             raise HTTPException(
                 status_code=403, 
                 detail="Você só pode atualizar turmas do seu curso/unidade"
@@ -2530,8 +2530,8 @@ async def create_chamada(chamada_create: ChamadaCreate, current_user: UserRespon
         if turma["instrutor_id"] != current_user.id:
             raise HTTPException(status_code=403, detail="Você só pode fazer chamada das suas turmas")
     elif current_user.tipo in ["pedagogo", "monitor"]:
-        if (current_user.curso_id and turma["curso_id"] != current_user.curso_id) or \
-           (current_user.unidade_id and turma["unidade_id"] != current_user.unidade_id):
+        if (getattr(current_user, 'curso_id', None) and turma["curso_id"] != getattr(current_user, 'curso_id', None)) or \
+           (getattr(current_user, 'unidade_id', None) and turma["unidade_id"] != getattr(current_user, 'unidade_id', None)):
             raise HTTPException(status_code=403, detail="Acesso negado: turma fora do seu curso/unidade")
     elif current_user.tipo != "admin":
         raise HTTPException(status_code=403, detail="Acesso negado")
@@ -2646,7 +2646,7 @@ async def upload_atestado(
         elif current_user.tipo == "pedagogo":
             # Pedagogo: só pode anexar atestado de alunos da sua unidade
             turmas_unidade = await db.turmas.find({
-                "unidade_id": current_user.unidade_id,
+                "unidade_id": getattr(current_user, 'unidade_id', None),
                 "alunos_ids": aluno_id
             }).to_list(10)
             tem_permissao = len(turmas_unidade) > 0
@@ -2727,7 +2727,7 @@ async def listar_atestados_aluno(
             
         elif current_user.tipo == "pedagogo":
             turmas_unidade = await db.turmas.find({
-                "unidade_id": current_user.unidade_id,
+                "unidade_id": getattr(current_user, 'unidade_id', None),
                 "alunos_ids": aluno_id
             }).to_list(10)
             tem_permissao = len(turmas_unidade) > 0
@@ -2774,7 +2774,7 @@ async def download_atestado(
             
         elif current_user.tipo == "pedagogo":
             turmas_unidade = await db.turmas.find({
-                "unidade_id": current_user.unidade_id,
+                "unidade_id": getattr(current_user, 'unidade_id', None),
                 "alunos_ids": aluno_id
             }).to_list(10)
             tem_permissao = len(turmas_unidade) > 0
@@ -2896,7 +2896,7 @@ async def create_desistente(desistente_create: DesistenteCreate, current_user: U
         elif current_user.tipo == "pedagogo":
             # Pedagogo: pode registrar desistência de alunos da sua unidade
             for turma in turmas_aluno:
-                if turma.get("unidade_id") == current_user.unidade_id:
+                if turma.get("unidade_id") == getattr(current_user, 'unidade_id', None):
                     tem_permissao = True
                     break
         
@@ -3272,10 +3272,10 @@ async def get_attendance_report(
     elif current_user.tipo == "pedagogo":
         # ✅ Pedagogo só vê turmas de EXTENSÃO do seu curso/unidade
         turmas_query = {"tipo_turma": "extensao"}
-        if current_user.curso_id:
-            turmas_query["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            turmas_query["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            turmas_query["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            turmas_query["unidade_id"] = getattr(current_user, 'unidade_id', None)
             
         turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
         turmas_ids = [turma["id"] for turma in turmas_permitidas]
@@ -3289,10 +3289,10 @@ async def get_attendance_report(
     elif current_user.tipo == "monitor":
         # Monitor pode ver qualquer tipo de turma do seu curso/unidade
         turmas_query = {}
-        if current_user.curso_id:
-            turmas_query["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            turmas_query["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            turmas_query["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            turmas_query["unidade_id"] = getattr(current_user, 'unidade_id', None)
             
         turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
         turmas_ids = [turma["id"] for turma in turmas_permitidas]
@@ -3488,10 +3488,10 @@ async def get_pending_calls(current_user: UserResponse = Depends(get_current_use
     if current_user.tipo == "instrutor":
         query_turmas["instrutor_id"] = current_user.id
     elif current_user.tipo in ["pedagogo", "monitor"]:
-        if current_user.curso_id:
-            query_turmas["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            query_turmas["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
     # Admin vê todas as turmas
     
     turmas = await db.turmas.find(query_turmas).to_list(1000)
@@ -3639,10 +3639,10 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         turmas_ids = [turma["id"] for turma in minhas_turmas]
         
         # � ALUNOS ATIVOS: TODOS DO CURSO (não apenas das turmas do instrutor)
-        if current_user.curso_id:
+        if getattr(current_user, 'curso_id', None):
             # Buscar TODAS as turmas do curso (não só do instrutor)
             todas_turmas_curso = await db.turmas.find({
-                "curso_id": current_user.curso_id,
+                "curso_id": getattr(current_user, 'curso_id', None),
                 "ativo": True
             }).to_list(1000)
             
@@ -3705,13 +3705,13 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         curso_nome = "Seu Curso"
         unidade_nome = "Sua Unidade"
         
-        if current_user.curso_id:
-            curso = await db.cursos.find_one({"id": current_user.curso_id})
+        if getattr(current_user, 'curso_id', None):
+            curso = await db.cursos.find_one({"id": getattr(current_user, 'curso_id', None)})
             if curso:
                 curso_nome = curso.get("nome", "Seu Curso")
         
-        if current_user.unidade_id:
-            unidade = await db.unidades.find_one({"id": current_user.unidade_id})
+        if getattr(current_user, 'unidade_id', None):
+            unidade = await db.unidades.find_one({"id": getattr(current_user, 'unidade_id', None)})
             if unidade:
                 unidade_nome = unidade.get("nome", "Sua Unidade")
         
@@ -3734,10 +3734,10 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
     elif current_user.tipo in ["pedagogo", "monitor"]:
         # 👩‍🎓 PEDAGOGO/MONITOR: Turmas do seu curso/unidade
         query_turmas = {"ativo": True}
-        if current_user.curso_id:
-            query_turmas["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            query_turmas["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
         
         turmas_permitidas = await db.turmas.find(query_turmas).to_list(1000)
         turmas_ids = [turma["id"] for turma in turmas_permitidas]
@@ -3779,13 +3779,13 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         curso_nome = "Seu Curso"
         unidade_nome = "Sua Unidade"
         
-        if current_user.curso_id:
-            curso = await db.cursos.find_one({"id": current_user.curso_id})
+        if getattr(current_user, 'curso_id', None):
+            curso = await db.cursos.find_one({"id": getattr(current_user, 'curso_id', None)})
             if curso:
                 curso_nome = curso.get("nome", "Seu Curso")
         
-        if current_user.unidade_id:
-            unidade = await db.unidades.find_one({"id": current_user.unidade_id})
+        if getattr(current_user, 'unidade_id', None):
+            unidade = await db.unidades.find_one({"id": getattr(current_user, 'unidade_id', None)})
             if unidade:
                 unidade_nome = unidade.get("nome", "Sua Unidade")
         
@@ -3926,17 +3926,17 @@ async def get_dynamic_teacher_stats(
         query_turmas["tipo_turma"] = "regular"
     elif current_user.tipo == "pedagogo":
         # ✅ Pedagogo: apenas turmas de EXTENSÃO da sua unidade/curso
-        if current_user.curso_id:
-            query_turmas["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            query_turmas["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
         query_turmas["tipo_turma"] = "extensao"
     elif current_user.tipo == "monitor":
         # Monitor: pode ver qualquer tipo de turma que monitora
-        if current_user.curso_id:
-            query_turmas["curso_id"] = current_user.curso_id
-        if current_user.unidade_id:
-            query_turmas["unidade_id"] = current_user.unidade_id
+        if getattr(current_user, 'curso_id', None):
+            query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
     
     # 📈 Buscar turmas do usuário
     turmas = await db.turmas.find(query_turmas).to_list(1000)
@@ -4139,19 +4139,19 @@ async def get_pending_attendances_for_instructor(current_user: UserResponse = De
         elif current_user.tipo == "pedagogo":
             # 👩‍🎓 PEDAGOGO: Turmas da sua unidade/curso
             query_turmas = {"ativo": True}
-            if current_user.curso_id:
-                query_turmas["curso_id"] = current_user.curso_id
-            if current_user.unidade_id:
-                query_turmas["unidade_id"] = current_user.unidade_id
+            if getattr(current_user, 'curso_id', None):
+                query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+            if getattr(current_user, 'unidade_id', None):
+                query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
             cursor = db.turmas.find(query_turmas)
             
         elif current_user.tipo == "monitor":
             # 👨‍💻 MONITOR: Turmas que ele monitora (mesmo critério do pedagogo)
             query_turmas = {"ativo": True}
-            if current_user.curso_id:
-                query_turmas["curso_id"] = current_user.curso_id
-            if current_user.unidade_id:
-                query_turmas["unidade_id"] = current_user.unidade_id
+            if getattr(current_user, 'curso_id', None):
+                query_turmas["curso_id"] = getattr(current_user, 'curso_id', None)
+            if getattr(current_user, 'unidade_id', None):
+                query_turmas["unidade_id"] = getattr(current_user, 'unidade_id', None)
             cursor = db.turmas.find(query_turmas)
             
         else:
