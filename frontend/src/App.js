@@ -23,6 +23,14 @@ import {
   DialogTrigger,
 } from "./components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./components/ui/dropdown-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -84,7 +92,9 @@ import {
 } from "lucide-react";
 
 // 🚀 RENDER OBRIGATÓRIO - Sistema nível Brasil
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "https://sistema-ios-backend.onrender.com";
+const BACKEND_URL =
+  process.env.REACT_APP_BACKEND_URL ||
+  "https://sistema-ios-backend.onrender.com";
 const API = `${BACKEND_URL}/api`;
 
 // 🔍 SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
@@ -559,7 +569,10 @@ const usePendingAttendances = () => {
 
   const fetchPending = async () => {
     // ✅ CORREÇÃO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
-    if (!user || !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)) {
+    if (
+      !user ||
+      !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
+    ) {
       setPending([]);
       setLoading(false);
       return;
@@ -1311,11 +1324,11 @@ const Login = () => {
   );
 };
 
-// 🔔 Componente de Notificações
+// 🔔 Componente de Notificações Melhorado
 const NotificationButton = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [showDialog, setShowDialog] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -1323,20 +1336,27 @@ const NotificationButton = () => {
   useEffect(() => {
     fetchNotifications();
 
-    // Verificar notificações a cada 5 minutos
-    const interval = setInterval(fetchNotifications, 5 * 60 * 1000);
+    // Para admin: verificar notificações a cada 2 minutos
+    // Para outros: verificar a cada 5 minutos
+    const interval = setInterval(
+      fetchNotifications,
+      user?.tipo === "admin" ? 2 * 60 * 1000 : 5 * 60 * 1000
+    );
     return () => clearInterval(interval);
   }, [user]);
 
   const fetchNotifications = async () => {
     // ✅ CORREÇÃO: Verificar se usuário pode ver notificações
-    if (!user || !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)) {
+    if (
+      !user ||
+      !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
+    ) {
       setNotifications([]);
       return;
     }
 
     try {
-      setLoading(true);
+      setLoading(false); // Não mostrar loading no sininho sempre
       // 🎯 USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
       const response = await axios.get(
         `${API}/instructor/me/pending-attendances`
@@ -1345,8 +1365,6 @@ const NotificationButton = () => {
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
       setNotifications([]); // ✅ Garantir array vazio em caso de erro
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -1381,138 +1399,173 @@ const NotificationButton = () => {
     return date.toLocaleDateString("pt-BR");
   };
 
+  // Função para navegar para chamada
+  const handleGoToAttendance = (turmaId) => {
+    // Implementar navegação para fazer chamada
+    toast({
+      title: "Redirecionando...",
+      description: "Indo para a página de chamada desta turma",
+    });
+  };
+
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setShowDialog(true)}
-        className="relative text-gray-500 hover:text-gray-700"
-        title="Notificações de chamadas pendentes"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="relative text-gray-500 hover:text-gray-700"
+          title={
+            user?.tipo === "admin"
+              ? "Notificações do sistema (Admin)"
+              : "Suas chamadas pendentes"
+          }
+        >
+          {getNotificationCount() > 0 ? (
+            <BellRing className="h-5 w-5" />
+          ) : (
+            <Bell className="h-5 w-5" />
+          )}
+          {getNotificationCount() > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {getNotificationCount()}
+            </span>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent
+        className="w-96 max-h-96 overflow-y-auto"
+        align="end"
       >
-        {getNotificationCount() > 0 ? (
-          <BellRing className="h-5 w-5" />
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          {user?.tipo === "admin"
+            ? "Chamadas Pendentes (Sistema)"
+            : "Suas Chamadas Pendentes"}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+
+        {loading ? (
+          <div className="flex items-center justify-center py-6">
+            <RefreshCw className="h-4 w-4 animate-spin text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">Carregando...</span>
+          </div>
+        ) : getNotificationCount() === 0 ? (
+          <div className="p-4 text-center">
+            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
+            <p className="text-sm font-medium text-green-700 mb-1">
+              {user?.tipo === "admin" ? "Sistema em dia! 🎯" : "Parabéns! 🎉"}
+            </p>
+            <p className="text-xs text-gray-500">
+              {user?.tipo === "admin"
+                ? "Todas as chamadas foram realizadas"
+                : "Suas chamadas estão atualizadas"}
+            </p>
+          </div>
         ) : (
-          <Bell className="h-5 w-5" />
-        )}
-        {getNotificationCount() > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-            {getNotificationCount()}
-          </span>
-        )}
-      </Button>
+          <>
+            {/* Header com resumo */}
+            <div className="px-3 py-2 bg-orange-50 border-b">
+              <p className="text-xs text-orange-700 font-medium">
+                {getNotificationCount()}{" "}
+                {getNotificationCount() === 1
+                  ? "chamada pendente"
+                  : "chamadas pendentes"}
+              </p>
+              <p className="text-xs text-orange-600">
+                {user?.tipo === "admin"
+                  ? "Monitoramento geral"
+                  : "Ação necessária"}
+              </p>
+            </div>
 
-      <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
-              Chamadas Pendentes
-            </DialogTitle>
-            <DialogDescription>
-              {getNotificationCount() === 0
-                ? "Todas as chamadas estão em dia!"
-                : `${getNotificationCount()} turma(s) sem chamada registrada`}
-            </DialogDescription>
-          </DialogHeader>
+            {/* Lista de notificações */}
+            <div className="max-h-64 overflow-y-auto">
+              {notifications.slice(0, 5).map((notification, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  className="p-3 border-b cursor-pointer hover:bg-orange-50 flex-col items-start"
+                  onClick={() => handleGoToAttendance(notification.turma_id)}
+                >
+                  <div className="w-full">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium text-gray-900 text-sm">
+                        {notification.turma_nome}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={getPriorityBadge(notification.prioridade)}
+                        size="sm"
+                      >
+                        {notification.prioridade === "alta"
+                          ? "Urgente"
+                          : notification.prioridade === "media"
+                          ? "Importante"
+                          : "Pendente"}
+                      </Badge>
+                    </div>
 
-          <div className="max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="h-6 w-6 animate-spin text-gray-400" />
-                <span className="ml-2 text-gray-600">Carregando...</span>
-              </div>
-            ) : getNotificationCount() === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                <p className="text-gray-600">Todas as chamadas estão em dia!</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Não há turmas com chamadas pendentes.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {notifications.map((notification, index) => (
-                  <Card key={index} className="border-l-4 border-l-orange-500">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-gray-900">
-                              {notification.turma_nome}
-                            </h4>
-                            <Badge
-                              variant="outline"
-                              className={getPriorityBadge(
-                                notification.prioridade
-                              )}
-                            >
-                              {notification.prioridade === "alta"
-                                ? "Urgente"
-                                : notification.prioridade === "media"
-                                ? "Importante"
-                                : "Pendente"}
-                            </Badge>
-                          </div>
-
-                          <div className="space-y-1 text-sm text-gray-600">
-                            <p>
-                              <strong>Instrutor:</strong>{" "}
-                              {notification.instrutor_nome}
-                            </p>
-                            <p>
-                              <strong>Unidade:</strong>{" "}
-                              {notification.unidade_nome}
-                            </p>
-                            <p>
-                              <strong>Curso:</strong> {notification.curso_nome}
-                            </p>
-                            <p
-                              className={`font-medium ${getPriorityColor(
-                                notification.prioridade
-                              )}`}
-                            >
-                              <strong>Última chamada:</strong>{" "}
-                              {formatDate(notification.data_faltante)}
-                            </p>
-                          </div>
-                        </div>
-
-                        <AlertTriangle
-                          className={`h-5 w-5 ${getPriorityColor(
-                            notification.prioridade
-                          )}`}
-                        />
-                      </div>
-
-                      <p className="text-xs text-gray-500 mt-3 italic">
-                        {notification.motivo}
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <p>
+                        <strong>Instrutor:</strong>{" "}
+                        {notification.instrutor_nome}
                       </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+                      {user?.tipo === "admin" && (
+                        <p>
+                          <strong>Unidade:</strong> {notification.unidade_nome}
+                        </p>
+                      )}
+                      <p className="text-orange-700 font-medium">
+                        <Clock className="h-3 w-3 inline mr-1" />
+                        Pendente desde: {formatDate(notification.data_faltante)}
+                      </p>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              ))}
 
-          <div className="flex justify-between items-center pt-4 border-t">
-            <Button
-              variant="outline"
-              onClick={fetchNotifications}
-              disabled={loading}
-              size="sm"
-            >
-              <RefreshCw
-                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-              />
-              Atualizar
-            </Button>
+              {/* Se há mais de 5 notificações */}
+              {notifications.length > 5 && (
+                <div className="p-2 text-center border-t bg-gray-50">
+                  <p className="text-xs text-gray-600">
+                    +{notifications.length - 5} chamadas pendentes
+                  </p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="text-xs p-0 h-auto"
+                    onClick={() =>
+                      toast({
+                        title: "Ver todas",
+                        description:
+                          "Expandir para ver todas as chamadas pendentes",
+                      })
+                    }
+                  >
+                    Ver todas
+                  </Button>
+                </div>
+              )}
+            </div>
 
-            <Button onClick={() => setShowDialog(false)}>Fechar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+            {/* Footer com ações */}
+            <DropdownMenuSeparator />
+            <div className="p-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
+                onClick={fetchNotifications}
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Atualizar
+              </Button>
+            </div>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -1746,62 +1799,86 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* 🚀 PAINEL CHAMADAS PENDENTES - PARA TODOS OS USUÁRIOS AUTORIZADOS */}
-        {user && ["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+        {/* 🚀 PAINEL CHAMADAS PENDENTES - APENAS PARA USUÁRIOS NÃO-ADMIN (Admin vê no sininho) */}
+        {user && ["instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
+          <Card className="mb-6 border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-orange-800">
                 <TriangleAlert className="h-5 w-5 text-orange-600" />
-                Chamadas Pendentes
+                <span className="text-lg">Suas Chamadas Pendentes</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-orange-700">
                 {pendingLoading
-                  ? "Carregando chamadas pendentes..."
+                  ? "Carregando suas chamadas pendentes..."
                   : pending.length === 0
-                  ? "✅ Todas as chamadas do dia foram realizadas!"
-                  : `${pending.length} turma(s) sem chamada registrada para hoje`}
+                  ? "🎉 Parabéns! Todas as suas chamadas estão em dia!"
+                  : `⚠️ Você tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
               </CardDescription>
             </CardHeader>
 
             <CardContent>
               {pendingLoading ? (
-                <div className="text-center py-4">
-                  <RefreshCw className="h-6 w-6 animate-spin text-gray-400 mx-auto mb-2" />
-                  <span className="text-gray-600">
-                    Carregando chamadas pendentes...
+                <div className="flex items-center justify-center py-6 bg-white rounded-lg border border-orange-200">
+                  <RefreshCw className="h-6 w-6 animate-spin text-orange-500 mr-3" />
+                  <span className="text-orange-700 font-medium">
+                    Carregando suas chamadas...
                   </span>
                 </div>
               ) : pendingError ? (
-                <div className="text-center py-4 text-red-600">
-                  <AlertCircle className="h-6 w-6 mx-auto mb-2" />
-                  <span>Erro ao carregar: {pendingError}</span>
+                <div className="text-center py-6 bg-red-50 rounded-lg border border-red-200">
+                  <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-3" />
+                  <p className="text-red-700 font-medium mb-2">
+                    Erro ao carregar chamadas
+                  </p>
+                  <p className="text-red-600 text-sm mb-4">{pendingError}</p>
                   <Button
                     onClick={refetchPending}
                     variant="outline"
-                    className="ml-2"
+                    className="border-red-300 text-red-700 hover:bg-red-50"
                   >
+                    <RefreshCw className="h-4 w-4 mr-2" />
                     Tentar novamente
                   </Button>
                 </div>
               ) : pending.length === 0 ? (
-                <div className="text-center py-8 text-green-600">
-                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-                  <p className="font-medium">
+                <div className="text-center py-8 bg-green-50 rounded-lg border border-green-200">
+                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+                  <p className="font-semibold text-green-800 text-lg mb-2">
+                    Excelente trabalho! 🎯
+                  </p>
+                  <p className="text-green-700 mb-1">
                     Todas as chamadas do dia foram realizadas!
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Não há turmas com chamadas pendentes.
+                  <p className="text-sm text-green-600">
+                    Continue assim e mantenha o controle atualizado.
                   </p>
                 </div>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {pending.map((turma) => (
-                    <PendingAttendanceCard
-                      key={turma.turma_id}
-                      turma={turma}
-                      onComplete={markComplete}
-                    />
-                  ))}
+                <div className="space-y-3">
+                  {/* Cabeçalho informativo */}
+                  <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm font-medium text-orange-800">
+                        Ação Necessária
+                      </span>
+                    </div>
+                    <p className="text-xs text-orange-700">
+                      Clique em "Fazer Chamada" para registrar a presença dos
+                      alunos nas turmas abaixo.
+                    </p>
+                  </div>
+
+                  {/* Grid de turmas pendentes - mais compacto e visual */}
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {pending.map((turma) => (
+                      <PendingAttendanceCard
+                        key={turma.turma_id}
+                        turma={turma}
+                        onComplete={markComplete}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
