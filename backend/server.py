@@ -218,6 +218,10 @@ class UserResponse(BaseModel):
     email: str
     tipo: str
     ativo: bool
+    unidade_id: Optional[str] = None
+    curso_id: Optional[str] = None
+    unidade_nome: Optional[str] = None
+    curso_nome: Optional[str] = None
 
 class FirstAccessRequest(BaseModel):
     nome: str
@@ -809,7 +813,27 @@ async def get_users(
         query["status"] = status
         
     users = await db.usuarios.find(query).skip(skip).limit(limit).to_list(limit)
-    return [UserResponse(**user) for user in users]
+    
+    # Enriquecer dados com nomes de unidade e curso
+    result_users = []
+    for user in users:
+        user_response = UserResponse(**user)
+        
+        # Buscar nome da unidade
+        if user.get('unidade_id'):
+            unidade = await db.unidades.find_one({"id": user.get('unidade_id')})
+            if unidade:
+                user_response.unidade_nome = unidade.get('nome')
+        
+        # Buscar nome do curso
+        if user.get('curso_id'):
+            curso = await db.cursos.find_one({"id": user.get('curso_id')})
+            if curso:
+                user_response.curso_nome = curso.get('nome')
+        
+        result_users.append(user_response)
+    
+    return result_users
 
 @api_router.get("/users/pending", response_model=List[UserResponse])
 async def get_pending_users(current_user: UserResponse = Depends(get_current_user)):
@@ -817,6 +841,30 @@ async def get_pending_users(current_user: UserResponse = Depends(get_current_use
     
     users = await db.usuarios.find({"status": "pendente"}).to_list(100)
     return [UserResponse(**user) for user in users]
+
+@api_router.get("/users/{user_id}", response_model=UserResponse)
+async def get_user_by_id(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+    check_admin_permission(current_user)
+    
+    user = await db.usuarios.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    user_response = UserResponse(**user)
+    
+    # Buscar nome da unidade
+    if user.get('unidade_id'):
+        unidade = await db.unidades.find_one({"id": user.get('unidade_id')})
+        if unidade:
+            user_response.unidade_nome = unidade.get('nome')
+    
+    # Buscar nome do curso
+    if user.get('curso_id'):
+        curso = await db.cursos.find_one({"id": user.get('curso_id')})
+        if curso:
+            user_response.curso_nome = curso.get('nome')
+    
+    return user_response
 
 @api_router.put("/users/{user_id}", response_model=UserResponse)
 async def update_user(user_id: str, user_update: UserUpdate, current_user: UserResponse = Depends(get_current_user)):
