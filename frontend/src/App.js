@@ -704,8 +704,8 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             📋 Chamada: {turma?.turma_nome}
             {turma?.data_pendente && (
@@ -724,7 +724,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2">
           {/* Resumo */}
           <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-center">
@@ -5840,8 +5840,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   Novo Aluno
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
+              <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
                     {editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}
                   </DialogTitle>
@@ -5851,7 +5851,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       : "Preencha os dados para cadastrar um novo aluno"}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto pr-2">
                   {/* Campos Obrigatórios - Destacados */}
                   <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3">
@@ -6489,8 +6489,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
       {/* 🚀 BULK UPLOAD DIALOG */}
       <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               <Upload className="h-5 w-5 mr-2 inline" />
               Importação em Massa de Alunos
@@ -6505,7 +6505,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 flex-1 overflow-y-auto pr-2">
             {/* 📋 INSTRUÇÕES */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">
@@ -6654,8 +6654,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
       {/* 📊 BULK UPLOAD SUMMARY DIALOG */}
       <Dialog open={showBulkSummary} onOpenChange={setShowBulkSummary}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>📊 Resultado da Importação em Massa</DialogTitle>
             <DialogDescription>
               Resumo detalhado do processamento do arquivo CSV
@@ -6663,7 +6663,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
           </DialogHeader>
 
           {bulkSummaryData && (
-            <div className="space-y-6 overflow-y-auto max-h-[60vh]">
+            <div className="space-y-6 flex-1 overflow-y-auto pr-2">
               {/* 📈 MÉTRICAS GERAIS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">

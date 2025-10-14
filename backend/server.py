@@ -4115,12 +4115,31 @@ async def get_dynamic_teacher_stats(
             "alunos_risco": len([a for a in turma_alunos if a["taxa_presenca"] < 75])
         })
     
+    # 🔧 CORREÇÃO CRÍTICA: Contar alunos únicos (não duplicados entre turmas)
+    alunos_unicos = {}
+    desistentes_unicos = {}
+    
+    for aluno in alunos_stats:
+        aluno_id = aluno["id"]
+        if aluno["status"] == "ativo":
+            if aluno_id not in alunos_unicos:
+                alunos_unicos[aluno_id] = aluno
+        elif aluno["status"] == "desistente":
+            if aluno_id not in desistentes_unicos:
+                desistentes_unicos[aluno_id] = aluno
+    
+    total_alunos_correto = len(alunos_unicos)
+    total_desistentes_correto = len(desistentes_unicos)
+    
+    print(f"   🎯 CORREÇÃO: Total alunos únicos: {total_alunos_correto} (antes: {len(alunos_stats)})")
+    print(f"   🎯 CORREÇÃO: Total desistentes únicos: {total_desistentes_correto}")
+    
     return {
         "taxa_media_presenca": f"{round(taxa_media, 1)}%",
-        "total_alunos": len(alunos_stats),
+        "total_alunos": total_alunos_correto,  # 🔧 CORRIGIDO: Contagem única
         "alunos_em_risco": len(alunos_em_risco),
-        "desistentes": len(desistentes),
-        "alunos_desistentes": len(desistentes),  # ✅ ADICIONADO: Compatibilidade com frontend
+        "desistentes": total_desistentes_correto,  # 🔧 CORRIGIDO: Contagem única
+        "alunos_desistentes": total_desistentes_correto,  # ✅ CORRIGIDO: Compatibilidade com frontend
         "maiores_presencas": [
             {
                 "nome": a["nome"],
