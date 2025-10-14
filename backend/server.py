@@ -3645,11 +3645,16 @@ async def get_dashboard_stats(current_user: UserResponse = Depends(get_current_u
         # 👑 ADMIN: Visão geral completa
         total_unidades = await db.unidades.count_documents({"ativo": True})
         total_cursos = await db.cursos.count_documents({"ativo": True})
-        total_alunos = await db.alunos.count_documents({"ativo": True})
+        
+        # 🔧 CORREÇÃO CRÍTICA: Contar alunos únicos corretamente
+        all_alunos = await db.alunos.find({}).to_list(10000)
+        alunos_ativos = len([a for a in all_alunos if a.get("status") == "ativo"])
+        alunos_desistentes = len([a for a in all_alunos if a.get("status") == "desistente"])
+        total_alunos = alunos_ativos + alunos_desistentes
+        
         total_turmas = await db.turmas.count_documents({"ativo": True})
         
-        alunos_ativos = await db.alunos.count_documents({"status": "ativo"})
-        alunos_desistentes = await db.alunos.count_documents({"status": "desistente"})
+        print(f"🔧 DASHBOARD ADMIN: {total_alunos} alunos únicos ({alunos_ativos} ativos + {alunos_desistentes} desistentes)")
         
         # 🎯 CORRIGIR: Usar collection 'attendances' (não 'chamadas')
         chamadas_hoje = await db.attendances.count_documents({"data": hoje.isoformat()})
@@ -4080,22 +4085,46 @@ async def get_dynamic_teacher_stats(
     
     print(f"   📊 Status breakdown: {status_count}")
     
-    if alunos_ativos_stats:
-        taxa_media = sum(a["taxa_presenca"] for a in alunos_ativos_stats) / len(alunos_ativos_stats)
-        alunos_em_risco = [a for a in alunos_ativos_stats if a["taxa_presenca"] < 75]
-        desistentes = [a for a in alunos_stats if a["status"] == "desistente"]
+    # 🔧 CORREÇÃO CRÍTICA: Contar alunos únicos (não duplicados entre turmas)
+    alunos_unicos = {}
+    desistentes_unicos = {}
+    
+    for aluno in alunos_stats:
+        aluno_id = aluno["id"]
+        if aluno["status"] == "ativo":
+            if aluno_id not in alunos_unicos:
+                alunos_unicos[aluno_id] = aluno
+            else:
+                # Se já existe, manter o que tem melhor taxa de presença ou maior número de aulas
+                existing = alunos_unicos[aluno_id]
+                if aluno["total_aulas"] > existing["total_aulas"]:
+                    alunos_unicos[aluno_id] = aluno
+        elif aluno["status"] == "desistente":
+            if aluno_id not in desistentes_unicos:
+                desistentes_unicos[aluno_id] = aluno
+    
+    # Usar apenas alunos únicos para cálculos
+    alunos_unicos_list = list(alunos_unicos.values())
+    
+    if alunos_unicos_list:
+        # 🎯 CORREÇÃO: Taxa média baseada em alunos únicos
+        taxa_media = sum(a["taxa_presenca"] for a in alunos_unicos_list) / len(alunos_unicos_list)
         
-        print(f"   🎯 RESULTADO: {len(desistentes)} desistentes calculados")
+        # 🎯 CORREÇÃO: Alunos em risco baseado em alunos únicos
+        alunos_em_risco_unicos = [a for a in alunos_unicos_list if a["taxa_presenca"] < 75]
         
-        # Top 3 maiores presenças - APENAS ATIVOS
-        maiores_presencas = sorted(alunos_ativos_stats, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
+        print(f"   🎯 RESULTADO: {len(desistentes_unicos)} desistentes únicos calculados")
+        print(f"   🎯 CORREÇÃO: Taxa média recalculada: {round(taxa_media, 1)}%")
+        print(f"   🎯 CORREÇÃO: Alunos em risco únicos: {len(alunos_em_risco_unicos)}")
         
-        # ✅ CORREÇÃO: Top 3 maiores faltas ordenado por número de faltas
-        maiores_faltas = sorted(alunos_ativos_stats, key=lambda x: x["faltas"], reverse=True)[:3]
+        # Top 3 maiores presenças - APENAS ALUNOS ÚNICOS
+        maiores_presencas = sorted(alunos_unicos_list, key=lambda x: x["taxa_presenca"], reverse=True)[:3]
+        
+        # ✅ CORREÇÃO: Top 3 maiores faltas ordenado por número de faltas - ALUNOS ÚNICOS
+        maiores_faltas = sorted(alunos_unicos_list, key=lambda x: x["faltas"], reverse=True)[:3]
     else:
         taxa_media = 0
-        alunos_em_risco = []
-        desistentes = []
+        alunos_em_risco_unicos = []
         maiores_presencas = []
         maiores_faltas = []
     
@@ -4115,29 +4144,16 @@ async def get_dynamic_teacher_stats(
             "alunos_risco": len([a for a in turma_alunos if a["taxa_presenca"] < 75])
         })
     
-    # 🔧 CORREÇÃO CRÍTICA: Contar alunos únicos (não duplicados entre turmas)
-    alunos_unicos = {}
-    desistentes_unicos = {}
-    
-    for aluno in alunos_stats:
-        aluno_id = aluno["id"]
-        if aluno["status"] == "ativo":
-            if aluno_id not in alunos_unicos:
-                alunos_unicos[aluno_id] = aluno
-        elif aluno["status"] == "desistente":
-            if aluno_id not in desistentes_unicos:
-                desistentes_unicos[aluno_id] = aluno
-    
     total_alunos_correto = len(alunos_unicos)
     total_desistentes_correto = len(desistentes_unicos)
     
-    print(f"   🎯 CORREÇÃO: Total alunos únicos: {total_alunos_correto} (antes: {len(alunos_stats)})")
-    print(f"   🎯 CORREÇÃO: Total desistentes únicos: {total_desistentes_correto}")
+    print(f"   🎯 CORREÇÃO FINAL: Total alunos únicos: {total_alunos_correto} (antes: {len(alunos_stats)})")
+    print(f"   🎯 CORREÇÃO FINAL: Total desistentes únicos: {total_desistentes_correto}")
     
     return {
         "taxa_media_presenca": f"{round(taxa_media, 1)}%",
         "total_alunos": total_alunos_correto,  # 🔧 CORRIGIDO: Contagem única
-        "alunos_em_risco": len(alunos_em_risco),
+        "alunos_em_risco": len(alunos_em_risco_unicos),  # 🔧 CORRIGIDO: Baseado em alunos únicos
         "desistentes": total_desistentes_correto,  # 🔧 CORRIGIDO: Contagem única
         "alunos_desistentes": total_desistentes_correto,  # ✅ CORRIGIDO: Compatibilidade com frontend
         "maiores_presencas": [
