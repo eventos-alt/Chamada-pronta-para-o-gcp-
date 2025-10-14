@@ -724,7 +724,10 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+        <div
+          className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+          style={{ scrollbarWidth: "thin" }}
+        >
           {/* Resumo */}
           <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
             <div className="text-center">
@@ -3113,8 +3116,8 @@ const UsuariosManager = () => {
                   Novo Usuário
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
+              <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+                <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
                     {editingUser ? "Editar Usuário" : "Criar Novo Usuário"}
                   </DialogTitle>
@@ -3124,7 +3127,7 @@ const UsuariosManager = () => {
                       : "Preencha os dados para criar um novo usuário. Uma senha temporária será gerada."}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome Completo</Label>
                     <Input
@@ -3637,8 +3640,8 @@ const TurmasManager = () => {
                 Nova Turma
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
+            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>
                   {editingTurma ? "Editar Turma" : "Criar Nova Turma"}
                 </DialogTitle>
@@ -3648,7 +3651,7 @@ const TurmasManager = () => {
                     : "Preencha os dados para criar uma nova turma"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome da Turma</Label>
@@ -5851,7 +5854,11 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       : "Preencha os dados para cadastrar um novo aluno"}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto pr-2">
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+                  style={{ scrollbarWidth: "thin" }}
+                >
                   {/* Campos Obrigatórios - Destacados */}
                   <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3">
@@ -6505,7 +6512,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+          <div
+            className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
+            style={{ scrollbarWidth: "thin" }}
+          >
             {/* 📋 INSTRUÇÕES */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">
@@ -6663,7 +6673,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
           </DialogHeader>
 
           {bulkSummaryData && (
-            <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+            <div
+              className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
+              style={{ scrollbarWidth: "thin" }}
+            >
               {/* 📈 MÉTRICAS GERAIS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
@@ -6825,8 +6838,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         open={isViewAlunoDialogOpen}
         onOpenChange={setIsViewAlunoDialogOpen}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center">
               <Users className="h-5 w-5 mr-2" />
               Perfil Completo - {viewingAluno?.nome}
@@ -6837,281 +6850,288 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
           </DialogHeader>
 
           {viewingAluno && (
-            <Tabs defaultValue="dados" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
-                <TabsTrigger value="justificativas">
-                  Justificativas ({studentJustifications.length})
-                </TabsTrigger>
-              </TabsList>
+            <div
+              className="flex-1 overflow-y-scroll max-h-[70vh]"
+              style={{ scrollbarWidth: "thin" }}
+            >
+              <Tabs defaultValue="dados" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
+                  <TabsTrigger value="justificativas">
+                    Justificativas ({studentJustifications.length})
+                  </TabsTrigger>
+                </TabsList>
 
-              {/* Aba de Dados Pessoais */}
-              <TabsContent value="dados" className="space-y-4 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Dados Obrigatórios */}
+                {/* Aba de Dados Pessoais */}
+                <TabsContent value="dados" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Dados Obrigatórios */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <UserCheck className="h-5 w-5 mr-2" />
+                          Dados Obrigatórios
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Nome Completo
+                          </Label>
+                          <p className="text-base font-medium">
+                            {viewingAluno.nome}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            CPF
+                          </Label>
+                          <p className="text-base font-mono">
+                            {viewingAluno.cpf}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Idade
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.idade
+                              ? `${viewingAluno.idade} anos`
+                              : "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Data de Nascimento
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.data_nascimento || "N/A"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Dados Complementares */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <BookOpen className="h-5 w-5 mr-2" />
+                          Dados Complementares
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            RG
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.rg || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Gênero
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.genero || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Telefone
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.telefone || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Email
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.email || "N/A"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Dados do Responsável */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <Users className="h-5 w-5 mr-2" />
+                          Dados do Responsável
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Nome do Responsável
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.nome_responsavel || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Telefone do Responsável
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.telefone_responsavel || "N/A"}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Endereço e Observações */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <Building2 className="h-5 w-5 mr-2" />
+                          Outras Informações
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Endereço
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.endereco || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Observações
+                          </Label>
+                          <p className="text-base">
+                            {viewingAluno.observacoes || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Status
+                          </Label>
+                          <Badge variant={getStatusColor(viewingAluno.status)}>
+                            {getStatusLabel(viewingAluno.status)}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                {/* Aba de Justificativas */}
+                <TabsContent value="justificativas" className="space-y-4 mt-4">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg flex items-center">
-                        <UserCheck className="h-5 w-5 mr-2" />
-                        Dados Obrigatórios
+                      <CardTitle className="flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Histórico de Justificativas
                       </CardTitle>
+                      <CardDescription>
+                        Justificativas de faltas registradas para este aluno
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Nome Completo
-                        </Label>
-                        <p className="text-base font-medium">
-                          {viewingAluno.nome}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          CPF
-                        </Label>
-                        <p className="text-base font-mono">
-                          {viewingAluno.cpf}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Idade
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.idade
-                            ? `${viewingAluno.idade} anos`
-                            : "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Data de Nascimento
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.data_nascimento || "N/A"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <CardContent>
+                      {loadingJustifications ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Carregando justificativas...
+                          </p>
+                        </div>
+                      ) : studentJustifications.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                          <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                          <p>Nenhuma justificativa registrada</p>
+                          <p className="text-sm">
+                            Este aluno não possui justificativas de faltas
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {studentJustifications.map((justification) => (
+                            <Card
+                              key={justification.id}
+                              className="border-l-4 border-l-blue-500"
+                            >
+                              <CardContent className="pt-4">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <Badge variant="outline">
+                                        {justification.reason_label}
+                                      </Badge>
+                                      <span className="text-sm text-gray-500">
+                                        {new Date(
+                                          justification.created_at
+                                        ).toLocaleDateString("pt-BR")}
+                                      </span>
+                                    </div>
 
-                  {/* Dados Complementares */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center">
-                        <BookOpen className="h-5 w-5 mr-2" />
-                        Dados Complementares
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          RG
-                        </Label>
-                        <p className="text-base">{viewingAluno.rg || "N/A"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Gênero
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.genero || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Telefone
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.telefone || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Email
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.email || "N/A"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                                    {justification.observations && (
+                                      <div className="mb-3">
+                                        <Label className="text-sm font-medium text-gray-600">
+                                          Observações:
+                                        </Label>
+                                        <p className="text-sm bg-gray-50 p-2 rounded border">
+                                          {justification.observations}
+                                        </p>
+                                      </div>
+                                    )}
 
-                  {/* Dados do Responsável */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center">
-                        <Users className="h-5 w-5 mr-2" />
-                        Dados do Responsável
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Nome do Responsável
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.nome_responsavel || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Telefone do Responsável
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.telefone_responsavel || "N/A"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Endereço e Observações */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center">
-                        <Building2 className="h-5 w-5 mr-2" />
-                        Outras Informações
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Endereço
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.endereco || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Observações
-                        </Label>
-                        <p className="text-base">
-                          {viewingAluno.observacoes || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">
-                          Status
-                        </Label>
-                        <Badge variant={getStatusColor(viewingAluno.status)}>
-                          {getStatusLabel(viewingAluno.status)}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
-
-              {/* Aba de Justificativas */}
-              <TabsContent value="justificativas" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <FileText className="h-5 w-5 mr-2" />
-                      Histórico de Justificativas
-                    </CardTitle>
-                    <CardDescription>
-                      Justificativas de faltas registradas para este aluno
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingJustifications ? (
-                      <div className="text-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Carregando justificativas...
-                        </p>
-                      </div>
-                    ) : studentJustifications.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                        <p>Nenhuma justificativa registrada</p>
-                        <p className="text-sm">
-                          Este aluno não possui justificativas de faltas
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {studentJustifications.map((justification) => (
-                          <Card
-                            key={justification.id}
-                            className="border-l-4 border-l-blue-500"
-                          >
-                            <CardContent className="pt-4">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-2">
-                                    <Badge variant="outline">
-                                      {justification.reason_label}
-                                    </Badge>
-                                    <span className="text-sm text-gray-500">
-                                      {new Date(
-                                        justification.created_at
-                                      ).toLocaleDateString("pt-BR")}
-                                    </span>
+                                    {justification.attendance_id && (
+                                      <div className="text-xs text-gray-500">
+                                        Vinculada à chamada:{" "}
+                                        {justification.attendance_id}
+                                      </div>
+                                    )}
                                   </div>
 
-                                  {justification.observations && (
-                                    <div className="mb-3">
-                                      <Label className="text-sm font-medium text-gray-600">
-                                        Observações:
-                                      </Label>
-                                      <p className="text-sm bg-gray-50 p-2 rounded border">
-                                        {justification.observations}
-                                      </p>
-                                    </div>
-                                  )}
+                                  <div className="flex space-x-2 ml-4">
+                                    {justification.has_file && (
+                                      <Button
+                                        onClick={() =>
+                                          downloadJustificationFile(
+                                            justification.id,
+                                            justification.filename
+                                          )
+                                        }
+                                        variant="outline"
+                                        size="sm"
+                                        title="Baixar documento"
+                                      >
+                                        <Download className="h-4 w-4" />
+                                      </Button>
+                                    )}
 
-                                  {justification.attendance_id && (
-                                    <div className="text-xs text-gray-500">
-                                      Vinculada à chamada:{" "}
-                                      {justification.attendance_id}
-                                    </div>
-                                  )}
-                                </div>
-
-                                <div className="flex space-x-2 ml-4">
-                                  {justification.has_file && (
                                     <Button
                                       onClick={() =>
-                                        downloadJustificationFile(
-                                          justification.id,
-                                          justification.filename
-                                        )
+                                        deleteJustification(justification.id)
                                       }
                                       variant="outline"
                                       size="sm"
-                                      title="Baixar documento"
+                                      className="text-red-600 border-red-600 hover:bg-red-50"
+                                      title="Remover justificativa"
                                     >
-                                      <Download className="h-4 w-4" />
+                                      <Trash2 className="h-4 w-4" />
                                     </Button>
-                                  )}
-
-                                  <Button
-                                    onClick={() =>
-                                      deleteJustification(justification.id)
-                                    }
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-red-600 border-red-600 hover:bg-red-50"
-                                    title="Remover justificativa"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
+                                  </div>
                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 flex-shrink-0">
             <Button
               variant="outline"
               onClick={() => setIsViewAlunoDialogOpen(false)}
@@ -7256,8 +7276,8 @@ const UnidadesManager = () => {
                 Nova Unidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>
                   {editingUnidade ? "Editar Unidade" : "Criar Nova Unidade"}
                 </DialogTitle>
@@ -7267,7 +7287,7 @@ const UnidadesManager = () => {
                     : "Preencha os dados para criar uma nova unidade"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Unidade</Label>
                   <Input
@@ -7554,8 +7574,8 @@ const CursosManager = () => {
                 Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+              <DialogHeader className="flex-shrink-0">
                 <DialogTitle>
                   {editingCurso ? "Editar Curso" : "Criar Novo Curso"}
                 </DialogTitle>
@@ -7565,7 +7585,7 @@ const CursosManager = () => {
                     : "Preencha os dados para criar um novo curso"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome do Curso</Label>
                   <Input
