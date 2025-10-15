@@ -3127,7 +3127,11 @@ const UsuariosManager = () => {
                       : "Preencha os dados para criar um novo usuário. Uma senha temporária será gerada."}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
+                <form
+                  onSubmit={handleSubmit}
+                  className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+                  style={{ scrollbarWidth: "thin" }}
+                >
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome Completo</Label>
                     <Input
@@ -3651,7 +3655,11 @@ const TurmasManager = () => {
                     : "Preencha os dados para criar uma nova turma"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+                style={{ scrollbarWidth: "thin" }}
+              >
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome da Turma</Label>
@@ -4165,6 +4173,9 @@ const RelatoriosManager = () => {
   const [cursos, setCursos] = useState([]);
   const [turmas, setTurmas] = useState([]);
 
+  // Estado para loading do CSV
+  const [csvLoading, setCsvLoading] = useState(false);
+
   useEffect(() => {
     // 📊 CARREGAR DADOS ESSENCIAIS PRIMEIRO
     fetchDadosBasicos();
@@ -4395,13 +4406,21 @@ const RelatoriosManager = () => {
 
   // 📊 FASE 4: CSV Export Aprimorado com Dados Precisos
   const downloadFrequencyReport = async () => {
+    setCsvLoading(true);
+
+    // Toast de início do processo
+    toast({
+      title: "📊 Gerando Relatório CSV",
+      description: "Processando dados de frequência... aguarde",
+    });
+
     try {
       console.log("🚀 Iniciando download CSV com Fase 4 - Dados Precisos");
 
-      // 🎯 TENTATIVA 1: Backend com filtros aplicados
+      // 🎯 TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUÊNCIA)
       let backendResponse = null;
       try {
-        let url = `${API}/reports/attendance?export_csv=true`;
+        let url = `${API}/reports/student-frequency?export_csv=true`;
 
         if (
           user?.tipo === "admin" &&
@@ -4422,11 +4441,15 @@ const RelatoriosManager = () => {
             params.append("curso_id", filtros.curso_id);
           if (filtros.turma_id && filtros.turma_id !== "all")
             params.append("turma_id", filtros.turma_id);
-          url = `${API}/reports/attendance?${params.toString()}`;
+          url = `${API}/reports/student-frequency?${params.toString()}`;
         }
 
         backendResponse = await axios.get(url);
       } catch (backendError) {
+        console.error("🚨 ERRO BACKEND CSV:", backendError.message);
+        console.error("Status:", backendError.response?.status);
+        console.error("URL tentada:", url);
+        console.error("Headers:", backendError.config?.headers);
         console.log(
           "⚠️ Backend CSV falhou, gerando localmente com Fase 4:",
           backendError.message
@@ -4441,6 +4464,10 @@ const RelatoriosManager = () => {
         csvData = backendResponse.data.csv_data;
         dataSource = "backend";
         console.log("✅ Usando dados do backend");
+        console.log(
+          "📊 Preview CSV (primeiras 200 chars):",
+          csvData.substring(0, 200)
+        );
       }
       // 🎯 FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
       else {
@@ -4522,6 +4549,8 @@ const RelatoriosManager = () => {
         description: "Tente novamente em alguns instantes.",
         variant: "destructive",
       });
+    } finally {
+      setCsvLoading(false);
     }
   };
 
@@ -4626,9 +4655,19 @@ const RelatoriosManager = () => {
               size="sm"
               className="text-blue-600 border-blue-600 hover:bg-blue-50 relative"
               title="CSV com dados precisos da Fase 4"
+              disabled={csvLoading}
             >
-              <Download className="h-4 w-4 mr-1" />
-              Exportar CSV
+              {csvLoading ? (
+                <>
+                  <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                  Exportando...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-1" />
+                  Exportar CSV
+                </>
+              )}
               {stats.calculo_preciso && (
                 <div
                   className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
@@ -7287,7 +7326,11 @@ const UnidadesManager = () => {
                     : "Preencha os dados para criar uma nova unidade"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+                style={{ scrollbarWidth: "thin" }}
+              >
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome da Unidade</Label>
                   <Input
@@ -7585,7 +7628,11 @@ const CursosManager = () => {
                     : "Preencha os dados para criar um novo curso"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]" style={{scrollbarWidth: 'thin'}}>
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
+                style={{ scrollbarWidth: "thin" }}
+              >
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome do Curso</Label>
                   <Input

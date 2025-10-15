@@ -3502,6 +3502,195 @@ async def get_attendance_report(
     
     return [parse_from_mongo(chamada) for chamada in chamadas]
 
+# 📊 NOVO ENDPOINT: CSV de Frequência por Aluno (com estatísticas completas)
+@api_router.get("/reports/student-frequency")
+async def get_student_frequency_report(
+    turma_id: Optional[str] = None,
+    unidade_id: Optional[str] = None,
+    curso_id: Optional[str] = None,
+    data_inicio: Optional[date] = None,
+    data_fim: Optional[date] = None,
+    export_csv: bool = False,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Gerar relatório de frequência por aluno com estatísticas completas"""
+    
+    # 🔒 Aplicar filtros de permissão por tipo de usuário (mesmo código do endpoint anterior)
+    query = {}
+    
+    if current_user.tipo == "instrutor":
+        turmas_instrutor = await db.turmas.find({
+            "instrutor_id": current_user.id,
+            "tipo_turma": "regular"
+        }).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_instrutor]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            return [] if not export_csv else {"csv_data": ""}
+            
+    elif current_user.tipo == "pedagogo":
+        turmas_query = {"tipo_turma": "extensao"}
+        if getattr(current_user, 'curso_id', None):
+            turmas_query["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            turmas_query["unidade_id"] = getattr(current_user, 'unidade_id', None)
+            
+        turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_permitidas]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            return [] if not export_csv else {"csv_data": ""}
+    
+    elif current_user.tipo == "monitor":
+        turmas_query = {}
+        if getattr(current_user, 'curso_id', None):
+            turmas_query["curso_id"] = getattr(current_user, 'curso_id', None)
+        if getattr(current_user, 'unidade_id', None):
+            turmas_query["unidade_id"] = getattr(current_user, 'unidade_id', None)
+            
+        turmas_permitidas = await db.turmas.find(turmas_query).to_list(1000)
+        turmas_ids = [turma["id"] for turma in turmas_permitidas]
+        
+        if turmas_ids:
+            query["turma_id"] = {"$in": turmas_ids}
+        else:
+            return [] if not export_csv else {"csv_data": ""}
+
+    # Filtros administrativos (para admin)
+    if current_user.tipo == "admin":
+        if unidade_id or curso_id:
+            turmas_query = {}
+            if unidade_id:
+                turmas_query["unidade_id"] = unidade_id
+            if curso_id:
+                turmas_query["curso_id"] = curso_id
+                
+            turmas = await db.turmas.find(turmas_query).to_list(1000)
+            turmas_ids = [turma["id"] for turma in turmas]
+            
+            if turmas_ids:
+                query["turma_id"] = {"$in": turmas_ids}
+            else:
+                return [] if not export_csv else {"csv_data": ""}
+
+    # Filtro por turma específica
+    if turma_id:
+        if "turma_id" in query:
+            if isinstance(query["turma_id"], dict) and "$in" in query["turma_id"]:
+                if turma_id not in query["turma_id"]["$in"]:
+                    raise HTTPException(status_code=403, detail="Acesso negado a esta turma")
+            query["turma_id"] = turma_id
+        else:
+            query["turma_id"] = turma_id
+
+    # Filtro por data
+    if data_inicio and data_fim:
+        query["data"] = {"$gte": data_inicio.isoformat(), "$lte": data_fim.isoformat()}
+    elif data_inicio:
+        query["data"] = {"$gte": data_inicio.isoformat()}
+    elif data_fim:
+        query["data"] = {"$lte": data_fim.isoformat()}
+
+    # Buscar todas as attendances
+    attendances = await db.attendances.find(query).to_list(1000)
+    
+    if export_csv:
+        # 📊 CALCULAR ESTATÍSTICAS POR ALUNO
+        aluno_stats = {}
+        
+        # Processar cada attendance
+        for attendance in attendances:
+            turma_id = attendance.get("turma_id")
+            records = attendance.get("records", [])
+            
+            for record in records:
+                aluno_id = record.get("aluno_id")
+                presente = record.get("presente", False)
+                
+                if aluno_id not in aluno_stats:
+                    aluno_stats[aluno_id] = {
+                        "total_chamadas": 0,
+                        "total_presencas": 0,
+                        "total_faltas": 0,
+                        "turma_id": turma_id  # Para buscar dados da turma depois
+                    }
+                
+                aluno_stats[aluno_id]["total_chamadas"] += 1
+                if presente:
+                    aluno_stats[aluno_id]["total_presencas"] += 1
+                else:
+                    aluno_stats[aluno_id]["total_faltas"] += 1
+        
+        # Gerar CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalhos conforme a imagem
+        writer.writerow([
+            "Nome do Aluno", "CPF", "Total de Chamadas", "Presencas", "Faltas", 
+            "% Presença (Preciso)", "Classificação de Risco", "Status do Aluno", 
+            "Data de Nascimento", "Email"
+        ])
+        
+        # Processar cada aluno
+        for aluno_id, stats in aluno_stats.items():
+            try:
+                # Buscar dados do aluno
+                aluno = await db.alunos.find_one({"id": aluno_id})
+                if not aluno:
+                    continue
+                
+                # Calcular percentual preciso
+                total_chamadas = stats["total_chamadas"]
+                total_presencas = stats["total_presencas"]
+                percentual = round((total_presencas / total_chamadas * 100), 2) if total_chamadas > 0 else 0.0
+                
+                # Classificação de risco
+                if percentual >= 75:
+                    risco = "Situação Normal"
+                elif percentual >= 50:
+                    risco = "Atenção"
+                else:
+                    risco = "Situação Crítica"
+                
+                # Formatar data de nascimento
+                data_nasc = aluno.get("data_nascimento")
+                if data_nasc:
+                    if isinstance(data_nasc, str):
+                        data_nasc_str = data_nasc
+                    else:
+                        data_nasc_str = data_nasc.strftime("%d/%m/%Y") if hasattr(data_nasc, 'strftime') else str(data_nasc)
+                else:
+                    data_nasc_str = "N/A"
+                
+                # Escrever linha
+                writer.writerow([
+                    aluno.get("nome", ""),
+                    aluno.get("cpf", ""),
+                    stats["total_chamadas"],
+                    stats["total_presencas"],
+                    stats["total_faltas"],
+                    f"{percentual:.2f}%",
+                    risco,
+                    aluno.get("status", "ativo").title(),
+                    data_nasc_str,
+                    aluno.get("email", "N/A")
+                ])
+                
+            except Exception as e:
+                print(f"Erro ao processar aluno {aluno_id}: {e}")
+                continue
+        
+        output.seek(0)
+        return {"csv_data": output.getvalue()}
+    
+    # Se não for export_csv, retorna dados estruturados
+    return {"message": "Use export_csv=true para baixar CSV"}
+
 # � Função auxiliar para verificar dias de aula
 def eh_dia_de_aula(data_verificar: date, dias_aula: List[str]) -> bool:
     """Verifica se uma data específica é dia de aula baseado na configuração do curso"""
