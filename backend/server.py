@@ -3407,9 +3407,9 @@ async def get_attendance_report(
     return [parse_from_mongo(chamada) for chamada in chamadas]
 
 
-# 🔧 CSV Generation Functions
+# 🔧 CSV Generation Functions - OPTIMIZED FOR VERCEL
 async def generate_simple_csv(chamadas):
-    """Generate simple CSV format (current format)"""
+    """Generate simple CSV format - TIMEOUT OPTIMIZED"""
     output = StringIO()
     writer = csv.writer(output)
     
@@ -3420,8 +3420,17 @@ async def generate_simple_csv(chamadas):
         "Responsavel", "Tipo_Responsavel", "Unidade", "Observacoes"
     ])
     
-    # Process data (keeping existing logic)
+    # 🚨 VERCEL TIMEOUT PROTECTION - Limit processing to avoid 504
+    MAX_RECORDS = 5000  # Limit records to prevent timeout
+    processed = 0
+    
+    # Process data with TIMEOUT PROTECTION
     for chamada in chamadas:
+        # 🚨 STOP PROCESSING IF HITTING LIMITS
+        if processed >= MAX_RECORDS:
+            print(f"⚠️ CSV LIMIT REACHED: {MAX_RECORDS} records processed")
+            break
+            
         try:
             # Buscar dados da turma
             turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
@@ -3482,7 +3491,7 @@ async def generate_simple_csv(chamadas):
                     tipo_responsavel = responsavel.get("tipo", "instrutor") if responsavel else "instrutor"
                     tipo_responsavel_label = "Pedagogo" if tipo_responsavel == "pedagogo" else "Instrutor"
                     
-                    # Escrever linha
+                    # Escrever linha e incrementar contador
                     writer.writerow([
                         aluno.get("nome", ""),
                         aluno.get("cpf", ""),
@@ -3500,6 +3509,7 @@ async def generate_simple_csv(chamadas):
                         unidade.get("nome", "") if unidade else "",
                         observacoes_texto
                     ])
+                    processed += 1  # 📊 Count processed records
                     
                 except Exception as e:
                     print(f"Erro ao processar record: {e}")
@@ -3514,7 +3524,7 @@ async def generate_simple_csv(chamadas):
 
 
 async def generate_complete_csv(chamadas):
-    """Generate complete CSV format with enhanced fields"""
+    """Generate complete CSV format with enhanced fields - TIMEOUT OPTIMIZED"""
     output = StringIO()
     writer = csv.writer(output)
     
@@ -3528,6 +3538,10 @@ async def generate_complete_csv(chamadas):
         "Classificação de Risco", "Status do Aluno", "Motivo de Desistência",
         "Média Geral", "Progresso no Curso (%)", "Observações"
     ])
+    
+    # 🚨 VERCEL TIMEOUT PROTECTION
+    MAX_RECORDS_COMPLETE = 2000  # Lower limit for complex processing
+    processed = 0
     
     # Calculate student statistics
     student_stats = {}

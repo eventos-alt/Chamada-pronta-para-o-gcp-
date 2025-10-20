@@ -4490,21 +4490,23 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 📊 CSV Export com Dois Formatos
+  // 📊 CSV Export com Dois Formatos - TIMEOUT PROTECTION
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
       title: "📊 Gerando CSV Simples",
-      description: "Baixando dados básicos de presença...",
+      description: "Processando... pode levar até 30 segundos",
     });
 
     try {
+      // ⏰ TIMEOUT PROTECTION - 45 segundos para compensar Vercel
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=simple`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          timeout: 45000, // 45 segundos
         }
       );
 
@@ -4533,11 +4535,27 @@ const RelatoriosManager = () => {
       });
     } catch (error) {
       console.error("Erro no download CSV simples:", error);
-      toast({
-        title: "❌ Erro no Download",
-        description: "Falha ao baixar CSV simples. Tente novamente.",
-        variant: "destructive",
-      });
+      
+      // 🚨 TIMEOUT ERROR HANDLING
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        toast({
+          title: "⏰ Timeout - Muitos Dados",
+          description: "O sistema tem muitos registros. Tente filtrar por período menor ou use o backend direto.",
+          variant: "destructive",
+        });
+      } else if (error.response?.status === 504) {
+        toast({
+          title: "🚨 Gateway Timeout",
+          description: "Servidor sobrecarregado. Aguarde 1 minuto e tente novamente.",
+          variant: "destructive", 
+        });
+      } else {
+        toast({
+          title: "❌ Erro no Download",
+          description: "Falha ao baixar CSV simples. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setCsvLoading(false);
     }
@@ -4547,16 +4565,18 @@ const RelatoriosManager = () => {
     setCsvLoading(true);
     toast({
       title: "📊 Gerando CSV Completo",
-      description: "Processando análise pedagógica completa...",
+      description: "Análise avançada... pode levar até 30 segundos",
     });
 
     try {
+      // ⏰ TIMEOUT PROTECTION - 45 segundos para compensar Vercel
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=complete`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          timeout: 45000, // 45 segundos
         }
       );
 
@@ -4585,11 +4605,27 @@ const RelatoriosManager = () => {
       });
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
-      toast({
-        title: "❌ Erro no Download",
-        description: "Falha ao baixar CSV completo. Tente novamente.",
-        variant: "destructive",
-      });
+      
+      // 🚨 TIMEOUT ERROR HANDLING  
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        toast({
+          title: "⏰ Timeout - Processamento Complexo",
+          description: "Análise pedagógica muito demorada. Tente filtrar dados ou use período menor.",
+          variant: "destructive",
+        });
+      } else if (error.response?.status === 504) {
+        toast({
+          title: "🚨 Gateway Timeout",
+          description: "Servidor sobrecarregado. Aguarde 1 minuto e tente novamente.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "❌ Erro no Download", 
+          description: "Falha ao baixar CSV completo. Tente novamente.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setCsvLoading(false);
     }
