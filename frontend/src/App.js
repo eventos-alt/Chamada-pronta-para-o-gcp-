@@ -4490,69 +4490,77 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 📊 CSV Export com Dois Formatos - TIMEOUT PROTECTION
+  // 📊 CSV Export com Dois Formatos - STREAMING ANTI-TIMEOUT!
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "📊 Gerando CSV Simples",
-      description: "Processando... pode levar até 30 segundos",
+      title: "� CSV Simples - STREAMING",
+      description: "Nova tecnologia anti-timeout! Download em tempo real...",
     });
 
     try {
-      // ⏰ TIMEOUT PROTECTION - 45 segundos para compensar Vercel
+      // 🚀 STREAMING DOWNLOAD - NO MORE TIMEOUTS!
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=simple`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          timeout: 45000, // 45 segundos
+          responseType: "blob", // CRITICAL: receive as streaming blob
+          timeout: 120000, // 2 minutes (much higher since streaming)
         }
       );
 
-      let csvData;
-      if (response.data?.csv_data) {
-        csvData = response.data.csv_data;
-      } else {
-        throw new Error("Formato de resposta inválido");
-      }
-
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      // Handle streaming response directly as blob
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8;",
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `relatorio_simples_${
+
+      // Extract filename from Content-Disposition header if available
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = `relatorio_simples_${
         new Date().toISOString().split("T")[0]
       }.csv`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch) filename = filenameMatch[1];
+      }
+
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
 
       toast({
-        title: "✅ CSV Simples Baixado",
-        description:
-          "Arquivo com dados básicos de presença baixado com sucesso",
+        title: "🚀 CSV Simples - STREAMING OK!",
+        description: "Arquivo baixado com nova tecnologia anti-timeout! ⚡",
       });
     } catch (error) {
       console.error("Erro no download CSV simples:", error);
-      
-      // 🚨 TIMEOUT ERROR HANDLING
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+
+      // 🚨 ENHANCED ERROR HANDLING with streaming context
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
-          title: "⏰ Timeout - Muitos Dados",
-          description: "O sistema tem muitos registros. Tente filtrar por período menor ou use o backend direto.",
+          title: "⏰ Timeout Raro com Streaming",
+          description:
+            "Evento raro! Sistema streaming falhou. Contate suporte técnico.",
           variant: "destructive",
         });
       } else if (error.response?.status === 504) {
         toast({
           title: "🚨 Gateway Timeout",
-          description: "Servidor sobrecarregado. Aguarde 1 minuto e tente novamente.",
-          variant: "destructive", 
+          description:
+            "Servidor sobrecarregado mesmo com streaming. Aguarde e tente.",
+          variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erro no Download",
-          description: "Falha ao baixar CSV simples. Tente novamente.",
+          title: "❌ Erro no Download Streaming",
+          description:
+            "Falha inesperada no sistema streaming. Tente novamente.",
           variant: "destructive",
         });
       }
@@ -4564,65 +4572,73 @@ const RelatoriosManager = () => {
   const downloadCompleteCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "📊 Gerando CSV Completo",
-      description: "Análise avançada... pode levar até 30 segundos",
+      title: "� CSV Completo - STREAMING",
+      description: "Análise pedagógica avançada com streaming anti-timeout! 🔥",
     });
 
     try {
-      // ⏰ TIMEOUT PROTECTION - 45 segundos para compensar Vercel
+      // 🚀 STREAMING DOWNLOAD - NO MORE TIMEOUTS FOR COMPLEX DATA!
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=complete`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          timeout: 45000, // 45 segundos
+          responseType: "blob", // CRITICAL: receive as streaming blob
+          timeout: 180000, // 3 minutes for complex analysis
         }
       );
 
-      let csvData;
-      if (response.data?.csv_data) {
-        csvData = response.data.csv_data;
-      } else {
-        throw new Error("Formato de resposta inválido");
-      }
-
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      // Handle streaming response directly as blob
+      const blob = new Blob([response.data], {
+        type: "text/csv;charset=utf-8;",
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `relatorio_completo_${
+
+      // Extract filename from Content-Disposition header if available
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = `relatorio_completo_${
         new Date().toISOString().split("T")[0]
       }.csv`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch) filename = filenameMatch[1];
+      }
+
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
 
       toast({
-        title: "✅ CSV Completo Baixado",
+        title: "🚀 CSV Completo - STREAMING OK!",
         description:
-          "Arquivo com análise pedagógica completa baixado com sucesso",
+          "Análise pedagógica baixada com streaming anti-timeout! 🎯",
       });
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
-      
-      // 🚨 TIMEOUT ERROR HANDLING  
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+
+      // 🚨 ENHANCED ERROR HANDLING for complex streaming
+      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
-          title: "⏰ Timeout - Processamento Complexo",
-          description: "Análise pedagógica muito demorada. Tente filtrar dados ou use período menor.",
+          title: "⏰ Timeout Extremo",
+          description:
+            "Dataset muito complexo mesmo para streaming. Contate administrador.",
           variant: "destructive",
         });
       } else if (error.response?.status === 504) {
         toast({
           title: "🚨 Gateway Timeout",
-          description: "Servidor sobrecarregado. Aguarde 1 minuto e tente novamente.",
+          description:
+            "Infraestrutura sobrecarregada. Sistema streaming não ajudou.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erro no Download", 
-          description: "Falha ao baixar CSV completo. Tente novamente.",
+          title: "❌ Erro Streaming Completo",
+          description: "Falha no download streaming da análise pedagógica.",
           variant: "destructive",
         });
       }

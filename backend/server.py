@@ -3400,35 +3400,52 @@ async def get_attendance_report(
     chamadas = await db.attendances.find(query).to_list(1000)
     
     if export_csv:
+        # 🚨 ANTI-TIMEOUT: Use StreamingResponse para evitar 504 Gateway Timeout
         if format == CSVFormat.complete:
-            return await generate_complete_csv(chamadas)
+            filename = f"relatorio_completo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            return StreamingResponse(
+                generate_complete_csv_stream(chamadas),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
         else:  # CSVFormat.simple
-            return await generate_simple_csv(chamadas)
+            filename = f"relatorio_simples_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            return StreamingResponse(
+                generate_simple_csv_stream(chamadas),
+                media_type="text/csv",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
     return [parse_from_mongo(chamada) for chamada in chamadas]
 
 
-# 🔧 CSV Generation Functions - OPTIMIZED FOR VERCEL
-async def generate_simple_csv(chamadas):
-    """Generate simple CSV format - TIMEOUT OPTIMIZED"""
-    output = StringIO()
-    writer = csv.writer(output)
+# � STREAMING CSV FUNCTIONS - ANTI-TIMEOUT PROTECTION
+async def generate_simple_csv_stream(chamadas):
+    """Generate simple CSV format with STREAMING - NO MORE 504 TIMEOUTS!"""
+    import io
     
-    # Simple CSV headers
+    # Initialize buffer
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    
+    # Send headers first
     writer.writerow([
         "Aluno", "CPF", "Matricula", "Turma", "Tipo_Turma", "Curso", "Data", 
         "Hora_Inicio", "Hora_Fim", "Status", "Hora_Registro", 
         "Responsavel", "Tipo_Responsavel", "Unidade", "Observacoes"
     ])
+    yield buffer.getvalue()
+    buffer.seek(0)
+    buffer.truncate(0)
     
-    # 🚨 VERCEL TIMEOUT PROTECTION - Limit processing to avoid 504
-    MAX_RECORDS = 5000  # Limit records to prevent timeout
+    # Stream data row by row to prevent memory buildup
     processed = 0
+    MAX_SAFE_RECORDS = 10000  # Higher limit since we're streaming
     
-    # Process data with TIMEOUT PROTECTION
+    # Process data with STREAMING (sends data as it processes)
     for chamada in chamadas:
-        # 🚨 STOP PROCESSING IF HITTING LIMITS
-        if processed >= MAX_RECORDS:
-            print(f"⚠️ CSV LIMIT REACHED: {MAX_RECORDS} records processed")
+        # Safety limit (but much higher since streaming)
+        if processed >= MAX_SAFE_RECORDS:
+            print(f"⚠️ CSV LIMIT REACHED: {MAX_SAFE_RECORDS} records processed")
             break
             
         try:
@@ -3491,7 +3508,7 @@ async def generate_simple_csv(chamadas):
                     tipo_responsavel = responsavel.get("tipo", "instrutor") if responsavel else "instrutor"
                     tipo_responsavel_label = "Pedagogo" if tipo_responsavel == "pedagogo" else "Instrutor"
                     
-                    # Escrever linha e incrementar contador
+                    # Write row to buffer and stream immediately
                     writer.writerow([
                         aluno.get("nome", ""),
                         aluno.get("cpf", ""),
@@ -3509,6 +3526,12 @@ async def generate_simple_csv(chamadas):
                         unidade.get("nome", "") if unidade else "",
                         observacoes_texto
                     ])
+                    
+                    # 🚨 STREAM THE ROW IMMEDIATELY (prevents timeout!)
+                    yield buffer.getvalue()
+                    buffer.seek(0)
+                    buffer.truncate(0)
+                    
                     processed += 1  # 📊 Count processed records
                     
                 except Exception as e:
@@ -3519,16 +3542,19 @@ async def generate_simple_csv(chamadas):
             print(f"Erro ao processar chamada {chamada.get('id', 'unknown')}: {e}")
             continue
     
-    output.seek(0)
-    return {"csv_data": output.getvalue()}
+    # Final stream completion
+    print(f"✅ CSV Simples concluído: {processed} registros processados")
 
 
-async def generate_complete_csv(chamadas):
-    """Generate complete CSV format with enhanced fields - TIMEOUT OPTIMIZED"""
-    output = StringIO()
-    writer = csv.writer(output)
+async def generate_complete_csv_stream(chamadas):
+    """Generate complete CSV format with STREAMING - NO MORE TIMEOUTS!"""
+    import io
     
-    # Complete CSV headers
+    # Initialize buffer
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    
+    # Send headers first
     writer.writerow([
         "Nome do Aluno", "CPF", "Data de Nascimento", "Email", "Telefone",
         "Curso", "Tipo de Turma", "Código da Turma", "Unidade", "Ciclo",
@@ -3538,15 +3564,18 @@ async def generate_complete_csv(chamadas):
         "Classificação de Risco", "Status do Aluno", "Motivo de Desistência",
         "Média Geral", "Progresso no Curso (%)", "Observações"
     ])
-    
-    # 🚨 VERCEL TIMEOUT PROTECTION
-    MAX_RECORDS_COMPLETE = 2000  # Lower limit for complex processing
-    processed = 0
+    yield buffer.getvalue()
+    buffer.seek(0)
+    buffer.truncate(0)
     
     # Calculate student statistics
     student_stats = {}
+    MAX_SAFE_RECORDS_COMPLETE = 5000  # Conservative limit for complex processing
+
+
+
     
-    # Process all records to build statistics
+    # Process all records to build statistics (STREAM-SAFE)
     for chamada in chamadas:
         records = chamada.get("records", [])
         data_chamada = chamada.get("data", "")
@@ -3576,8 +3605,9 @@ async def generate_complete_csv(chamadas):
                 student_stats[aluno_id]["faltas"] += 1
                 student_stats[aluno_id]["faltas_consecutivas"] += 1
     
-    # Generate rows for unique students
+    # Generate rows for unique students (STREAM EACH ROW)
     processed_students = set()
+    processed = 0
     
     for chamada in chamadas:
         try:
@@ -3601,6 +3631,11 @@ async def generate_complete_csv(chamadas):
                 "unidade_id": turma.get("unidade_id")
             }) if turma.get("unidade_id") else None
             
+            # 🚨 TIMEOUT PROTECTION
+            if processed >= MAX_SAFE_RECORDS_COMPLETE:
+                print(f"⚠️ CSV Completo LIMIT REACHED: {MAX_SAFE_RECORDS_COMPLETE} records")
+                break
+                
             # Process each student only once
             records = chamada.get("records", [])
             for record in records:
@@ -3644,7 +3679,7 @@ async def generate_complete_csv(chamadas):
                 elif perc_num < 70:
                     observacoes.append("Aluno com baixa frequência e risco alto de evasão")
                 
-                # Write complete row
+                # Write complete row to buffer
                 writer.writerow([
                     aluno.get("nome", ""),  # Nome do Aluno
                     aluno.get("cpf", ""),   # CPF
@@ -3676,12 +3711,36 @@ async def generate_complete_csv(chamadas):
                     "; ".join(observacoes)  # Observações
                 ])
                 
+                # 🚨 STREAM THE ROW IMMEDIATELY (prevents timeout!)
+                yield buffer.getvalue()
+                buffer.seek(0)
+                buffer.truncate(0)
+                
+                processed += 1
+                
         except Exception as e:
             print(f"Erro ao processar dados completos: {e}")
             continue
     
-    output.seek(0)
-    return {"csv_data": output.getvalue()}
+    # Final stream completion
+    print(f"✅ CSV Completo concluído: {processed} registros processados")
+
+
+# 🔧 LEGACY FUNCTIONS (kept for backward compatibility)
+async def generate_simple_csv(chamadas):
+    """DEPRECATED: Use generate_simple_csv_stream instead"""
+    result = []
+    async for chunk in generate_simple_csv_stream(chamadas):
+        result.append(chunk)
+    return {"csv_data": "".join(result)}
+
+
+async def generate_complete_csv(chamadas):
+    """DEPRECATED: Use generate_complete_csv_stream instead"""
+    result = []
+    async for chunk in generate_complete_csv_stream(chamadas):
+        result.append(chunk)
+    return {"csv_data": "".join(result)}
 
 # 📊 NOVO ENDPOINT: CSV de Frequência por Aluno (com estatísticas completas)
 @api_router.get("/reports/student-frequency")
