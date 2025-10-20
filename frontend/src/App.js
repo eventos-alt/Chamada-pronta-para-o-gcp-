@@ -49,6 +49,48 @@ import {
 } from "./components/ui/table";
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
+
+// 🛡️ Error Boundary para capturar erros DOM
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("🚨 ErrorBoundary capturou erro:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+            <h2 className="text-xl font-bold text-red-600 mb-4">
+              ⚠️ Erro Capturado
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Ocorreu um erro na aplicação. A página será recarregada
+              automaticamente.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              🔄 Recarregar Página
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 import {
   Users,
   GraduationCap,
@@ -91,7 +133,51 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-// 🚀 RENDER OBRIGATÓRIO - Sistema nível Brasil
+// �️ ERROR BOUNDARY para evitar tela branca
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("🚨 ErrorBoundary capturou erro:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+              <AlertTriangle className="w-6 h-6 text-red-600" />
+            </div>
+            <h1 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              Oops! Algo deu errado
+            </h1>
+            <p className="text-gray-600 text-center mb-4">
+              Um erro inesperado ocorreu. Tente recarregar a página.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Recarregar Página
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// �🚀 RENDER OBRIGATÓRIO - Sistema nível Brasil
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL ||
   "https://sistema-ios-backend.onrender.com";
@@ -4404,7 +4490,112 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 📊 FASE 4: CSV Export Aprimorado com Dados Precisos
+  // 📊 CSV Export com Dois Formatos
+  const downloadSimpleCSV = async () => {
+    setCsvLoading(true);
+    toast({
+      title: "📊 Gerando CSV Simples",
+      description: "Baixando dados básicos de presença...",
+    });
+
+    try {
+      const response = await axios.get(
+        `${API}/reports/attendance?export_csv=true&format=simple`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      let csvData;
+      if (response.data?.csv_data) {
+        csvData = response.data.csv_data;
+      } else {
+        throw new Error("Formato de resposta inválido");
+      }
+
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `relatorio_simples_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: "✅ CSV Simples Baixado",
+        description:
+          "Arquivo com dados básicos de presença baixado com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro no download CSV simples:", error);
+      toast({
+        title: "❌ Erro no Download",
+        description: "Falha ao baixar CSV simples. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  const downloadCompleteCSV = async () => {
+    setCsvLoading(true);
+    toast({
+      title: "📊 Gerando CSV Completo",
+      description: "Processando análise pedagógica completa...",
+    });
+
+    try {
+      const response = await axios.get(
+        `${API}/reports/attendance?export_csv=true&format=complete`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      let csvData;
+      if (response.data?.csv_data) {
+        csvData = response.data.csv_data;
+      } else {
+        throw new Error("Formato de resposta inválido");
+      }
+
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `relatorio_completo_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: "✅ CSV Completo Baixado",
+        description:
+          "Arquivo com análise pedagógica completa baixado com sucesso",
+      });
+    } catch (error) {
+      console.error("Erro no download CSV completo:", error);
+      toast({
+        title: "❌ Erro no Download",
+        description: "Falha ao baixar CSV completo. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
+  // 📊 FASE 4: CSV Export Aprimorado com Dados Precisos (mantido para compatibilidade)
   const downloadFrequencyReport = async () => {
     setCsvLoading(true);
 
@@ -4649,32 +4840,51 @@ const RelatoriosManager = () => {
                 Filtros
               </Button>
             )}
-            <Button
-              onClick={downloadFrequencyReport}
-              variant="outline"
-              size="sm"
-              className="text-blue-600 border-blue-600 hover:bg-blue-50 relative"
-              title="CSV com dados precisos da Fase 4"
-              disabled={csvLoading}
-            >
-              {csvLoading ? (
-                <>
-                  <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-                  Exportando...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4 mr-1" />
-                  Exportar CSV
-                </>
-              )}
-              {stats.calculo_preciso && (
-                <div
-                  className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
-                  title="Dados Fase 4 - Cálculos Precisos"
-                ></div>
-              )}
-            </Button>
+
+            {/* 📊 BOTÕES DUAIS DE CSV */}
+            <div className="flex gap-2">
+              <Button
+                onClick={downloadSimpleCSV}
+                variant="outline"
+                size="sm"
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                title="CSV com dados básicos de presença (15 campos)"
+                disabled={csvLoading}
+              >
+                {csvLoading ? (
+                  <>
+                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    Exportando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-1" />
+                    CSV Simples
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={downloadCompleteCSV}
+                variant="outline"
+                size="sm"
+                className="text-green-600 border-green-600 hover:bg-green-50"
+                title="CSV com análise pedagógica completa (27 campos)"
+                disabled={csvLoading}
+              >
+                {csvLoading ? (
+                  <>
+                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+                    Exportando...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-1" />
+                    CSV Completo
+                  </>
+                )}
+              </Button>
+            </div>
 
             {/* 🔧 BOTÃO HEALTH CHECK - FASE 5 */}
             <Button
@@ -8072,4 +8282,13 @@ const DebugPanel = () => {
   );
 };
 
-export default App;
+// 🛡️ App envolvido com ErrorBoundary
+const AppWithErrorBoundary = () => {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+};
+
+export default AppWithErrorBoundary;

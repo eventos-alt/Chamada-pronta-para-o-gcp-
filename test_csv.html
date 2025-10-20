@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste CSV Direto</title>
+</head>
+<body>
+    <h1>Teste CSV Sistema IOS</h1>
+    <button onclick="testarCSV()">Testar CSV Novo Endpoint</button>
+    <pre id="resultado"></pre>
+
+    <script>
+        async function testarCSV() {
+            const resultado = document.getElementById('resultado');
+            resultado.textContent = 'Testando...';
+            
+            try {
+                // 1. Login
+                console.log('Fazendo login...');
+                const loginResponse = await fetch('http://localhost:8000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'jesiel.junior@ios.org.br',
+                        senha: 'b99018cd'
+                    })
+                });
+                
+                if (!loginResponse.ok) {
+                    throw new Error(`Login falhou: ${loginResponse.status}`);
+                }
+                
+                const loginData = await loginResponse.json();
+                const token = loginData.access_token;
+                
+                resultado.textContent += '✅ Login OK\n';
+                
+                // 2. Testar CSV
+                console.log('Testando CSV...');
+                const csvResponse = await fetch('http://localhost:8000/api/reports/student-frequency?export_csv=true', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!csvResponse.ok) {
+                    throw new Error(`CSV falhou: ${csvResponse.status}`);
+                }
+                
+                const csvData = await csvResponse.json();
+                const csv = csvData.csv_data;
+                
+                resultado.textContent += '✅ CSV OK\n';
+                resultado.textContent += `Linhas: ${csv.split('\n').length}\n`;
+                resultado.textContent += 'Preview:\n';
+                resultado.textContent += csv.substring(0, 500) + '...';
+                
+                // Verificar se tem zeros
+                const lines = csv.split('\n');
+                if (lines.length > 1 && lines[1].includes('0,0,0')) {
+                    resultado.textContent += '\n❌ AINDA TEM ZEROS!';
+                } else {
+                    resultado.textContent += '\n✅ DADOS CORRETOS!';
+                }
+                
+            } catch (error) {
+                resultado.textContent += `❌ Erro: ${error.message}`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
