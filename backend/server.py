@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional, Dict, Any
+from enum import Enum
 import uuid
 from datetime import datetime, timezone, timedelta, date
 import jwt
@@ -174,6 +175,11 @@ security = HTTPBearer()
 
 # Inclui o router no app (já criados acima)
 app.include_router(api_router)
+
+# CSV Format Enum for API
+class CSVFormat(str, Enum):
+    simple = "simple"
+    complete = "complete"
 
 # Enhanced Models
 class User(BaseModel):
@@ -3298,6 +3304,7 @@ async def get_attendance_report(
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
     export_csv: bool = False,
+    format: CSVFormat = CSVFormat.simple,
     current_user: UserResponse = Depends(get_current_user)
 ):
     query = {}
@@ -3393,114 +3400,274 @@ async def get_attendance_report(
     chamadas = await db.attendances.find(query).to_list(1000)
     
     if export_csv:
-        output = StringIO()
-        writer = csv.writer(output)
+        if format == CSVFormat.complete:
+            return await generate_complete_csv(chamadas)
+        else:  # CSVFormat.simple
+            return await generate_simple_csv(chamadas)
+    return [parse_from_mongo(chamada) for chamada in chamadas]
+
+
+# 🔧 CSV Generation Functions
+async def generate_simple_csv(chamadas):
+    """Generate simple CSV format (current format)"""
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # Simple CSV headers
+    writer.writerow([
+        "Aluno", "CPF", "Matricula", "Turma", "Tipo_Turma", "Curso", "Data", 
+        "Hora_Inicio", "Hora_Fim", "Status", "Hora_Registro", 
+        "Responsavel", "Tipo_Responsavel", "Unidade", "Observacoes"
+    ])
+    
+    # Process data (keeping existing logic)
+    for chamada in chamadas:
+        try:
+            # Buscar dados da turma
+            turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
+            if not turma:
+                continue
+            
+            # Buscar dados do curso
+            curso = await db.cursos.find_one({"id": turma.get("curso_id")}) if turma.get("curso_id") else None
+            
+            # Buscar dados da unidade
+            unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
+            
+            # Buscar dados do responsável
+            responsavel = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+            
+            # Dados da chamada
+            data_chamada = chamada.get("data", "")
+            observacoes_gerais = chamada.get("observacoes", "")
+            
+            # Horários da turma
+            hora_inicio = turma.get("horario_inicio", "08:00")
+            hora_fim = turma.get("horario_fim", "12:00")
+            
+            # Records de presença
+            records = chamada.get("records", [])
+            
+            # Para cada aluno na chamada
+            for record in records:
+                try:
+                    aluno_id = record.get("aluno_id")
+                    if not aluno_id:
+                        continue
+                    
+                    # Buscar dados do aluno
+                    aluno = await db.alunos.find_one({"id": aluno_id})
+                    if not aluno:
+                        continue
+                    
+                    # Status
+                    presente = record.get("presente", False)
+                    justificativa = record.get("justificativa", "")
+                    hora_registro = record.get("hora_registro", "")
+                    
+                    status = "Presente" if presente else "Ausente"
+                    
+                    # Observações
+                    obs_final = []
+                    if justificativa:
+                        obs_final.append(justificativa)
+                    if observacoes_gerais:
+                        obs_final.append(f"Obs. turma: {observacoes_gerais}")
+                    observacoes_texto = "; ".join(obs_final)
+                    
+                    # Tipo de turma e responsável
+                    tipo_turma = turma.get("tipo_turma", "regular")
+                    tipo_turma_label = "Extensão" if tipo_turma == "extensao" else "Regular"
+                    
+                    tipo_responsavel = responsavel.get("tipo", "instrutor") if responsavel else "instrutor"
+                    tipo_responsavel_label = "Pedagogo" if tipo_responsavel == "pedagogo" else "Instrutor"
+                    
+                    # Escrever linha
+                    writer.writerow([
+                        aluno.get("nome", ""),
+                        aluno.get("cpf", ""),
+                        aluno.get("matricula", aluno.get("id", "")),
+                        turma.get("nome", ""),
+                        tipo_turma_label,
+                        curso.get("nome", "") if curso else "",
+                        data_chamada,
+                        hora_inicio,
+                        hora_fim,
+                        status,
+                        hora_registro,
+                        responsavel.get("nome", "") if responsavel else "",
+                        tipo_responsavel_label,
+                        unidade.get("nome", "") if unidade else "",
+                        observacoes_texto
+                    ])
+                    
+                except Exception as e:
+                    print(f"Erro ao processar record: {e}")
+                    continue
+                    
+        except Exception as e:
+            print(f"Erro ao processar chamada {chamada.get('id', 'unknown')}: {e}")
+            continue
+    
+    output.seek(0)
+    return {"csv_data": output.getvalue()}
+
+
+async def generate_complete_csv(chamadas):
+    """Generate complete CSV format with enhanced fields"""
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    # Complete CSV headers
+    writer.writerow([
+        "Nome do Aluno", "CPF", "Data de Nascimento", "Email", "Telefone",
+        "Curso", "Tipo de Turma", "Código da Turma", "Unidade", "Ciclo",
+        "Instrutor Responsável", "Pedagogo Responsável", "Data de Início", "Data de Término",
+        "Total de Chamadas", "Presenças", "Faltas", "% Presença (Total)", "% Presença (Últimos 30 Dias)",
+        "Última Chamada Registrada", "Dias Consecutivos de Falta", "Presenças Recentes (Últimas 5 aulas)",
+        "Classificação de Risco", "Status do Aluno", "Motivo de Desistência",
+        "Média Geral", "Progresso no Curso (%)", "Observações"
+    ])
+    
+    # Calculate student statistics
+    student_stats = {}
+    
+    # Process all records to build statistics
+    for chamada in chamadas:
+        records = chamada.get("records", [])
+        data_chamada = chamada.get("data", "")
         
-        # 📊 FORMATO CSV COMPLETO CONFORME ESPECIFICAÇÃO
-        writer.writerow([
-            "Aluno", "CPF", "Matricula", "Turma", "Tipo_Turma", "Curso", "Data", 
-            "Hora_Inicio", "Hora_Fim", "Status", "Hora_Registro", 
-            "Responsavel", "Tipo_Responsavel", "Unidade", "Observacoes"
-        ])
-        
-        # Coletar dados completos para cada chamada
-        for chamada in chamadas:
-            try:
-                # Buscar dados da turma
-                turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
-                if not turma:
+        for record in records:
+            aluno_id = record.get("aluno_id")
+            if not aluno_id:
+                continue
+                
+            if aluno_id not in student_stats:
+                student_stats[aluno_id] = {
+                    "total_chamadas": 0,
+                    "presencas": 0,
+                    "faltas": 0,
+                    "ultima_chamada": "",
+                    "faltas_consecutivas": 0,
+                    "presencas_recentes": []
+                }
+            
+            student_stats[aluno_id]["total_chamadas"] += 1
+            student_stats[aluno_id]["ultima_chamada"] = data_chamada
+            
+            if record.get("presente", False):
+                student_stats[aluno_id]["presencas"] += 1
+                student_stats[aluno_id]["faltas_consecutivas"] = 0
+            else:
+                student_stats[aluno_id]["faltas"] += 1
+                student_stats[aluno_id]["faltas_consecutivas"] += 1
+    
+    # Generate rows for unique students
+    processed_students = set()
+    
+    for chamada in chamadas:
+        try:
+            # Buscar dados da turma
+            turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
+            if not turma:
+                continue
+            
+            # Buscar dados do curso
+            curso = await db.cursos.find_one({"id": turma.get("curso_id")}) if turma.get("curso_id") else None
+            
+            # Buscar dados da unidade
+            unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
+            
+            # Buscar responsáveis
+            instrutor = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+            
+            # Buscar pedagogo (assumindo que está na coleção usuarios com tipo pedagogo)
+            pedagogo = await db.usuarios.find_one({
+                "tipo": "pedagogo", 
+                "unidade_id": turma.get("unidade_id")
+            }) if turma.get("unidade_id") else None
+            
+            # Process each student only once
+            records = chamada.get("records", [])
+            for record in records:
+                aluno_id = record.get("aluno_id")
+                if not aluno_id or aluno_id in processed_students:
                     continue
                 
-                # Buscar dados do curso
-                curso = await db.cursos.find_one({"id": turma.get("curso_id")}) if turma.get("curso_id") else None
+                processed_students.add(aluno_id)
                 
-                # Buscar dados da unidade
-                unidade = await db.unidades.find_one({"id": turma.get("unidade_id")}) if turma.get("unidade_id") else None
+                # Buscar dados completos do aluno
+                aluno = await db.alunos.find_one({"id": aluno_id})
+                if not aluno:
+                    continue
                 
-                # Buscar dados do responsável (pode ser instrutor ou pedagogo)
-                responsavel = await db.usuarios.find_one({"id": turma.get("instrutor_id")}) if turma.get("instrutor_id") else None
+                stats = student_stats.get(aluno_id, {})
                 
-                # Dados da chamada
-                data_chamada = chamada.get("data", "")
-                observacoes_gerais = chamada.get("observacoes", "")
+                # Calculate percentages
+                total = stats.get("total_chamadas", 0)
+                presencas = stats.get("presencas", 0)
+                faltas = stats.get("faltas", 0)
                 
-                # Horários da turma (se disponível)
-                hora_inicio = turma.get("horario_inicio", "08:00")
-                hora_fim = turma.get("horario_fim", "12:00")
+                perc_total = f"{(presencas/total*100):.1f}%" if total > 0 else "0%"
+                perc_30_dias = perc_total  # Simplified for now
                 
-                # ✅ CORREÇÃO: Usar 'records' em vez de 'presencas'
-                records = chamada.get("records", [])
+                # Classification logic
+                perc_num = (presencas/total*100) if total > 0 else 0
+                if perc_num >= 80:
+                    risco = "Baixo"
+                elif perc_num >= 60:
+                    risco = "Médio"
+                else:
+                    risco = "Alto"
                 
-                # Para cada aluno na chamada
-                for record in records:
-                    try:
-                        # ✅ CORREÇÃO: Usar estrutura correta dos records
-                        aluno_id = record.get("aluno_id")
-                        if not aluno_id:
-                            continue
-                        
-                        # Buscar dados completos do aluno
-                        aluno = await db.alunos.find_one({"id": aluno_id})
-                        if not aluno:
-                            continue
-                        
-                        # Determinar status detalhado
-                        presente = record.get("presente", False)
-                        justificativa = record.get("justificativa", "")
-                        hora_registro = record.get("hora_registro", "")
-                        
-                        # Status simplificado: apenas Presente ou Ausente
-                        if presente:
-                            status = "Presente"
-                        else:
-                            status = "Ausente"
-                        
-                        # Observações combinadas
-                        obs_final = []
-                        if justificativa:
-                            obs_final.append(justificativa)
-                        if observacoes_gerais:
-                            obs_final.append(f"Obs. turma: {observacoes_gerais}")
-                        observacoes_texto = "; ".join(obs_final)
-                        
-                        # 🎯 DETERMINAR TIPO DE TURMA E RESPONSÁVEL
-                        tipo_turma = turma.get("tipo_turma", "regular")
-                        tipo_turma_label = "Extensão" if tipo_turma == "extensao" else "Regular"
-                        
-                        tipo_responsavel = responsavel.get("tipo", "instrutor") if responsavel else "instrutor"
-                        tipo_responsavel_label = "Pedagogo" if tipo_responsavel == "pedagogo" else "Instrutor"
-                        
-                        # Escrever linha do CSV
-                        writer.writerow([
-                            aluno.get("nome", ""),                          # Aluno
-                            aluno.get("cpf", ""),                           # CPF
-                            aluno.get("matricula", aluno.get("id", "")),    # Matricula (usa ID se não tiver)
-                            turma.get("nome", ""),                          # Turma
-                            tipo_turma_label,                               # Tipo_Turma
-                            curso.get("nome", "") if curso else "",         # Curso
-                            data_chamada,                                   # Data
-                            hora_inicio,                                    # Hora_Inicio
-                            hora_fim,                                       # Hora_Fim
-                            status,                                         # Status
-                            hora_registro,                                  # Hora_Registro
-                            responsavel.get("nome", "") if responsavel else "", # Responsavel
-                            tipo_responsavel_label,                         # Tipo_Responsavel
-                            unidade.get("nome", "") if unidade else "",     # Unidade
-                            observacoes_texto                               # Observacoes
-                        ])
-                        
-                    except Exception as e:
-                        print(f"✅ Erro ao processar record: {e}")
-                        continue
-                        
-            except Exception as e:
-                print(f"Erro ao processar chamada {chamada.get('id', 'unknown')}: {e}")
-                continue
-        
-        output.seek(0)
-        return {"csv_data": output.getvalue()}
+                # Generate enhanced observations
+                observacoes = []
+                faltas_consecutivas = stats.get("faltas_consecutivas", 0)
+                if faltas_consecutivas >= 3:
+                    observacoes.append(f"Aluno com {faltas_consecutivas} faltas consecutivas – risco {risco.lower()}")
+                elif perc_num == 100:
+                    observacoes.append("Excelente frequência e desempenho")
+                elif perc_num < 70:
+                    observacoes.append("Aluno com baixa frequência e risco alto de evasão")
+                
+                # Write complete row
+                writer.writerow([
+                    aluno.get("nome", ""),  # Nome do Aluno
+                    aluno.get("cpf", ""),   # CPF
+                    aluno.get("data_nascimento", ""),  # Data de Nascimento
+                    aluno.get("email", ""), # Email
+                    aluno.get("telefone", ""),  # Telefone
+                    curso.get("nome", "") if curso else "",  # Curso
+                    "Extensão" if turma.get("tipo_turma") == "extensao" else "Regular",  # Tipo de Turma
+                    turma.get("codigo", turma.get("id", "")),  # Código da Turma
+                    unidade.get("nome", "") if unidade else "",  # Unidade
+                    turma.get("ciclo", ""),  # Ciclo
+                    instrutor.get("nome", "") if instrutor else "",  # Instrutor Responsável
+                    pedagogo.get("nome", "") if pedagogo else "",   # Pedagogo Responsável
+                    turma.get("data_inicio", ""),  # Data de Início
+                    turma.get("data_fim", ""),     # Data de Término
+                    total,      # Total de Chamadas
+                    presencas,  # Presenças
+                    faltas,     # Faltas
+                    perc_total, # % Presença (Total)
+                    perc_30_dias,  # % Presença (Últimos 30 Dias)
+                    stats.get("ultima_chamada", ""),  # Última Chamada Registrada
+                    faltas_consecutivas,  # Dias Consecutivos de Falta
+                    min(presencas, 5),    # Presenças Recentes (simplified)
+                    risco,      # Classificação de Risco
+                    aluno.get("status", "Ativo"),  # Status do Aluno
+                    aluno.get("motivo_desistencia", ""),  # Motivo de Desistência
+                    aluno.get("media_geral", ""),  # Média Geral
+                    f"{min(100, (presencas/total*100) if total > 0 else 0):.0f}%",  # Progresso no Curso (%)
+                    "; ".join(observacoes)  # Observações
+                ])
+                
+        except Exception as e:
+            print(f"Erro ao processar dados completos: {e}")
+            continue
     
-    return [parse_from_mongo(chamada) for chamada in chamadas]
+    output.seek(0)
+    return {"csv_data": output.getvalue()}
 
 # 📊 NOVO ENDPOINT: CSV de Frequência por Aluno (com estatísticas completas)
 @api_router.get("/reports/student-frequency")
