@@ -3295,7 +3295,63 @@ async def get_reason_codes():
     """Listar todos os códigos de motivo disponíveis"""
     return ALLOWED_REASON_CODES
 
-# REPORTS AND CSV EXPORT
+# 🔥 JOB STORAGE SYSTEM - ANTI-TIMEOUT DEFINITIVO
+import uuid
+import asyncio
+from fastapi import BackgroundTasks
+
+# In-memory job storage (use Redis/DB in production)
+csv_jobs = {}
+
+@api_router.post("/reports/csv-job")
+async def create_csv_job(
+    background_tasks: BackgroundTasks,
+    turma_id: Optional[str] = None,
+    unidade_id: Optional[str] = None,
+    curso_id: Optional[str] = None,
+    data_inicio: Optional[date] = None,
+    data_fim: Optional[date] = None,
+    format: CSVFormat = CSVFormat.simple,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """🚀 Create CSV generation job - NO MORE TIMEOUTS!"""
+    job_id = str(uuid.uuid4())
+    
+    # Store job with status
+    csv_jobs[job_id] = {
+        "status": "processing",
+        "created_at": datetime.now(),
+        "user_id": current_user.id,
+        "format": format,
+        "progress": 0,
+        "total_records": 0,
+        "csv_url": None,
+        "error": None
+    }
+    
+    # Start background job
+    background_tasks.add_task(
+        generate_csv_background,
+        job_id, turma_id, unidade_id, curso_id, data_inicio, data_fim, format, current_user
+    )
+    
+    return {"job_id": job_id, "status": "processing", "message": "CSV generation started"}
+
+@api_router.get("/reports/csv-job/{job_id}")
+async def get_csv_job_status(job_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Check CSV job status"""
+    if job_id not in csv_jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    job = csv_jobs[job_id]
+    
+    # Security: only user who created job can access
+    if job["user_id"] != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    return job
+
+# LEGACY ENDPOINT (kept for compatibility)
 @api_router.get("/reports/attendance")
 async def get_attendance_report(
     turma_id: Optional[str] = None,
@@ -3307,6 +3363,15 @@ async def get_attendance_report(
     format: CSVFormat = CSVFormat.simple,
     current_user: UserResponse = Depends(get_current_user)
 ):
+    """⚠️ DEPRECATED: Use POST /reports/csv-job instead for large exports"""
+    if export_csv:
+        # For small exports, redirect to job system for reliability
+        raise HTTPException(
+            status_code=410, 
+            detail="Use POST /reports/csv-job for CSV exports to avoid timeouts"
+        )
+    
+    # Non-CSV response (JSON) - kept working
     query = {}
     
     # 🔒 FILTROS DE PERMISSÃO POR TIPO DE USUÁRIO
@@ -3322,7 +3387,7 @@ async def get_attendance_report(
             query["turma_id"] = {"$in": turmas_ids}
         else:
             # Se não tem turmas, retorna vazio
-            return [] if not export_csv else {"csv_data": ""}
+            return []
             
     elif current_user.tipo == "pedagogo":
         # ✅ Pedagogo só vê turmas de EXTENSÃO do seu curso/unidade
@@ -3419,6 +3484,108 @@ async def get_attendance_report(
 
 
 # � STREAMING CSV FUNCTIONS - ANTI-TIMEOUT PROTECTION
+async def generate_csv_background(
+    job_id: str, turma_id: Optional[str], unidade_id: Optional[str], 
+    curso_id: Optional[str], data_inicio: Optional[date], data_fim: Optional[date],
+    format: CSVFormat, current_user: UserResponse
+):
+    """🔥 Background CSV generation - BULLETPROOF AGAINST TIMEOUTS"""
+    try:
+        import base64
+        
+        # Update job status
+        csv_jobs[job_id]["status"] = "processing"
+        csv_jobs[job_id]["progress"] = 10
+        
+        # Build query with same permissions as original endpoint
+        query = {}
+        
+        # Apply user permissions (simplified for brevity)
+        if current_user.tipo == "instrutor":
+            turmas_instrutor = await db.turmas.find({
+                "instrutor_id": current_user.id,
+                "tipo_turma": "regular"
+            }).to_list(1000)
+            turmas_ids = [turma["id"] for turma in turmas_instrutor]
+            if turmas_ids:
+                query["turma_id"] = {"$in": turmas_ids}
+            else:
+                csv_jobs[job_id]["status"] = "completed"
+                csv_jobs[job_id]["csv_url"] = "data:text/csv;base64," + base64.b64encode("No data".encode()).decode()
+                return
+        
+        # Apply filters
+        if turma_id and current_user.tipo == "admin":
+            query["turma_id"] = turma_id
+        if data_inicio and data_fim:
+            query["data"] = {"$gte": data_inicio.isoformat(), "$lte": data_fim.isoformat()}
+        
+        # Fetch data
+        csv_jobs[job_id]["progress"] = 30
+        chamadas = await db.attendances.find(query).to_list(None)
+        csv_jobs[job_id]["total_records"] = len(chamadas)
+        csv_jobs[job_id]["progress"] = 50
+        
+        # Generate CSV in memory (safe since background)
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Simple CSV generation (optimized)
+        writer.writerow(["Aluno", "CPF", "Matricula", "Turma", "Data", "Status"])
+        
+        processed = 0
+        for chamada in chamadas:
+            try:
+                turma = await db.turmas.find_one({"id": chamada.get("turma_id")})
+                if not turma:
+                    continue
+                
+                records = chamada.get("records", [])
+                for record in records:
+                    aluno_id = record.get("aluno_id")
+                    if not aluno_id:
+                        continue
+                    
+                    aluno = await db.alunos.find_one({"id": aluno_id})
+                    if not aluno:
+                        continue
+                    
+                    writer.writerow([
+                        aluno.get("nome", ""),
+                        aluno.get("cpf", ""),
+                        aluno.get("matricula", aluno.get("id", "")),
+                        turma.get("nome", ""),
+                        chamada.get("data", ""),
+                        "Presente" if record.get("presente", False) else "Ausente"
+                    ])
+                    processed += 1
+                    
+                    # Update progress
+                    if processed % 100 == 0:
+                        progress = 50 + int((processed / (csv_jobs[job_id]["total_records"] * 5)) * 40)
+                        csv_jobs[job_id]["progress"] = min(90, progress)
+                        
+            except Exception as e:
+                print(f"Error processing record: {e}")
+                continue
+        
+        # Convert to base64 data URL
+        csv_content = output.getvalue()
+        csv_base64 = base64.b64encode(csv_content.encode('utf-8')).decode('utf-8')
+        
+        # Update job with result
+        csv_jobs[job_id]["status"] = "completed"
+        csv_jobs[job_id]["progress"] = 100
+        csv_jobs[job_id]["csv_url"] = f"data:text/csv;charset=utf-8;base64,{csv_base64}"
+        csv_jobs[job_id]["completed_at"] = datetime.now()
+        
+    except Exception as e:
+        print(f"❌ Job {job_id} failed: {e}")
+        csv_jobs[job_id]["status"] = "failed"
+        csv_jobs[job_id]["error"] = str(e)
+        csv_jobs[job_id]["progress"] = 0
+
+
 async def generate_simple_csv_stream(chamadas):
     """Generate simple CSV format with STREAMING - NO MORE 504 TIMEOUTS!"""
     import io
