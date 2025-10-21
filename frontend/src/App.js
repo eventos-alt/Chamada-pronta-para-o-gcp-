@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
@@ -50,7 +50,7 @@ import {
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
 
-// 🛡️ Error Boundary para capturar erros DOM
+// ðŸ›¡ï¸ Error Boundary para capturar erros DOM
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -62,7 +62,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("🚨 ErrorBoundary capturou erro:", error, errorInfo);
+    console.error("ðŸš¨ ErrorBoundary capturou erro:", error, errorInfo);
   }
 
   render() {
@@ -71,17 +71,17 @@ class ErrorBoundary extends React.Component {
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
           <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
             <h2 className="text-xl font-bold text-red-600 mb-4">
-              ⚠️ Erro Capturado
+              âš ï¸ Erro Capturado
             </h2>
             <p className="text-gray-600 mb-4">
-              Ocorreu um erro na aplicação. A página será recarregada
+              Ocorreu um erro na aplicaÃ§Ã£o. A pÃ¡gina serÃ¡ recarregada
               automaticamente.
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              🔄 Recarregar Página
+              ðŸ”„ Recarregar PÃ¡gina
             </button>
           </div>
         </div>
@@ -133,14 +133,14 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-// �️ ERROR BOUNDARY para evitar tela branca
-// �🚀 RENDER OBRIGATÓRIO - Sistema nível Brasil
+// ï¿½ï¸ ERROR BOUNDARY para evitar tela branca
+// ï¿½ðŸš€ RENDER OBRIGATÃ“RIO - Sistema nÃ­vel Brasil
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL ||
   "https://sistema-ios-backend.onrender.com";
 const API = `${BACKEND_URL}/api`;
 
-// 🔍 SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
+// ðŸ” SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
 const DEBUG_MODE =
   localStorage.getItem("ios_debug") === "true" ||
   process.env.NODE_ENV === "development";
@@ -150,15 +150,15 @@ const debugLog = (message, data = null) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] IOS DEBUG:`, message, data || "");
 
-    // Salvar log no localStorage para análise posterior
+    // Salvar log no localStorage para anÃ¡lise posterior
     const logs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
     logs.push({ timestamp, message, data });
-    if (logs.length > 100) logs.shift(); // Manter apenas últimos 100 logs
+    if (logs.length > 100) logs.shift(); // Manter apenas Ãºltimos 100 logs
     localStorage.setItem("ios_debug_logs", JSON.stringify(logs));
   }
 };
 
-// 🚨 CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
+// ðŸš¨ CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
 window.addEventListener("error", (event) => {
   debugLog("ERRO GLOBAL CAPTURADO", {
     message: event.message,
@@ -168,7 +168,7 @@ window.addEventListener("error", (event) => {
     stack: event.error?.stack,
   });
 
-  // Verificar se é o erro específico do removeChild
+  // Verificar se Ã© o erro especÃ­fico do removeChild
   if (
     event.message.includes("removeChild") ||
     event.message.includes("NotFoundError")
@@ -182,7 +182,7 @@ window.addEventListener("error", (event) => {
 });
 
 window.addEventListener("unhandledrejection", (event) => {
-  debugLog("PROMISE REJEITADA NÃO TRATADA", {
+  debugLog("PROMISE REJEITADA NÃƒO TRATADA", {
     reason: event.reason,
     stack: event.reason?.stack,
   });
@@ -191,7 +191,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // Configurar timeout global para axios
 axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
-// 🔄 INTERCEPTOR COM RETRY - FASE 2 (Correção de Timeout)
+// ðŸ”„ INTERCEPTOR COM RETRY - FASE 2 (CorreÃ§Ã£o de Timeout)
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -203,12 +203,12 @@ axios.interceptors.response.use(
       (error.code === "ECONNABORTED" || error.name === "AxiosError")
     ) {
       config.retry += 1;
-      console.log(`🔄 Tentativa ${config.retry}/3 para ${config.url}`);
+      console.log(`ðŸ”„ Tentativa ${config.retry}/3 para ${config.url}`);
       return axios(config);
     }
 
     // Log estruturado do erro
-    console.error("❌ Erro na requisição:", {
+    console.error("âŒ Erro na requisiÃ§Ã£o:", {
       url: config?.url,
       method: config?.method,
       error: error.message,
@@ -219,24 +219,24 @@ axios.interceptors.response.use(
   }
 );
 
-// � REGRAS DE NEGÓCIO - FASE 3 (Precisão dos Cálculos)
+// ï¿½ REGRAS DE NEGÃ“CIO - FASE 3 (PrecisÃ£o dos CÃ¡lculos)
 const REGRAS_PRESENCA = {
-  MINIMO_APROVACAO: 75, // % mínimo para aprovação
+  MINIMO_APROVACAO: 75, // % mÃ­nimo para aprovaÃ§Ã£o
   EM_RISCO: 60, // 60-74% = Aluno em risco
-  CRITICO: 40, // < 60% = Situação crítica
+  CRITICO: 40, // < 60% = SituaÃ§Ã£o crÃ­tica
   ALERTA_FALTAS_CONSECUTIVAS: 3, // 3+ faltas seguidas = alerta
-  PERIODO_ANALISE_TENDENCIA: 30, // Dias para análise preditiva
-  INCLUIR_DESISTENTES_STATS: false, // Não contar desistentes nas médias
+  PERIODO_ANALISE_TENDENCIA: 30, // Dias para anÃ¡lise preditiva
+  INCLUIR_DESISTENTES_STATS: false, // NÃ£o contar desistentes nas mÃ©dias
 };
 
-// 🎯 CLASSIFICADOR DE RISCO DE ALUNO
+// ðŸŽ¯ CLASSIFICADOR DE RISCO DE ALUNO
 const classificarRiscoAluno = (percentualPresenca) => {
   if (percentualPresenca >= REGRAS_PRESENCA.MINIMO_APROVACAO) return "adequado";
   if (percentualPresenca >= REGRAS_PRESENCA.EM_RISCO) return "em_risco";
   return "critico";
 };
 
-// 📈 CALCULADORA DE ESTATÍSTICAS PRECISAS
+// ðŸ“ˆ CALCULADORA DE ESTATÃSTICAS PRECISAS
 const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   const alunosAtivos = REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS
     ? alunos
@@ -252,7 +252,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
       taxaMediaPresenca: 0,
     };
 
-  // Calcular presença por aluno
+  // Calcular presenÃ§a por aluno
   const estatisticasPorAluno = alunosAtivos.map((aluno) => {
     const chamadasAluno = chamadas.filter((c) => c.aluno_id === aluno.id);
     const totalChamadas = chamadasAluno.length;
@@ -269,7 +269,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
     };
   });
 
-  // Estatísticas gerais
+  // EstatÃ­sticas gerais
   const alunosEmRisco = estatisticasPorAluno.filter(
     (a) => a.classificacao === "em_risco" || a.classificacao === "critico"
   ).length;
@@ -291,55 +291,55 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   };
 };
 
-// �👥 NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
+// ï¿½ðŸ‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
 const getUserTypeLabel = (tipo) => {
   const labels = {
     admin: "Administrador(a)",
     instrutor: "Professor(a)",
-    pedagogo: "Coord. Pedagógico",
+    pedagogo: "Coord. PedagÃ³gico",
     monitor: "Assistente",
   };
   return labels[tipo] || tipo;
 };
 
-// 📊 GERADOR CSV COM DADOS PRECISOS - FASE 4
+// ðŸ“Š GERADOR CSV COM DADOS PRECISOS - FASE 4
 const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
-  console.log("🔧 Gerando CSV com dados precisos Fase 4");
+  console.log("ðŸ”§ Gerando CSV com dados precisos Fase 4");
 
-  // 📋 CABEÇALHO APRIMORADO COM NOVOS CAMPOS
+  // ðŸ“‹ CABEÃ‡ALHO APRIMORADO COM NOVOS CAMPOS
   const headers = [
     "Nome do Aluno",
     "CPF",
     "Total de Chamadas",
-    "Presenças",
+    "PresenÃ§as",
     "Faltas",
-    "% Presença (Preciso)",
-    "Classificação de Risco",
+    "% PresenÃ§a (Preciso)",
+    "ClassificaÃ§Ã£o de Risco",
     "Status do Aluno",
     "Data de Nascimento",
     "Email",
     "Telefone",
-    "Observações",
+    "ObservaÃ§Ãµes",
   ];
 
-  // 📊 PROCESSAR DADOS COM CÁLCULOS PRECISOS
+  // ðŸ“Š PROCESSAR DADOS COM CÃLCULOS PRECISOS
   const linhas = estatisticasPrecisas.estatisticasPorAluno.map((aluno) => {
     const faltas = aluno.totalChamadas - aluno.presencas;
 
-    // 🎯 Traduzir classificação para texto legível
+    // ðŸŽ¯ Traduzir classificaÃ§Ã£o para texto legÃ­vel
     const classificacaoTexto =
       {
-        adequado: "Frequência Adequada",
+        adequado: "FrequÃªncia Adequada",
         em_risco: "Aluno em Risco",
-        critico: "Situação Crítica",
-      }[aluno.classificacao] || "Não Classificado";
+        critico: "SituaÃ§Ã£o CrÃ­tica",
+      }[aluno.classificacao] || "NÃ£o Classificado";
 
-    // 🎯 Status traduzido
+    // ðŸŽ¯ Status traduzido
     const statusTexto =
       {
         ativo: "Ativo",
         desistente: "Desistente",
-        concluido: "Concluído",
+        concluido: "ConcluÃ­do",
       }[aluno.status] || "Ativo";
 
     return [
@@ -348,7 +348,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
       aluno.totalChamadas.toString(),
       aluno.presencas.toString(),
       faltas.toString(),
-      `${aluno.percentualPresenca.toFixed(2)}%`, // PRECISÃO DE 2 CASAS
+      `${aluno.percentualPresenca.toFixed(2)}%`, // PRECISÃƒO DE 2 CASAS
       classificacaoTexto,
       statusTexto,
       aluno.data_nascimento || "N/A",
@@ -358,38 +358,38 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     ];
   });
 
-  // 📈 RODAPÉ COM ESTATÍSTICAS GERAIS
+  // ðŸ“ˆ RODAPÃ‰ COM ESTATÃSTICAS GERAIS
   const rodape = [
     [""],
-    ["=== ESTATÍSTICAS GERAIS (FASE 3) ==="],
+    ["=== ESTATÃSTICAS GERAIS (FASE 3) ==="],
     [`Total de Alunos Ativos: ${estatisticasPrecisas.totalAlunos}`],
     [`Alunos em Risco: ${estatisticasPrecisas.alunosEmRisco}`],
     [`Desistentes: ${estatisticasPrecisas.desistentes}`],
     [
-      `Taxa Média de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
+      `Taxa MÃ©dia de PresenÃ§a: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
         2
       )}%`,
     ],
     [""],
     ["=== REGRAS APLICADAS ==="],
-    [`Mínimo para Aprovação: ≥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
+    [`MÃ­nimo para AprovaÃ§Ã£o: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
     [
       `Alerta de Risco: ${REGRAS_PRESENCA.EM_RISCO}% - ${
         REGRAS_PRESENCA.MINIMO_APROVACAO - 1
       }%`,
     ],
-    [`Situação Crítica: <${REGRAS_PRESENCA.EM_RISCO}%`],
+    [`SituaÃ§Ã£o CrÃ­tica: <${REGRAS_PRESENCA.EM_RISCO}%`],
     [
-      `Desistentes nas médias: ${
-        REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? "SIM" : "NÃO"
+      `Desistentes nas mÃ©dias: ${
+        REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? "SIM" : "NÃƒO"
       }`,
     ],
     [""],
-    [`Relatório gerado em: ${new Date().toLocaleString("pt-BR")}`],
-    [`Sistema: IOS - Fase 4 (Cálculos Precisos)`],
+    [`RelatÃ³rio gerado em: ${new Date().toLocaleString("pt-BR")}`],
+    [`Sistema: IOS - Fase 4 (CÃ¡lculos Precisos)`],
   ];
 
-  // 🔄 CONVERTER PARA CSV
+  // ðŸ”„ CONVERTER PARA CSV
   const todasLinhas = [headers, ...linhas, ...rodape];
   const csvContent = todasLinhas
     .map((linha) =>
@@ -399,18 +399,18 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     )
     .join("\n");
 
-  // 📋 ADICIONAR BOM (Byte Order Mark) para UTF-8
+  // ðŸ“‹ ADICIONAR BOM (Byte Order Mark) para UTF-8
   const csvComBOM = "\ufeff" + csvContent;
 
   console.log(
-    `✅ CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
+    `âœ… CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
   );
   return csvComBOM;
 };
 
-// 🔧 HEALTH CHECK SISTEMA - FASE 5
+// ðŸ”§ HEALTH CHECK SISTEMA - FASE 5
 const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
-  console.log("🔍 Executando Health Check - Fase 5");
+  console.log("ðŸ” Executando Health Check - Fase 5");
 
   const healthStatus = {
     timestamp: new Date().toISOString(),
@@ -425,40 +425,40 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
   };
 
   try {
-    // 🎯 TESTAR CONECTIVIDADE BACKEND
+    // ðŸŽ¯ TESTAR CONECTIVIDADE BACKEND
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 5000 });
       healthStatus.backend_status = "ok";
       healthStatus.backend_response_time =
         pingResponse.config.timeout || "< 5s";
     } catch (backendError) {
-      console.warn("⚠️ Backend offline, continuando em modo local");
+      console.warn("âš ï¸ Backend offline, continuando em modo local");
       healthStatus.backend_status = "offline";
       healthStatus.modo_offline = true;
     }
 
-    // 🎯 VERIFICAR DADOS LOCAIS
+    // ðŸŽ¯ VERIFICAR DADOS LOCAIS
     if (alunosData && alunosData.length > 0) {
       healthStatus.dados_disponiveis = true;
       healthStatus.total_alunos = alunosData.length;
       healthStatus.total_chamadas = chamadasData ? chamadasData.length : 0;
 
-      // Testar cálculos precisos da Fase 3
+      // Testar cÃ¡lculos precisos da Fase 3
       try {
         const testeCalculo = calcularEstatisticasPrecisas(
           alunosData.slice(0, 5),
           chamadasData || []
         );
         healthStatus.calculos_precisos = true;
-        healthStatus.fases_ativas.push("Fase 3 - Cálculos Precisos");
+        healthStatus.fases_ativas.push("Fase 3 - CÃ¡lculos Precisos");
         healthStatus.estatisticas.taxa_media = testeCalculo.taxaMediaPresenca;
         healthStatus.estatisticas.alunos_em_risco = testeCalculo.alunosEmRisco;
       } catch (calculoError) {
-        console.error("❌ Erro nos cálculos Fase 3:", calculoError);
+        console.error("âŒ Erro nos cÃ¡lculos Fase 3:", calculoError);
         healthStatus.calculos_precisos = false;
       }
 
-      // Testar geração CSV da Fase 4
+      // Testar geraÃ§Ã£o CSV da Fase 4
       try {
         const testeCsv = gerarCSVComDadosPrecisos(
           {
@@ -481,14 +481,14 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
           healthStatus.fases_ativas.push("Fase 4 - CSV Aprimorado");
         }
       } catch (csvError) {
-        console.error("❌ Erro na geração CSV Fase 4:", csvError);
+        console.error("âŒ Erro na geraÃ§Ã£o CSV Fase 4:", csvError);
         healthStatus.csv_funcionando = false;
       }
     }
 
-    // 🎯 VERIFICAR FASES IMPLEMENTADAS
+    // ðŸŽ¯ VERIFICAR FASES IMPLEMENTADAS
     if (typeof REGRAS_PRESENCA !== "undefined") {
-      healthStatus.fases_ativas.push("Fase 3 - Regras de Negócio");
+      healthStatus.fases_ativas.push("Fase 3 - Regras de NegÃ³cio");
     }
     if (typeof getUserTypeLabel !== "undefined") {
       healthStatus.fases_ativas.push("Fase 1 - Nomenclatura Unissex");
@@ -496,7 +496,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
 
     healthStatus.fases_ativas.push("Fase 5 - Health Check");
 
-    // 🎯 STATUS GERAL
+    // ðŸŽ¯ STATUS GERAL
     healthStatus.status_geral =
       healthStatus.backend_status === "ok" &&
       healthStatus.dados_disponiveis &&
@@ -504,10 +504,10 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
         ? "saudavel"
         : "alerta";
 
-    console.log("✅ Health Check concluído:", healthStatus);
+    console.log("âœ… Health Check concluÃ­do:", healthStatus);
     return healthStatus;
   } catch (error) {
-    console.error("❌ Erro no Health Check:", error);
+    console.error("âŒ Erro no Health Check:", error);
     healthStatus.status_geral = "erro";
     healthStatus.erro = error.message;
     return healthStatus;
@@ -530,10 +530,10 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
-  // Timeout de segurança - nunca deixar loading indefinidamente
+  // Timeout de seguranÃ§a - nunca deixar loading indefinidamente
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
-      console.warn("⚠️ Timeout de segurança ativado - parando loading");
+      console.warn("âš ï¸ Timeout de seguranÃ§a ativado - parando loading");
       setLoading(false);
     }, 15000); // 15 segundos
 
@@ -541,34 +541,34 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("🚀 Inicializando autenticação...");
-    console.log("🔗 Backend URL:", BACKEND_URL);
+    console.log("ðŸš€ Inicializando autenticaÃ§Ã£o...");
+    console.log("ðŸ”— Backend URL:", BACKEND_URL);
 
     if (!BACKEND_URL) {
-      console.error("❌ BACKEND_URL não configurado!");
+      console.error("âŒ BACKEND_URL nÃ£o configurado!");
       setLoading(false);
       return;
     }
 
     if (token) {
-      console.log("🔑 Token encontrado, verificando usuário...");
+      console.log("ðŸ”‘ Token encontrado, verificando usuÃ¡rio...");
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchCurrentUser();
     } else {
-      console.log("ℹ️ Sem token, direcionando para login");
+      console.log("â„¹ï¸ Sem token, direcionando para login");
       setLoading(false);
     }
   }, [token]);
 
   const fetchCurrentUser = async () => {
     try {
-      console.log("🔍 Verificando usuário atual...");
+      console.log("ðŸ” Verificando usuÃ¡rio atual...");
       const response = await axios.get(`${API}/auth/me`);
-      console.log("✅ Usuário carregado:", response.data.email);
+      console.log("âœ… UsuÃ¡rio carregado:", response.data.email);
       setUser(response.data);
     } catch (error) {
-      console.error("❌ Erro ao buscar usuário:", error);
-      // Limpar dados inválidos e permitir novo login
+      console.error("âŒ Erro ao buscar usuÃ¡rio:", error);
+      // Limpar dados invÃ¡lidos e permitir novo login
       localStorage.removeItem("token");
       delete axios.defaults.headers.common["Authorization"];
       setUser(null);
@@ -603,7 +603,7 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// 🚀 HOOK: Chamadas Pendentes (Sistema de Attendance)
+// ðŸš€ HOOK: Chamadas Pendentes (Sistema de Attendance)
 const usePendingAttendances = () => {
   const { user } = useAuth();
   const [pending, setPending] = useState([]);
@@ -611,7 +611,7 @@ const usePendingAttendances = () => {
   const [error, setError] = useState(null);
 
   const fetchPending = async () => {
-    // ✅ CORREÇÃO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
+    // âœ… CORREÃ‡ÃƒO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
     if (
       !user ||
       !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
@@ -640,7 +640,7 @@ const usePendingAttendances = () => {
     fetchPending();
   }, [user]);
 
-  // Remover turma da lista após chamada feita
+  // Remover turma da lista apÃ³s chamada feita
   const markAttendanceComplete = (turmaId) => {
     setPending((prev) => prev.filter((p) => p.turma_id !== turmaId));
   };
@@ -654,7 +654,7 @@ const usePendingAttendances = () => {
   };
 };
 
-// 🚀 COMPONENTE: Modal de Chamada
+// ðŸš€ COMPONENTE: Modal de Chamada
 const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -703,7 +703,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
         presente: r.presente,
       }));
 
-      // Usar endpoint com data específica para permitir chamadas retroativas
+      // Usar endpoint com data especÃ­fica para permitir chamadas retroativas
       const dataUrl =
         turma.data_pendente || new Date().toISOString().split("T")[0];
       await axios.post(
@@ -715,23 +715,23 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
       );
 
       toast({
-        title: "✅ Chamada Salva",
+        title: "âœ… Chamada Salva",
         description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
       });
 
-      // 🎯 FECHAR MODAL E ATUALIZAR LISTA
+      // ðŸŽ¯ FECHAR MODAL E ATUALIZAR LISTA
       onComplete(); // Notificar componente pai para remover da lista
       onClose(); // Fechar o modal
     } catch (error) {
       if (error.response?.status === 409) {
         toast({
-          title: "⚠️ Chamada Já Realizada",
-          description: "A chamada desta turma já foi registrada hoje",
+          title: "âš ï¸ Chamada JÃ¡ Realizada",
+          description: "A chamada desta turma jÃ¡ foi registrada hoje",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erro",
+          title: "âŒ Erro",
           description: "Erro ao salvar chamada. Tente novamente.",
           variant: "destructive",
         });
@@ -750,7 +750,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
-            📋 Chamada: {turma?.turma_nome}
+            ðŸ“‹ Chamada: {turma?.turma_nome}
             {turma?.data_pendente && (
               <span className="text-sm font-normal text-gray-600 ml-2">
                 (
@@ -762,8 +762,8 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             )}
           </DialogTitle>
           <DialogDescription>
-            {turma?.status_msg || "Marque os alunos presentes."} A chamada será
-            salva e não poderá ser alterada.
+            {turma?.status_msg || "Marque os alunos presentes."} A chamada serÃ¡
+            salva e nÃ£o poderÃ¡ ser alterada.
           </DialogDescription>
         </DialogHeader>
 
@@ -822,31 +822,31 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             ))}
           </div>
 
-          {/* Observações */}
+          {/* ObservaÃ§Ãµes */}
           <div className="space-y-2">
-            <Label>Observações da Aula (opcional)</Label>
+            <Label>ObservaÃ§Ãµes da Aula (opcional)</Label>
             <Textarea
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
-              placeholder="Anote observações sobre a aula, conteúdo ministrado, etc..."
+              placeholder="Anote observaÃ§Ãµes sobre a aula, conteÃºdo ministrado, etc..."
               rows={3}
             />
           </div>
 
-          {/* Confirmação */}
+          {/* ConfirmaÃ§Ã£o */}
           {showConfirm && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 font-medium">
-                ⚠️ Confirmação Necessária
+                âš ï¸ ConfirmaÃ§Ã£o NecessÃ¡ria
               </p>
               <p className="text-yellow-700 text-sm mt-1">
-                A chamada será salva e <strong>não poderá ser alterada</strong>.
+                A chamada serÃ¡ salva e <strong>nÃ£o poderÃ¡ ser alterada</strong>.
                 Deseja continuar?
               </p>
             </div>
           )}
 
-          {/* Botões */}
+          {/* BotÃµes */}
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
@@ -866,9 +866,9 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
                   Salvando...
                 </span>
               ) : showConfirm ? (
-                "✅ Confirmar e Salvar"
+                "âœ… Confirmar e Salvar"
               ) : (
-                "💾 Salvar Chamada"
+                "ðŸ’¾ Salvar Chamada"
               )}
             </Button>
           </div>
@@ -878,7 +878,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
   );
 };
 
-// 🚀 COMPONENTE: Card de Chamada Pendente
+// ðŸš€ COMPONENTE: Card de Chamada Pendente
 const PendingAttendanceCard = ({ turma, onComplete }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -951,7 +951,7 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
           >
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{turma.horario || "Horário não definido"}</span>
+              <span>{turma.horario || "HorÃ¡rio nÃ£o definido"}</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
@@ -967,7 +967,7 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
             onClick={() => setModalOpen(true)}
             className={`w-full text-white ${styles.buttonClass}`}
           >
-            📋 Fazer Chamada
+            ðŸ“‹ Fazer Chamada
           </Button>
         </CardContent>
       </Card>
@@ -993,13 +993,13 @@ const Login = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [showBrandCard, setShowBrandCard] = useState(false);
   const [firstAccessData, setFirstAccessData] = useState(() => {
-    console.log("🔧 Inicializando firstAccessData");
+    console.log("ðŸ”§ Inicializando firstAccessData");
     const initialData = {
       nome: "",
       email: "",
       tipo: "instrutor",
     };
-    console.log("📝 Dados iniciais:", initialData);
+    console.log("ðŸ“ Dados iniciais:", initialData);
     return initialData;
   });
   const { login } = useAuth();
@@ -1008,7 +1008,7 @@ const Login = () => {
   // Error boundary para capturar erros que causam tela branca
   useEffect(() => {
     const handleError = (error) => {
-      console.error("❌ Erro capturado no Login Component:", error);
+      console.error("âŒ Erro capturado no Login Component:", error);
       toast({
         title: "Erro detectado",
         description:
@@ -1021,14 +1021,14 @@ const Login = () => {
     return () => window.removeEventListener("error", handleError);
   }, [toast]);
 
-  // Animação do card temporal da marca
+  // AnimaÃ§Ã£o do card temporal da marca
   useEffect(() => {
-    // Mostrar o card após 500ms
+    // Mostrar o card apÃ³s 500ms
     const showTimer = setTimeout(() => {
       setShowBrandCard(true);
     }, 500);
 
-    // Esconder o card após 4 segundos
+    // Esconder o card apÃ³s 4 segundos
     const hideTimer = setTimeout(() => {
       setShowBrandCard(false);
     }, 4500);
@@ -1049,13 +1049,13 @@ const Login = () => {
       if (userData.primeiro_acesso) {
         toast({
           title: "Primeiro acesso detectado",
-          description: "Você precisa alterar sua senha",
+          description: "VocÃª precisa alterar sua senha",
         });
         // Redirect to change password
       } else {
         toast({
           title: "Login realizado com sucesso!",
-          description: "Bem-vindo ao Sistema de Controle de Presença",
+          description: "Bem-vindo ao Sistema de Controle de PresenÃ§a",
         });
       }
     } catch (error) {
@@ -1074,26 +1074,26 @@ const Login = () => {
     e.preventDefault();
 
     // Debug log para diagnosticar problemas
-    console.log("🔍 Dados do primeiro acesso:", firstAccessData);
+    console.log("ðŸ” Dados do primeiro acesso:", firstAccessData);
 
     try {
       const response = await axios.post(
         `${API}/auth/first-access`,
         firstAccessData
       );
-      console.log("✅ Resposta do servidor:", response.data);
+      console.log("âœ… Resposta do servidor:", response.data);
 
       toast({
-        title: "Solicitação enviada!",
+        title: "SolicitaÃ§Ã£o enviada!",
         description:
-          "Aguarde a aprovação do administrador para acessar o sistema.",
+          "Aguarde a aprovaÃ§Ã£o do administrador para acessar o sistema.",
       });
       setShowFirstAccess(false);
       setFirstAccessData({ nome: "", email: "", tipo: "instrutor" });
     } catch (error) {
-      console.error("❌ Erro na solicitação de primeiro acesso:", error);
+      console.error("âŒ Erro na solicitaÃ§Ã£o de primeiro acesso:", error);
       toast({
-        title: "Erro na solicitação",
+        title: "Erro na solicitaÃ§Ã£o",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
@@ -1109,9 +1109,9 @@ const Login = () => {
         email: resetEmail,
       });
 
-      // 🔐 SEGURANÇA: Não mostra mais a senha na tela
+      // ðŸ” SEGURANÃ‡A: NÃ£o mostra mais a senha na tela
       toast({
-        title: "Solicitação enviada!",
+        title: "SolicitaÃ§Ã£o enviada!",
         description: response.data.message,
         variant: "default",
       });
@@ -1144,7 +1144,7 @@ const Login = () => {
             </h1>
           </div>
           <CardDescription className="text-gray-600">
-            Sistema de Controle de Presença
+            Sistema de Controle de PresenÃ§a
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1206,7 +1206,7 @@ const Login = () => {
               <div className="text-center mb-4">
                 <h3 className="text-lg font-semibold">Resetar Senha</h3>
                 <p className="text-sm text-gray-600">
-                  Digite seu email para receber uma nova senha temporária
+                  Digite seu email para receber uma nova senha temporÃ¡ria
                 </p>
               </div>
 
@@ -1291,27 +1291,27 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Tipo de Usuário</Label>
+                <Label>Tipo de UsuÃ¡rio</Label>
                 <Select
                   value={firstAccessData.tipo}
                   onValueChange={(value) => {
-                    console.log("🔄 Selecionando tipo de usuário:", value);
+                    console.log("ðŸ”„ Selecionando tipo de usuÃ¡rio:", value);
                     try {
                       setFirstAccessData((prevData) => {
-                        console.log("📝 Estado anterior:", prevData);
+                        console.log("ðŸ“ Estado anterior:", prevData);
                         const newData = { ...prevData, tipo: value };
-                        console.log("📝 Novo estado:", newData);
+                        console.log("ðŸ“ Novo estado:", newData);
                         return newData;
                       });
                     } catch (error) {
                       console.error(
-                        "❌ Erro ao selecionar tipo de usuário:",
+                        "âŒ Erro ao selecionar tipo de usuÃ¡rio:",
                         error
                       );
                       toast({
                         title: "Erro",
                         description:
-                          "Erro ao selecionar tipo de usuário. Tente novamente.",
+                          "Erro ao selecionar tipo de usuÃ¡rio. Tente novamente.",
                         variant: "destructive",
                       });
                     }
@@ -1322,7 +1322,7 @@ const Login = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="instrutor">Professor(a)</SelectItem>
-                    <SelectItem value="pedagogo">Coord. Pedagógico</SelectItem>
+                    <SelectItem value="pedagogo">Coord. PedagÃ³gico</SelectItem>
                     <SelectItem value="monitor">Assistente</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1349,7 +1349,7 @@ const Login = () => {
         </CardContent>
       </Card>
 
-      {/* Card temporário da marca */}
+      {/* Card temporÃ¡rio da marca */}
       <div
         className={`fixed bottom-5 right-5 flex items-center bg-black bg-opacity-75 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-800 z-50 ${
           showBrandCard
@@ -1363,14 +1363,14 @@ const Login = () => {
           className="h-7 mr-3"
         />
         <span className="text-sm font-normal tracking-wide">
-          Sistema de Controle de Presença
+          Sistema de Controle de PresenÃ§a
         </span>
       </div>
     </div>
   );
 };
 
-// 🔔 Componente de Notificações Melhorado
+// ðŸ”” Componente de NotificaÃ§Ãµes Melhorado
 const NotificationButton = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1378,11 +1378,11 @@ const NotificationButton = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Buscar notificações ao montar o componente
+  // Buscar notificaÃ§Ãµes ao montar o componente
   useEffect(() => {
     fetchNotifications();
 
-    // Para admin: verificar notificações a cada 2 minutos
+    // Para admin: verificar notificaÃ§Ãµes a cada 2 minutos
     // Para outros: verificar a cada 5 minutos
     const interval = setInterval(
       fetchNotifications,
@@ -1392,7 +1392,7 @@ const NotificationButton = () => {
   }, [user]);
 
   const fetchNotifications = async () => {
-    // ✅ CORREÇÃO: Verificar se usuário pode ver notificações
+    // âœ… CORREÃ‡ÃƒO: Verificar se usuÃ¡rio pode ver notificaÃ§Ãµes
     if (
       !user ||
       !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
@@ -1402,15 +1402,15 @@ const NotificationButton = () => {
     }
 
     try {
-      setLoading(false); // Não mostrar loading no sininho sempre
-      // 🎯 USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
+      setLoading(false); // NÃ£o mostrar loading no sininho sempre
+      // ðŸŽ¯ USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
       const response = await axios.get(
         `${API}/instructor/me/pending-attendances`
       );
       setNotifications(response.data.pending || []);
     } catch (error) {
-      console.error("Erro ao buscar notificações:", error);
-      setNotifications([]); // ✅ Garantir array vazio em caso de erro
+      console.error("Erro ao buscar notificaÃ§Ãµes:", error);
+      setNotifications([]); // âœ… Garantir array vazio em caso de erro
     }
   };
 
@@ -1445,12 +1445,12 @@ const NotificationButton = () => {
     return date.toLocaleDateString("pt-BR");
   };
 
-  // Função para navegar para chamada
+  // FunÃ§Ã£o para navegar para chamada
   const handleGoToAttendance = (turmaId) => {
-    // Implementar navegação para fazer chamada
+    // Implementar navegaÃ§Ã£o para fazer chamada
     toast({
       title: "Redirecionando...",
-      description: "Indo para a página de chamada desta turma",
+      description: "Indo para a pÃ¡gina de chamada desta turma",
     });
   };
 
@@ -1463,7 +1463,7 @@ const NotificationButton = () => {
           className="relative text-gray-500 hover:text-gray-700"
           title={
             user?.tipo === "admin"
-              ? "Notificações do sistema (Admin)"
+              ? "NotificaÃ§Ãµes do sistema (Admin)"
               : "Suas chamadas pendentes"
           }
         >
@@ -1501,12 +1501,12 @@ const NotificationButton = () => {
           <div className="p-4 text-center">
             <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-green-700 mb-1">
-              {user?.tipo === "admin" ? "Sistema em dia! 🎯" : "Parabéns! 🎉"}
+              {user?.tipo === "admin" ? "Sistema em dia! ðŸŽ¯" : "ParabÃ©ns! ðŸŽ‰"}
             </p>
             <p className="text-xs text-gray-500">
               {user?.tipo === "admin"
                 ? "Todas as chamadas foram realizadas"
-                : "Suas chamadas estão atualizadas"}
+                : "Suas chamadas estÃ£o atualizadas"}
             </p>
           </div>
         ) : (
@@ -1522,11 +1522,11 @@ const NotificationButton = () => {
               <p className="text-xs text-orange-600">
                 {user?.tipo === "admin"
                   ? "Monitoramento geral"
-                  : "Ação necessária"}
+                  : "AÃ§Ã£o necessÃ¡ria"}
               </p>
             </div>
 
-            {/* Lista de notificações */}
+            {/* Lista de notificaÃ§Ãµes */}
             <div className="max-h-64 overflow-y-auto">
               {notifications.slice(0, 5).map((notification, index) => (
                 <DropdownMenuItem
@@ -1571,7 +1571,7 @@ const NotificationButton = () => {
                 </DropdownMenuItem>
               ))}
 
-              {/* Se há mais de 5 notificações */}
+              {/* Se hÃ¡ mais de 5 notificaÃ§Ãµes */}
               {notifications.length > 5 && (
                 <div className="p-2 text-center border-t bg-gray-50">
                   <p className="text-xs text-gray-600">
@@ -1595,7 +1595,7 @@ const NotificationButton = () => {
               )}
             </div>
 
-            {/* Footer com ações */}
+            {/* Footer com aÃ§Ãµes */}
             <DropdownMenuSeparator />
             <div className="p-2">
               <Button
@@ -1622,7 +1622,7 @@ const Dashboard = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
-  // 🚀 HOOK: Chamadas Pendentes
+  // ðŸš€ HOOK: Chamadas Pendentes
   const {
     pending,
     loading: pendingLoading,
@@ -1650,7 +1650,7 @@ const Dashboard = () => {
     logout();
     toast({
       title: "Logout realizado",
-      description: "Até logo!",
+      description: "AtÃ© logo!",
     });
   };
 
@@ -1665,7 +1665,7 @@ const Dashboard = () => {
               <h1 className="text-xl font-bold text-gray-900">IOS</h1>
             </div>
             <div className="flex items-center space-x-4">
-              {/* Componente de Notificações */}
+              {/* Componente de NotificaÃ§Ãµes */}
               <NotificationButton />
 
               <Badge variant="outline">{getUserTypeLabel(user?.tipo)}</Badge>
@@ -1686,7 +1686,7 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* 📊 Dashboard Personalizado por Usuário */}
+        {/* ðŸ“Š Dashboard Personalizado por UsuÃ¡rio */}
         {user?.tipo !== "admin" && (
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-3">
@@ -1821,7 +1821,7 @@ const Dashboard = () => {
               <div className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-blue-500" />
                 <div>
-                  <p className="text-sm text-gray-600">Taxa Presença</p>
+                  <p className="text-sm text-gray-600">Taxa PresenÃ§a</p>
                   <p className="text-lg font-semibold">
                     {stats.taxa_presenca_mes || 0}%
                   </p>
@@ -1845,7 +1845,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* 🚀 PAINEL CHAMADAS PENDENTES - APENAS PARA USUÁRIOS NÃO-ADMIN (Admin vê no sininho) */}
+        {/* ðŸš€ PAINEL CHAMADAS PENDENTES - APENAS PARA USUÃRIOS NÃƒO-ADMIN (Admin vÃª no sininho) */}
         {user && ["instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
           <Card className="mb-6 border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
             <CardHeader className="pb-3">
@@ -1857,8 +1857,8 @@ const Dashboard = () => {
                 {pendingLoading
                   ? "Carregando suas chamadas pendentes..."
                   : pending.length === 0
-                  ? "🎉 Parabéns! Todas as suas chamadas estão em dia!"
-                  : `⚠️ Você tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
+                  ? "ðŸŽ‰ ParabÃ©ns! Todas as suas chamadas estÃ£o em dia!"
+                  : `âš ï¸ VocÃª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
               </CardDescription>
             </CardHeader>
 
@@ -1890,7 +1890,7 @@ const Dashboard = () => {
                 <div className="text-center py-8 bg-green-50 rounded-lg border border-green-200">
                   <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                   <p className="font-semibold text-green-800 text-lg mb-2">
-                    Excelente trabalho! 🎯
+                    Excelente trabalho! ðŸŽ¯
                   </p>
                   <p className="text-green-700 mb-1">
                     Todas as chamadas do dia foram realizadas!
@@ -1901,16 +1901,16 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {/* Cabeçalho informativo */}
+                  {/* CabeÃ§alho informativo */}
                   <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
                     <div className="flex items-center gap-2 mb-1">
                       <Clock className="h-4 w-4 text-orange-600" />
                       <span className="text-sm font-medium text-orange-800">
-                        Ação Necessária
+                        AÃ§Ã£o NecessÃ¡ria
                       </span>
                     </div>
                     <p className="text-xs text-orange-700">
-                      Clique em "Fazer Chamada" para registrar a presença dos
+                      Clique em "Fazer Chamada" para registrar a presenÃ§a dos
                       alunos nas turmas abaixo.
                     </p>
                   </div>
@@ -1947,7 +1947,7 @@ const Dashboard = () => {
               Chamada
             </TabsTrigger>
 
-            {/* 🎯 ALUNOS: Disponível para instrutores, pedagogos, monitores e admin */}
+            {/* ðŸŽ¯ ALUNOS: DisponÃ­vel para instrutores, pedagogos, monitores e admin */}
             {["admin", "instrutor", "pedagogo", "monitor"].includes(
               user?.tipo
             ) && (
@@ -1977,7 +1977,7 @@ const Dashboard = () => {
                   value="usuarios"
                   className="flex-1 min-w-0 text-sm whitespace-nowrap"
                 >
-                  Usuários
+                  UsuÃ¡rios
                 </TabsTrigger>
               </>
             )}
@@ -1985,7 +1985,7 @@ const Dashboard = () => {
               value="relatorios"
               className="flex-1 min-w-0 text-sm whitespace-nowrap"
             >
-              Relatórios
+              RelatÃ³rios
             </TabsTrigger>
           </TabsList>
 
@@ -1997,7 +1997,7 @@ const Dashboard = () => {
             <ChamadaManager />
           </TabsContent>
 
-          {/* 🎯 ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
+          {/* ðŸŽ¯ ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
           {["admin", "instrutor", "pedagogo", "monitor"].includes(
             user?.tipo
           ) && (
@@ -2056,7 +2056,7 @@ const ChamadaManager = () => {
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
   const [observacaoAtestado, setObservacaoAtestado] = useState("");
 
-  // 🏥 Estados para sistema de atestados avançado
+  // ðŸ¥ Estados para sistema de atestados avanÃ§ado
   const [alunoDetalheDialog, setAlunoDetalheDialog] = useState(false);
   const [selectedAlunoDetalhes, setSelectedAlunoDetalhes] = useState(null);
   const [atestadosAluno, setAtestadosAluno] = useState([]);
@@ -2086,15 +2086,15 @@ const ChamadaManager = () => {
   const fetchJustificationReasons = async () => {
     try {
       const response = await axios.get(`${API}/justifications/reasons`);
-      // ✅ Garantir que sempre seja um array
+      // âœ… Garantir que sempre seja um array
       const reasons = Array.isArray(response.data) ? response.data : [];
       setJustificationReasons(reasons);
     } catch (error) {
       console.error("Erro ao carregar motivos de justificativa:", error);
-      // ✅ Fallback com motivos padrão se API falhar
+      // âœ… Fallback com motivos padrÃ£o se API falhar
       setJustificationReasons([
-        { code: "doenca", label: "Doença" },
-        { code: "medico", label: "Consulta médica" },
+        { code: "doenca", label: "DoenÃ§a" },
+        { code: "medico", label: "Consulta mÃ©dica" },
         { code: "familiar", label: "Problema familiar" },
         { code: "transporte", label: "Problema de transporte" },
         { code: "trabalho", label: "Compromisso de trabalho" },
@@ -2103,7 +2103,7 @@ const ChamadaManager = () => {
     }
   };
 
-  // 🏥 FUNÇÕES PARA GESTÃO DE ATESTADOS
+  // ðŸ¥ FUNÃ‡Ã•ES PARA GESTÃƒO DE ATESTADOS
   const handleVisualizarAlunoDetalhes = async (aluno) => {
     setSelectedAlunoDetalhes(aluno);
     try {
@@ -2126,7 +2126,7 @@ const ChamadaManager = () => {
   const submitAtestadoAluno = async () => {
     if (!fileAtestadoAluno) {
       toast({
-        title: "Arquivo obrigatório",
+        title: "Arquivo obrigatÃ³rio",
         description: "Por favor, selecione um arquivo de atestado.",
         variant: "destructive",
       });
@@ -2144,7 +2144,7 @@ const ChamadaManager = () => {
       });
 
       toast({
-        title: "✅ Atestado anexado",
+        title: "âœ… Atestado anexado",
         description: `Atestado de ${selectedAlunoDetalhes.nome} salvo com sucesso.`,
       });
 
@@ -2188,7 +2188,7 @@ const ChamadaManager = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "✅ Download realizado",
+        title: "âœ… Download realizado",
         description: `Arquivo ${filename} baixado com sucesso.`,
       });
     } catch (error) {
@@ -2223,7 +2223,7 @@ const ChamadaManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório adicionado
+      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatÃ³rio adicionado
       formData.append("reason_text", justificationForm.reason_text.trim());
       if (justificationForm.observations) {
         formData.append("observations", justificationForm.observations);
@@ -2242,7 +2242,7 @@ const ChamadaManager = () => {
         }
       );
 
-      // Marcar falta como justificada na presença
+      // Marcar falta como justificada na presenÃ§a
       const updatedPresencas = {
         ...presencas,
         [selectedAlunoJustificativa.id]: {
@@ -2303,7 +2303,7 @@ const ChamadaManager = () => {
       console.error("Error fetching alunos:", error);
       toast({
         title: "Erro ao carregar alunos",
-        description: "Não foi possível carregar a lista de alunos da turma",
+        description: "NÃ£o foi possÃ­vel carregar a lista de alunos da turma",
         variant: "destructive",
       });
     } finally {
@@ -2362,7 +2362,7 @@ const ChamadaManager = () => {
   const submitAtestadoChamada = async () => {
     if (!selectedFileAtestado) {
       toast({
-        title: "Arquivo obrigatório",
+        title: "Arquivo obrigatÃ³rio",
         description: "Por favor, selecione um arquivo de atestado.",
         variant: "destructive",
       });
@@ -2381,19 +2381,19 @@ const ChamadaManager = () => {
         },
       });
 
-      // Atualizar a presença com o ID do atestado
+      // Atualizar a presenÃ§a com o ID do atestado
       setPresencas((prev) => ({
         ...prev,
         [selectedAlunoAtestado.id]: {
           ...prev[selectedAlunoAtestado.id],
           presente: false,
           atestado_id: response.data.id,
-          justificativa: "Falta justificada com atestado médico",
+          justificativa: "Falta justificada com atestado mÃ©dico",
         },
       }));
 
       toast({
-        title: "✅ Atestado anexado com sucesso",
+        title: "âœ… Atestado anexado com sucesso",
         description: `Atestado de ${selectedAlunoAtestado.nome} registrado e falta justificada.`,
       });
 
@@ -2430,19 +2430,19 @@ const ChamadaManager = () => {
       return;
     }
 
-    // 🔒 VALIDAÇÃO: Só permite chamada do dia atual
+    // ðŸ”’ VALIDAÃ‡ÃƒO: SÃ³ permite chamada do dia atual
     const hoje = new Date().toISOString().split("T")[0];
     const agora = new Date().toTimeString().split(" ")[0].substring(0, 5);
 
-    // Verificar se é realmente hoje
+    // Verificar se Ã© realmente hoje
     const dataAtual = new Date();
     const dataHoje = dataAtual.toISOString().split("T")[0];
 
     if (hoje !== dataHoje) {
-      debugLog("ChamadaManager: ERROR - Data inválida", { hoje, dataHoje });
+      debugLog("ChamadaManager: ERROR - Data invÃ¡lida", { hoje, dataHoje });
       toast({
-        title: "Data inválida",
-        description: "Só é possível fazer chamada da data atual",
+        title: "Data invÃ¡lida",
+        description: "SÃ³ Ã© possÃ­vel fazer chamada da data atual",
         variant: "destructive",
       });
       return;
@@ -2468,27 +2468,27 @@ const ChamadaManager = () => {
 
       toast({
         title: "Chamada salva com sucesso!",
-        description: `Os dados de presença foram registrados para ${new Date().toLocaleDateString(
+        description: `Os dados de presenÃ§a foram registrados para ${new Date().toLocaleDateString(
           "pt-BR"
         )}`,
       });
 
-      // 🎯 CORREÇÃO CRÍTICA: Salvar ID da turma antes de limpar estados
+      // ðŸŽ¯ CORREÃ‡ÃƒO CRÃTICA: Salvar ID da turma antes de limpar estados
       const turmaIdParaRemover = selectedTurma;
-      debugLog("ChamadaManager: Turma ID salvo para remoção", {
+      debugLog("ChamadaManager: Turma ID salvo para remoÃ§Ã£o", {
         turmaIdParaRemover,
       });
 
-      // ⚡ PROTEÇÃO REACT DOM: Limpeza sequencial com delays maiores
+      // âš¡ PROTEÃ‡ÃƒO REACT DOM: Limpeza sequencial com delays maiores
       const clearStatesSequentially = () => {
         debugLog(
-          "ChamadaManager: Iniciando limpeza sequencial (VERSÃO CORRIGIDA)"
+          "ChamadaManager: Iniciando limpeza sequencial (VERSÃƒO CORRIGIDA)"
         );
 
-        // 1. Limpar seleção primeiro
+        // 1. Limpar seleÃ§Ã£o primeiro
         setSelectedTurma("");
 
-        // 2. Aguardar renderização antes de limpar outros estados (delay aumentado)
+        // 2. Aguardar renderizaÃ§Ã£o antes de limpar outros estados (delay aumentado)
         setTimeout(() => {
           debugLog("ChamadaManager: Limpando demais estados", {
             alunosCount: alunos.length,
@@ -2516,7 +2516,7 @@ const ChamadaManager = () => {
         }, 20);
       };
 
-      // Executar limpeza com proteção adicional
+      // Executar limpeza com proteÃ§Ã£o adicional
       try {
         clearStatesSequentially();
       } catch (domError) {
@@ -2525,9 +2525,9 @@ const ChamadaManager = () => {
           stack: domError.stack,
         });
 
-        // Fallback: tentar novamente após delay maior
+        // Fallback: tentar novamente apÃ³s delay maior
         setTimeout(() => {
-          debugLog("ChamadaManager: Tentativa de limpeza após erro DOM");
+          debugLog("ChamadaManager: Tentativa de limpeza apÃ³s erro DOM");
           try {
             setSelectedTurma("");
             setAlunos([]);
@@ -2554,7 +2554,7 @@ const ChamadaManager = () => {
         title: "Erro ao salvar chamada",
         description:
           error.response?.data?.detail ||
-          "Já foi feita chamada hoje para esta turma",
+          "JÃ¡ foi feita chamada hoje para esta turma",
         variant: "destructive",
       });
     }
@@ -2575,7 +2575,7 @@ const ChamadaManager = () => {
           Sistema de Chamada
         </CardTitle>
         <CardDescription>
-          Registre a presença dos alunos de forma rápida e eficiente
+          Registre a presenÃ§a dos alunos de forma rÃ¡pida e eficiente
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -2651,7 +2651,7 @@ const ChamadaManager = () => {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                Lista de Presença - {new Date().toLocaleDateString()}
+                Lista de PresenÃ§a - {new Date().toLocaleDateString()}
               </h3>
 
               <div className="space-y-3">
@@ -2728,10 +2728,10 @@ const ChamadaManager = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="observacoes">Observações da Aula</Label>
+              <Label htmlFor="observacoes">ObservaÃ§Ãµes da Aula</Label>
               <Textarea
                 id="observacoes"
-                placeholder="Digite observações sobre a aula, conteúdo ministrado, ocorrências..."
+                placeholder="Digite observaÃ§Ãµes sobre a aula, conteÃºdo ministrado, ocorrÃªncias..."
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
               />
@@ -2762,9 +2762,9 @@ const ChamadaManager = () => {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Atestado Médico</DialogTitle>
+            <DialogTitle>Upload Atestado MÃ©dico</DialogTitle>
             <DialogDescription>
-              Anexar atestado médico para {selectedAlunoAtestado?.nome}
+              Anexar atestado mÃ©dico para {selectedAlunoAtestado?.nome}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -2776,7 +2776,7 @@ const ChamadaManager = () => {
                 onChange={(e) => setSelectedFileAtestado(e.target.files[0])}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+                Formatos aceitos: PDF, JPG, PNG (mÃ¡x. 5MB)
               </p>
             </div>
             <div className="flex justify-end space-x-2">
@@ -2815,7 +2815,7 @@ const ChamadaManager = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* 📝 Motivo da falta - CAMPO DE TEXTO LIVRE */}
+            {/* ðŸ“ Motivo da falta - CAMPO DE TEXTO LIVRE */}
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
@@ -2829,20 +2829,20 @@ const ChamadaManager = () => {
                     reason_text: e.target.value,
                   }))
                 }
-                placeholder="Digite o motivo da falta (ex: Consulta médica, Problema familiar, etc.)"
+                placeholder="Digite o motivo da falta (ex: Consulta mÃ©dica, Problema familiar, etc.)"
                 rows={3}
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground">
-                💡 Seja específico para facilitar o controle de frequência
+                ðŸ’¡ Seja especÃ­fico para facilitar o controle de frequÃªncia
               </p>
             </div>
 
-            {/* Observações */}
+            {/* ObservaÃ§Ãµes */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Observações</Label>
+              <Label className="text-sm font-medium">ObservaÃ§Ãµes</Label>
               <Textarea
-                placeholder="Observações adicionais sobre a falta..."
+                placeholder="ObservaÃ§Ãµes adicionais sobre a falta..."
                 value={justificationForm.observations}
                 onChange={(e) =>
                   setJustificationForm((prev) => ({
@@ -2870,11 +2870,11 @@ const ChamadaManager = () => {
                 }
               />
               <p className="text-xs text-gray-500">
-                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+                Formatos aceitos: PDF, JPG, PNG (mÃ¡x. 5MB)
               </p>
             </div>
 
-            {/* Botões */}
+            {/* BotÃµes */}
             <div className="flex justify-end space-x-2 pt-4">
               <Button
                 variant="outline"
@@ -2920,26 +2920,26 @@ const UsuariosManager = () => {
     fetchData();
   }, []);
 
-  // 🚀 FUNÇÃO PING PARA ACORDAR RENDER
+  // ðŸš€ FUNÃ‡ÃƒO PING PARA ACORDAR RENDER
   const wakeUpBackend = async () => {
-    console.log("🔔 Acordando backend Render...");
+    console.log("ðŸ”” Acordando backend Render...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("✅ Backend acordado:", pingResponse.data);
+      console.log("âœ… Backend acordado:", pingResponse.data);
       return true;
     } catch (error) {
-      console.error("❌ Erro ao acordar backend:", error);
+      console.error("âŒ Erro ao acordar backend:", error);
       return false;
     }
   };
 
   const fetchData = async () => {
     try {
-      // 🚀 PRIMEIRO: Acordar o backend
+      // ðŸš€ PRIMEIRO: Acordar o backend
       const backendAwake = await wakeUpBackend();
       if (!backendAwake) {
         console.warn(
-          "⚠️ Backend pode estar dormindo, tentando requisições diretas..."
+          "âš ï¸ Backend pode estar dormindo, tentando requisiÃ§Ãµes diretas..."
         );
       }
 
@@ -2973,16 +2973,16 @@ const UsuariosManager = () => {
       if (editingUser) {
         await axios.put(`${API}/users/${editingUser.id}`, formData);
         toast({
-          title: "Usuário atualizado com sucesso!",
-          description: "As informações do usuário foram atualizadas.",
+          title: "UsuÃ¡rio atualizado com sucesso!",
+          description: "As informaÃ§Ãµes do usuÃ¡rio foram atualizadas.",
         });
       } else {
         // When creating user, a temporary password will be generated
         await axios.post(`${API}/users`, formData);
         toast({
-          title: "Usuário criado com sucesso!",
+          title: "UsuÃ¡rio criado com sucesso!",
           description:
-            "Uma senha temporária foi gerada. O usuário deve fazer login e alterá-la.",
+            "Uma senha temporÃ¡ria foi gerada. O usuÃ¡rio deve fazer login e alterÃ¡-la.",
         });
       }
 
@@ -2993,15 +2993,15 @@ const UsuariosManager = () => {
     } catch (error) {
       toast({
         title: editingUser
-          ? "Erro ao atualizar usuário"
-          : "Erro ao criar usuário",
+          ? "Erro ao atualizar usuÃ¡rio"
+          : "Erro ao criar usuÃ¡rio",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
     }
   };
 
-  // 🔐 NOVA FUNÇÃO: Reset de senha administrativo
+  // ðŸ” NOVA FUNÃ‡ÃƒO: Reset de senha administrativo
   const handleResetPassword = async (userId, userName) => {
     try {
       const response = await axios.post(
@@ -3010,13 +3010,13 @@ const UsuariosManager = () => {
 
       toast({
         title: "Senha resetada com sucesso!",
-        description: `Nova senha temporária para ${response.data.user_name}: ${response.data.temp_password}`,
+        description: `Nova senha temporÃ¡ria para ${response.data.user_name}: ${response.data.temp_password}`,
         variant: "default",
       });
 
       // Mostra alert adicional para garantir que admin veja a senha
       alert(
-        `🔐 SENHA TEMPORÁRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuário. Ele deverá alterá-la no primeiro acesso.`
+        `ðŸ” SENHA TEMPORÃRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuÃ¡rio. Ele deverÃ¡ alterÃ¡-la no primeiro acesso.`
       );
     } catch (error) {
       toast({
@@ -3031,13 +3031,13 @@ const UsuariosManager = () => {
     try {
       await axios.put(`${API}/users/${userId}/approve`);
       toast({
-        title: "Usuário aprovado!",
-        description: "O usuário pode agora acessar o sistema.",
+        title: "UsuÃ¡rio aprovado!",
+        description: "O usuÃ¡rio pode agora acessar o sistema.",
       });
       fetchData();
     } catch (error) {
       toast({
-        title: "Erro ao aprovar usuário",
+        title: "Erro ao aprovar usuÃ¡rio",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
@@ -3069,17 +3069,17 @@ const UsuariosManager = () => {
   };
 
   const handleDelete = async (userId) => {
-    if (window.confirm("Tem certeza que deseja desativar este usuário?")) {
+    if (window.confirm("Tem certeza que deseja desativar este usuÃ¡rio?")) {
       try {
         await axios.delete(`${API}/users/${userId}`);
         toast({
-          title: "Usuário desativado com sucesso!",
-          description: "O usuário foi desativado do sistema.",
+          title: "UsuÃ¡rio desativado com sucesso!",
+          description: "O usuÃ¡rio foi desativado do sistema.",
         });
         fetchData();
       } catch (error) {
         toast({
-          title: "Erro ao desativar usuário",
+          title: "Erro ao desativar usuÃ¡rio",
           description: error.response?.data?.detail || "Tente novamente",
           variant: "destructive",
         });
@@ -3093,7 +3093,7 @@ const UsuariosManager = () => {
     setIsDialogOpen(true);
   };
 
-  // Função removida - usando getUserTypeLabel global com nomenclatura unissex
+  // FunÃ§Ã£o removida - usando getUserTypeLabel global com nomenclatura unissex
 
   if (loading) return <div>Carregando...</div>;
 
@@ -3105,10 +3105,10 @@ const UsuariosManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="h-5 w-5 mr-2 text-orange-500" />
-              Usuários Pendentes de Aprovação
+              UsuÃ¡rios Pendentes de AprovaÃ§Ã£o
             </CardTitle>
             <CardDescription>
-              Usuários que solicitaram primeiro acesso e aguardam aprovação
+              UsuÃ¡rios que solicitaram primeiro acesso e aguardam aprovaÃ§Ã£o
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -3143,10 +3143,10 @@ const UsuariosManager = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Gerenciamento de Usuários</CardTitle>
+              <CardTitle>Gerenciamento de UsuÃ¡rios</CardTitle>
               <CardDescription>
-                Gerencie usuários do sistema (Administrador(a), Professor(a),
-                Coord. Pedagógico, Assistente)
+                Gerencie usuÃ¡rios do sistema (Administrador(a), Professor(a),
+                Coord. PedagÃ³gico, Assistente)
               </CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -3156,18 +3156,18 @@ const UsuariosManager = () => {
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Novo Usuário
+                  Novo UsuÃ¡rio
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <DialogTitle>
-                    {editingUser ? "Editar Usuário" : "Criar Novo Usuário"}
+                    {editingUser ? "Editar UsuÃ¡rio" : "Criar Novo UsuÃ¡rio"}
                   </DialogTitle>
                   <DialogDescription>
                     {editingUser
-                      ? "Atualize os dados do usuário"
-                      : "Preencha os dados para criar um novo usuário. Uma senha temporária será gerada."}
+                      ? "Atualize os dados do usuÃ¡rio"
+                      : "Preencha os dados para criar um novo usuÃ¡rio. Uma senha temporÃ¡ria serÃ¡ gerada."}
                   </DialogDescription>
                 </DialogHeader>
                 <form
@@ -3201,7 +3201,7 @@ const UsuariosManager = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Tipo de Usuário</Label>
+                    <Label>Tipo de UsuÃ¡rio</Label>
                     <Select
                       value={formData.tipo}
                       onValueChange={(value) =>
@@ -3209,7 +3209,7 @@ const UsuariosManager = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de usuário" />
+                        <SelectValue placeholder="Selecione o tipo de usuÃ¡rio" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="admin">
@@ -3295,7 +3295,7 @@ const UsuariosManager = () => {
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    {editingUser ? "Atualizar Usuário" : "Criar Usuário"}
+                    {editingUser ? "Atualizar UsuÃ¡rio" : "Criar UsuÃ¡rio"}
                   </Button>
                 </form>
               </DialogContent>
@@ -3312,7 +3312,7 @@ const UsuariosManager = () => {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Telefone</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead>AÃ§Ãµes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -3376,7 +3376,7 @@ const UsuariosManager = () => {
 
 // Turmas Manager Component CORRIGIDO
 const TurmasManager = () => {
-  const { user } = useAuth(); // ✅ CORREÇÃO: Adicionar useAuth para acessar user
+  const { user } = useAuth(); // âœ… CORREÃ‡ÃƒO: Adicionar useAuth para acessar user
   const [turmas, setTurmas] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
@@ -3426,7 +3426,7 @@ const TurmasManager = () => {
         axios.get(`${API}/students`),
       ]);
 
-      // ✅ COMBINAR INSTRUTORES E PEDAGOGOS para seleção de responsável
+      // âœ… COMBINAR INSTRUTORES E PEDAGOGOS para seleÃ§Ã£o de responsÃ¡vel
       const todosUsuarios = [
         ...instrutoresRes.data.map((u) => ({ ...u, tipo_label: "Instrutor" })),
         ...pedagogosRes.data.map((u) => ({ ...u, tipo_label: "Pedagogo" })),
@@ -3437,19 +3437,19 @@ const TurmasManager = () => {
       console.log("Cursos:", cursosRes.data);
       console.log("Instrutores:", instrutoresRes.data);
       console.log("Pedagogos:", pedagogosRes.data);
-      console.log("Todos Usuários:", todosUsuarios);
+      console.log("Todos UsuÃ¡rios:", todosUsuarios);
       console.log("Alunos:", alunosRes.data);
 
       setTurmas(turmasRes.data);
       setUnidades(unidadesRes.data);
       setCursos(cursosRes.data);
-      setUsuarios(todosUsuarios); // ✅ Usar lista combinada
+      setUsuarios(todosUsuarios); // âœ… Usar lista combinada
       setAlunos(alunosRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
         title: "Erro ao carregar dados",
-        description: "Não foi possível carregar os dados necessários",
+        description: "NÃ£o foi possÃ­vel carregar os dados necessÃ¡rios",
         variant: "destructive",
       });
     } finally {
@@ -3464,7 +3464,7 @@ const TurmasManager = () => {
         await axios.put(`${API}/classes/${editingTurma.id}`, formData);
         toast({
           title: "Turma atualizada com sucesso!",
-          description: "As informações da turma foram atualizadas.",
+          description: "As informaÃ§Ãµes da turma foram atualizadas.",
         });
       } else {
         await axios.post(`${API}/classes`, formData);
@@ -3488,7 +3488,7 @@ const TurmasManager = () => {
   };
 
   const resetForm = () => {
-    // ✅ AUTO-PREENCHIMENTO: Para não-admin, pré-preencher unidade e instrutor
+    // âœ… AUTO-PREENCHIMENTO: Para nÃ£o-admin, prÃ©-preencher unidade e instrutor
     const defaultUnidadeId =
       user?.tipo !== "admin" ? user?.unidade_id || "" : "";
     const defaultInstrutorId = user?.tipo !== "admin" ? user?.id || "" : "";
@@ -3519,13 +3519,13 @@ const TurmasManager = () => {
       usuarios.find((u) => u.id === turma.instrutor_id)?.nome || "N/A";
 
     alert(
-      `📋 DETALHES DA TURMA\n\n` +
+      `ðŸ“‹ DETALHES DA TURMA\n\n` +
         `Nome: ${turma.nome}\n` +
         `Unidade: ${unidadeNome}\n` +
         `Curso: ${cursoNome}\n` +
         `Instrutor: ${instrutorNome}\n` +
-        `Período: ${turma.data_inicio} a ${turma.data_fim}\n` +
-        `Horário: ${turma.horario_inicio} às ${turma.horario_fim}\n` +
+        `PerÃ­odo: ${turma.data_inicio} a ${turma.data_fim}\n` +
+        `HorÃ¡rio: ${turma.horario_inicio} Ã s ${turma.horario_fim}\n` +
         `Vagas: ${turma.vagas_ocupadas || 0}/${turma.vagas_total}\n` +
         `Ciclo: ${turma.ciclo}\n` +
         `Status: ${turma.ativo ? "Ativa" : "Inativa"}`
@@ -3563,7 +3563,7 @@ const TurmasManager = () => {
   };
 
   const handleDeleteTurma = async (turma) => {
-    // 🔒 VERIFICAÇÃO: Apenas admin pode deletar
+    // ðŸ”’ VERIFICAÃ‡ÃƒO: Apenas admin pode deletar
     if (user?.tipo !== "admin") {
       toast({
         title: "Acesso negado",
@@ -3573,13 +3573,13 @@ const TurmasManager = () => {
       return;
     }
 
-    // ⚠️ CONFIRMAÇÃO: Pedir confirmação antes de deletar
+    // âš ï¸ CONFIRMAÃ‡ÃƒO: Pedir confirmaÃ§Ã£o antes de deletar
     const confirmar = window.confirm(
-      `⚠️ ATENÇÃO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
-        `Esta ação é IRREVERSÍVEL e:\n` +
-        `• Removerá permanentemente a turma do sistema\n` +
-        `• Não afetará os alunos (eles continuarão cadastrados)\n` +
-        `• Não poderá ser desfeita\n\n` +
+      `âš ï¸ ATENÃ‡ÃƒO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
+        `Esta aÃ§Ã£o Ã© IRREVERSÃVEL e:\n` +
+        `â€¢ RemoverÃ¡ permanentemente a turma do sistema\n` +
+        `â€¢ NÃ£o afetarÃ¡ os alunos (eles continuarÃ£o cadastrados)\n` +
+        `â€¢ NÃ£o poderÃ¡ ser desfeita\n\n` +
         `Digite "SIM" para confirmar:`
     );
 
@@ -3599,16 +3599,16 @@ const TurmasManager = () => {
       // Atualizar lista de turmas
       fetchData();
 
-      console.log("🗑️ Turma deletada:", response.data);
+      console.log("ðŸ—‘ï¸ Turma deletada:", response.data);
     } catch (error) {
-      console.error("❌ Erro ao deletar turma:", error);
+      console.error("âŒ Erro ao deletar turma:", error);
 
-      // Tratar erros específicos do backend
+      // Tratar erros especÃ­ficos do backend
       if (error.response?.status === 400) {
         toast({
-          title: "Não é possível deletar",
+          title: "NÃ£o Ã© possÃ­vel deletar",
           description:
-            error.response.data.detail || "Turma possui dependências",
+            error.response.data.detail || "Turma possui dependÃªncias",
           variant: "destructive",
         });
       } else if (error.response?.status === 403) {
@@ -3634,7 +3634,7 @@ const TurmasManager = () => {
       );
       toast({
         title: "Aluno adicionado com sucesso!",
-        description: "O aluno foi adicionado à turma.",
+        description: "O aluno foi adicionado Ã  turma.",
       });
       fetchData(); // Atualizar dados
     } catch (error) {
@@ -3734,7 +3734,7 @@ const TurmasManager = () => {
                     <Label>
                       Unidade{" "}
                       {user?.tipo === "admin"
-                        ? `(${unidades.length} disponíveis)`
+                        ? `(${unidades.length} disponÃ­veis)`
                         : "(Sua unidade)"}
                     </Label>
                     {user?.tipo === "admin" ? (
@@ -3773,7 +3773,7 @@ const TurmasManager = () => {
                     <Label>
                       Curso{" "}
                       {user?.tipo === "admin"
-                        ? `(${cursos.length} disponíveis)`
+                        ? `(${cursos.length} disponÃ­veis)`
                         : "(Seu curso)"}
                     </Label>
                     {user?.tipo === "admin" ? (
@@ -3811,10 +3811,10 @@ const TurmasManager = () => {
 
                 <div className="space-y-2">
                   <Label>
-                    Responsável{" "}
+                    ResponsÃ¡vel{" "}
                     {user?.tipo === "admin"
-                      ? `(${usuarios.length} instrutores/pedagogos disponíveis)`
-                      : "(Você)"}
+                      ? `(${usuarios.length} instrutores/pedagogos disponÃ­veis)`
+                      : "(VocÃª)"}
                   </Label>
                   {user?.tipo === "admin" ? (
                     <Select
@@ -3824,7 +3824,7 @@ const TurmasManager = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o responsável" />
+                        <SelectValue placeholder="Selecione o responsÃ¡vel" />
                       </SelectTrigger>
                       <SelectContent>
                         {usuarios.map((usuario) => (
@@ -3836,7 +3836,7 @@ const TurmasManager = () => {
                     </Select>
                   ) : (
                     <Input
-                      value={user?.nome || "Você"}
+                      value={user?.nome || "VocÃª"}
                       readOnly
                       className="bg-gray-50 cursor-not-allowed"
                     />
@@ -3845,7 +3845,7 @@ const TurmasManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="data_inicio">Data Início</Label>
+                    <Label htmlFor="data_inicio">Data InÃ­cio</Label>
                     <Input
                       id="data_inicio"
                       type="date"
@@ -3875,7 +3875,7 @@ const TurmasManager = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="horario_inicio">Horário Início</Label>
+                    <Label htmlFor="horario_inicio">HorÃ¡rio InÃ­cio</Label>
                     <Input
                       id="horario_inicio"
                       type="time"
@@ -3890,7 +3890,7 @@ const TurmasManager = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="horario_fim">Horário Fim</Label>
+                    <Label htmlFor="horario_fim">HorÃ¡rio Fim</Label>
                     <Input
                       id="horario_fim"
                       type="time"
@@ -3920,10 +3920,10 @@ const TurmasManager = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="regular">
-                        Regular (Curso Técnico)
+                        Regular (Curso TÃ©cnico)
                       </SelectItem>
                       <SelectItem value="extensao">
-                        Extensão (Curso Livre)
+                        ExtensÃ£o (Curso Livre)
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -3966,11 +3966,11 @@ const TurmasManager = () => {
                 <TableHead>Nome</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Ciclo</TableHead>
-                <TableHead>Período</TableHead>
-                <TableHead>Horário</TableHead>
+                <TableHead>PerÃ­odo</TableHead>
+                <TableHead>HorÃ¡rio</TableHead>
                 <TableHead>Vagas</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -3985,7 +3985,7 @@ const TurmasManager = () => {
                           : "default"
                       }
                     >
-                      {turma.tipo_turma === "extensao" ? "Extensão" : "Regular"}
+                      {turma.tipo_turma === "extensao" ? "ExtensÃ£o" : "Regular"}
                     </Badge>
                   </TableCell>
                   <TableCell>{turma.ciclo}</TableCell>
@@ -4031,7 +4031,7 @@ const TurmasManager = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {/* 🗑️ BOTÃO DELETAR TURMA - Apenas para Admin */}
+                      {/* ðŸ—‘ï¸ BOTÃƒO DELETAR TURMA - Apenas para Admin */}
                       {user?.tipo === "admin" && (
                         <Button
                           variant="destructive"
@@ -4066,7 +4066,7 @@ const TurmasManager = () => {
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Alunos Disponíveis</h3>
+              <h3 className="text-lg font-semibold mb-2">Alunos DisponÃ­veis</h3>
               <div className="max-h-40 overflow-y-auto border rounded p-2">
                 {alunos
                   .filter(
@@ -4165,14 +4165,14 @@ const TurmasManager = () => {
   );
 };
 
-// 📊 RELATÓRIOS DINÂMICOS - Atualizados Automaticamente
+// ðŸ“Š RELATÃ“RIOS DINÃ‚MICOS - Atualizados Automaticamente
 const RelatoriosManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // � DADOS ESSENCIAIS PARA CÁLCULOS FASE 3
+  // ï¿½ DADOS ESSENCIAIS PARA CÃLCULOS FASE 3
   const [alunos, setAlunos] = useState(() => {
     try {
       const cached = localStorage.getItem("ios_alunos_cache");
@@ -4191,17 +4191,17 @@ const RelatoriosManager = () => {
     }
   });
 
-  // 📊 STATUS DE CONEXÃO COM MONGODB
+  // ðŸ“Š STATUS DE CONEXÃƒO COM MONGODB
   const [dadosCarregando, setDadosCarregando] = useState(true);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(() => {
     return localStorage.getItem("ios_ultima_atualizacao") || null;
   });
 
-  // �🔧 HEALTH CHECK - FASE 5
+  // ï¿½ðŸ”§ HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
   const [showHealthCheck, setShowHealthCheck] = useState(false);
 
-  // 🔍 FILTROS AVANÇADOS PARA ADMIN
+  // ðŸ” FILTROS AVANÃ‡ADOS PARA ADMIN
   const [filtros, setFiltros] = useState({
     data_inicio: "",
     data_fim: "",
@@ -4220,7 +4220,7 @@ const RelatoriosManager = () => {
   const [csvLoading, setCsvLoading] = useState(false);
 
   useEffect(() => {
-    // 📊 CARREGAR DADOS ESSENCIAIS PRIMEIRO
+    // ðŸ“Š CARREGAR DADOS ESSENCIAIS PRIMEIRO
     fetchDadosBasicos();
     fetchDynamicStats();
 
@@ -4229,40 +4229,40 @@ const RelatoriosManager = () => {
       fetchFilterData();
     }
 
-    // 🔄 AUTO-REFRESH: Atualizar relatórios a cada 30 segundos
+    // ðŸ”„ AUTO-REFRESH: Atualizar relatÃ³rios a cada 30 segundos
     const interval = setInterval(fetchDynamicStats, 30000);
 
     return () => clearInterval(interval);
   }, [user]);
 
-  // � FUNÇÃO PING PARA ACORDAR RENDER (DASHBOARD)
+  // ï¿½ FUNÃ‡ÃƒO PING PARA ACORDAR RENDER (DASHBOARD)
   const wakeUpBackendDashboard = async () => {
-    console.log("🔔 Acordando backend Render para dashboard...");
+    console.log("ðŸ”” Acordando backend Render para dashboard...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("✅ Backend acordado para dashboard:", pingResponse.data);
+      console.log("âœ… Backend acordado para dashboard:", pingResponse.data);
       return true;
     } catch (error) {
-      console.error("❌ Erro ao acordar backend:", error);
+      console.error("âŒ Erro ao acordar backend:", error);
       return false;
     }
   };
 
-  // �📊 CONEXÃO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
+  // ï¿½ðŸ“Š CONEXÃƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
-    console.log("🔍 Iniciando carregamento direto MongoDB via Render Backend");
+    console.log("ðŸ” Iniciando carregamento direto MongoDB via Render Backend");
     setDadosCarregando(true);
 
     try {
-      // 🚀 PRIMEIRO: Acordar o backend
+      // ðŸš€ PRIMEIRO: Acordar o backend
       const backendAwake = await wakeUpBackendDashboard();
       if (!backendAwake) {
         console.warn(
-          "⚠️ Backend pode estar dormindo, tentando requisições diretas..."
+          "âš ï¸ Backend pode estar dormindo, tentando requisiÃ§Ãµes diretas..."
         );
       }
 
-      // 🎯 REQUISIÇÕES DIRETAS PARA ENDPOINTS CORRETOS
+      // ðŸŽ¯ REQUISIÃ‡Ã•ES DIRETAS PARA ENDPOINTS CORRETOS
       const [alunosResponse, chamadasResponse] = await Promise.all([
         axios.get(`${API}/students`, {
           timeout: 60000,
@@ -4271,7 +4271,7 @@ const RelatoriosManager = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }),
-        // ✅ ENDPOINT CORRETO: reports/attendance (não apenas /attendance)
+        // âœ… ENDPOINT CORRETO: reports/attendance (nÃ£o apenas /attendance)
         axios.get(`${API}/reports/attendance`, {
           timeout: 60000,
           headers: {
@@ -4281,7 +4281,7 @@ const RelatoriosManager = () => {
         }),
       ]);
 
-      // ✅ DEFINIR DADOS SEMPRE (nunca undefined)
+      // âœ… DEFINIR DADOS SEMPRE (nunca undefined)
       const alunosData = Array.isArray(alunosResponse.data)
         ? alunosResponse.data
         : [];
@@ -4293,38 +4293,38 @@ const RelatoriosManager = () => {
       setChamadas(chamadasData);
 
       console.log(
-        `✅ Dados carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`
+        `âœ… Dados carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`
       );
 
       toast({
-        title: "✅ Dados MongoDB Carregados",
+        title: "âœ… Dados MongoDB Carregados",
         description: `${alunosData.length} alunos e ${chamadasData.length} chamadas carregados`,
         variant: "default",
       });
     } catch (error) {
-      console.error("❌ Erro ao carregar dados MongoDB:", error);
+      console.error("âŒ Erro ao carregar dados MongoDB:", error);
 
-      // 🎯 DIAGNÓSTICO DETALHADO
+      // ðŸŽ¯ DIAGNÃ“STICO DETALHADO
       if (error.response?.status === 405) {
         console.error(
-          "🚨 Erro 405: Método HTTP incorreto ou endpoint não existe"
+          "ðŸš¨ Erro 405: MÃ©todo HTTP incorreto ou endpoint nÃ£o existe"
         );
       } else if (error.response?.status === 401) {
         console.error(
-          "🚨 Erro 401: Token inválido ou expirado - faça login novamente"
+          "ðŸš¨ Erro 401: Token invÃ¡lido ou expirado - faÃ§a login novamente"
         );
       } else if (error.code === "ECONNABORTED") {
-        console.error("🚨 Timeout: Backend Render demorou mais que 60s");
+        console.error("ðŸš¨ Timeout: Backend Render demorou mais que 60s");
       }
 
-      // ⚠️ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
+      // âš ï¸ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
       setAlunos([]);
       setChamadas([]);
 
       toast({
-        title: "❌ Erro ao Carregar Dados",
+        title: "âŒ Erro ao Carregar Dados",
         description:
-          "Falha na conexão com MongoDB. Verifique se o backend está online.",
+          "Falha na conexÃ£o com MongoDB. Verifique se o backend estÃ¡ online.",
         variant: "destructive",
       });
     } finally {
@@ -4351,7 +4351,7 @@ const RelatoriosManager = () => {
 
   const fetchDynamicStats = async (customFilters = null) => {
     try {
-      // 🎯 FILTROS: Aplicar filtros se for admin e filtros estiverem definidos
+      // ðŸŽ¯ FILTROS: Aplicar filtros se for admin e filtros estiverem definidos
       let url = `${API}/reports/teacher-stats`;
       const filtersToUse = customFilters || filtros;
 
@@ -4379,21 +4379,21 @@ const RelatoriosManager = () => {
 
       const response = await axios.get(url);
 
-      // 📊 FASE 3: Aplicar regras de negócio precisas
+      // ðŸ“Š FASE 3: Aplicar regras de negÃ³cio precisas
       if (alunos && alunos.length > 0) {
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
         );
 
-        // 🎯 USAR APENAS DADOS DO BACKEND para consistência
+        // ðŸŽ¯ USAR APENAS DADOS DO BACKEND para consistÃªncia
         const statsComPrecisao = {
           ...response.data,
-          // Manter alguns cálculos locais apenas para detalhes específicos
+          // Manter alguns cÃ¡lculos locais apenas para detalhes especÃ­ficos
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           calculo_preciso: true,
-          // Usar contagens do backend (fonte única de verdade)
+          // Usar contagens do backend (fonte Ãºnica de verdade)
           total_alunos:
             response.data.total_alunos ||
             response.data.alunos_ativos + response.data.alunos_desistentes,
@@ -4402,7 +4402,7 @@ const RelatoriosManager = () => {
         };
 
         setStats(statsComPrecisao);
-        console.log("✅ Estatísticas Fase 3 aplicadas:", {
+        console.log("âœ… EstatÃ­sticas Fase 3 aplicadas:", {
           taxa: estatisticasLocais.taxaMediaPresenca,
           risco: estatisticasLocais.alunosEmRisco,
           total: estatisticasLocais.totalAlunos,
@@ -4413,9 +4413,9 @@ const RelatoriosManager = () => {
     } catch (error) {
       console.error("Error fetching dynamic stats:", error);
 
-      // 🔄 Fallback com cálculos locais precisos
+      // ðŸ”„ Fallback com cÃ¡lculos locais precisos
       if (alunos && alunos.length > 0) {
-        console.log("🎯 Aplicando Fase 3 offline - cálculos precisos locais");
+        console.log("ðŸŽ¯ Aplicando Fase 3 offline - cÃ¡lculos precisos locais");
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
@@ -4428,7 +4428,7 @@ const RelatoriosManager = () => {
           alunos_desistentes: alunos.filter((a) => a.status === "desistente")
             .length,
           alunos_em_risco: estatisticasLocais.alunosEmRisco,
-          desistentes: alunos.filter((a) => a.status === "desistente").length, // Consistência
+          desistentes: alunos.filter((a) => a.status === "desistente").length, // ConsistÃªncia
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           modo_offline: true,
@@ -4447,16 +4447,16 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 📊 CSV Export com Dois Formatos - STREAMING ANTI-TIMEOUT!
+  // ðŸ“Š CSV Export com Dois Formatos - STREAMING ANTI-TIMEOUT!
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "� CSV Simples - STREAMING",
+      title: "ï¿½ CSV Simples - STREAMING",
       description: "Nova tecnologia anti-timeout! Download em tempo real...",
     });
 
     try {
-      // 🚀 STREAMING DOWNLOAD - NO MORE TIMEOUTS!
+      // ðŸš€ STREAMING DOWNLOAD - NO MORE TIMEOUTS!
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=simple`,
         {
@@ -4492,30 +4492,30 @@ const RelatoriosManager = () => {
       URL.revokeObjectURL(link.href);
 
       toast({
-        title: "🚀 CSV Simples - STREAMING OK!",
-        description: "Arquivo baixado com nova tecnologia anti-timeout! ⚡",
+        title: "ðŸš€ CSV Simples - STREAMING OK!",
+        description: "Arquivo baixado com nova tecnologia anti-timeout! âš¡",
       });
     } catch (error) {
       console.error("Erro no download CSV simples:", error);
 
-      // 🚨 ENHANCED ERROR HANDLING with streaming context
+      // ðŸš¨ ENHANCED ERROR HANDLING with streaming context
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
-          title: "⏰ Timeout Raro com Streaming",
+          title: "â° Timeout Raro com Streaming",
           description:
-            "Evento raro! Sistema streaming falhou. Contate suporte técnico.",
+            "Evento raro! Sistema streaming falhou. Contate suporte tÃ©cnico.",
           variant: "destructive",
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "🚨 Gateway Timeout",
+          title: "ðŸš¨ Gateway Timeout",
           description:
             "Servidor sobrecarregado mesmo com streaming. Aguarde e tente.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erro no Download Streaming",
+          title: "âŒ Erro no Download Streaming",
           description:
             "Falha inesperada no sistema streaming. Tente novamente.",
           variant: "destructive",
@@ -4529,12 +4529,12 @@ const RelatoriosManager = () => {
   const downloadCompleteCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "� CSV Completo - STREAMING",
-      description: "Análise pedagógica avançada com streaming anti-timeout! 🔥",
+      title: "ï¿½ CSV Completo - STREAMING",
+      description: "AnÃ¡lise pedagÃ³gica avanÃ§ada com streaming anti-timeout! ðŸ”¥",
     });
 
     try {
-      // 🚀 JOB SYSTEM - Create CSV generation job first
+      // ðŸš€ JOB SYSTEM - Create CSV generation job first
       const jobResponse = await axios.post(
         `${API}/reports/csv-job`,
         { format: "complete" },
@@ -4547,14 +4547,14 @@ const RelatoriosManager = () => {
       );
 
       const jobId = jobResponse.data.job_id;
-      
+
       // Poll job status until completion
       let jobCompleted = false;
       let attempts = 0;
       const maxAttempts = 60; // 5 minutes max
 
       while (!jobCompleted && attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+        await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5s
         attempts++;
 
         const statusResponse = await axios.get(
@@ -4571,11 +4571,13 @@ const RelatoriosManager = () => {
 
         if (status === "completed" && csv_url) {
           jobCompleted = true;
-          
+
           // Download via data URL
           const link = document.createElement("a");
           link.href = csv_url;
-          link.download = `relatorio_completo_${new Date().toISOString().split("T")[0]}.csv`;
+          link.download = `relatorio_completo_${
+            new Date().toISOString().split("T")[0]
+          }.csv`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -4586,35 +4588,35 @@ const RelatoriosManager = () => {
       }
 
       if (!jobCompleted) {
-        throw new Error("Timeout: Job não completou");
+        throw new Error("Timeout: Job nÃ£o completou");
       }
 
       toast({
-        title: "✅ CSV Completo Baixado!",
-        description: "Relatório pedagógico avançado via job system! 🎯",
+        title: "âœ… CSV Completo Baixado!",
+        description: "RelatÃ³rio pedagÃ³gico avanÃ§ado via job system! ðŸŽ¯",
       });
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
 
-      // 🚨 ENHANCED ERROR HANDLING for complex streaming
+      // ðŸš¨ ENHANCED ERROR HANDLING for complex streaming
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
-          title: "⏰ Timeout Extremo",
+          title: "â° Timeout Extremo",
           description:
             "Dataset muito complexo mesmo para streaming. Contate administrador.",
           variant: "destructive",
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "🚨 Gateway Timeout",
+          title: "ðŸš¨ Gateway Timeout",
           description:
-            "Infraestrutura sobrecarregada. Sistema streaming não ajudou.",
+            "Infraestrutura sobrecarregada. Sistema streaming nÃ£o ajudou.",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "❌ Erro Streaming Completo",
-          description: "Falha no download streaming da análise pedagógica.",
+          title: "âŒ Erro Streaming Completo",
+          description: "Falha no download streaming da anÃ¡lise pedagÃ³gica.",
           variant: "destructive",
         });
       }
@@ -4623,20 +4625,20 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 📊 FASE 4: CSV Export Aprimorado com Dados Precisos (mantido para compatibilidade)
+  // ðŸ“Š FASE 4: CSV Export Aprimorado com Dados Precisos (mantido para compatibilidade)
   const downloadFrequencyReport = async () => {
     setCsvLoading(true);
 
-    // Toast de início do processo
+    // Toast de inÃ­cio do processo
     toast({
-      title: "📊 Gerando Relatório CSV",
-      description: "Processando dados de frequência... aguarde",
+      title: "ðŸ“Š Gerando RelatÃ³rio CSV",
+      description: "Processando dados de frequÃªncia... aguarde",
     });
 
     try {
-      console.log("🚀 Iniciando download CSV com Fase 4 - Dados Precisos");
+      console.log("ðŸš€ Iniciando download CSV com Fase 4 - Dados Precisos");
 
-      // 🎯 TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUÊNCIA)
+      // ðŸŽ¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUÃŠNCIA)
       let backendResponse = null;
       try {
         let url = `${API}/reports/student-frequency?export_csv=true`;
@@ -4665,12 +4667,12 @@ const RelatoriosManager = () => {
 
         backendResponse = await axios.get(url);
       } catch (backendError) {
-        console.error("🚨 ERRO BACKEND CSV:", backendError.message);
+        console.error("ðŸš¨ ERRO BACKEND CSV:", backendError.message);
         console.error("Status:", backendError.response?.status);
         console.error("URL tentada:", url);
         console.error("Headers:", backendError.config?.headers);
         console.log(
-          "⚠️ Backend CSV falhou, gerando localmente com Fase 4:",
+          "âš ï¸ Backend CSV falhou, gerando localmente com Fase 4:",
           backendError.message
         );
       }
@@ -4678,30 +4680,30 @@ const RelatoriosManager = () => {
       let csvData;
       let dataSource;
 
-      // 🎯 USAR DADOS DO BACKEND SE DISPONÍVEL
+      // ðŸŽ¯ USAR DADOS DO BACKEND SE DISPONÃVEL
       if (backendResponse && backendResponse.data?.csv_data) {
         csvData = backendResponse.data.csv_data;
         dataSource = "backend";
-        console.log("✅ Usando dados do backend");
+        console.log("âœ… Usando dados do backend");
         console.log(
-          "📊 Preview CSV (primeiras 200 chars):",
+          "ðŸ“Š Preview CSV (primeiras 200 chars):",
           csvData.substring(0, 200)
         );
       }
-      // 🎯 FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
+      // ðŸŽ¯ FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
       else {
-        console.log("🔄 Gerando CSV localmente com cálculos Fase 3");
+        console.log("ðŸ”„ Gerando CSV localmente com cÃ¡lculos Fase 3");
 
         if (!alunos || !alunos.length) {
           toast({
-            title: "⚠️ Dados Indisponíveis",
+            title: "âš ï¸ Dados IndisponÃ­veis",
             description: "Aguarde o carregamento dos dados ou tente novamente",
             variant: "destructive",
           });
           return;
         }
 
-        // Usar sistema de cálculos precisos da Fase 3
+        // Usar sistema de cÃ¡lculos precisos da Fase 3
         const estatisticasPrecisas = calcularEstatisticasPrecisas(
           alunos,
           chamadas
@@ -4712,7 +4714,7 @@ const RelatoriosManager = () => {
         dataSource = "local-fase3";
       }
 
-      // 📁 CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
+      // ðŸ“ CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
 
@@ -4720,7 +4722,7 @@ const RelatoriosManager = () => {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
 
-        // 📋 Nome do arquivo com indicadores de qualidade
+        // ðŸ“‹ Nome do arquivo com indicadores de qualidade
         let fileName = `relatorio_frequencia_${
           new Date().toISOString().split("T")[0]
         }`;
@@ -4750,13 +4752,13 @@ const RelatoriosManager = () => {
         document.body.removeChild(link);
       }
 
-      // 🎉 FEEDBACK COM DETALHES DA FASE 4
+      // ðŸŽ‰ FEEDBACK COM DETALHES DA FASE 4
       toast({
-        title: "📊 Relatório Fase 4 Exportado!",
+        title: "ðŸ“Š RelatÃ³rio Fase 4 Exportado!",
         description: `${
           dataSource === "backend"
             ? "Dados Backend"
-            : "Cálculos Locais Precisos"
+            : "CÃ¡lculos Locais Precisos"
         } | ${
           stats.detalhes_por_aluno?.length || alunos.length
         } alunos | Arquivo baixado com sucesso`,
@@ -4764,7 +4766,7 @@ const RelatoriosManager = () => {
     } catch (error) {
       console.error("Error downloading report:", error);
       toast({
-        title: "Erro ao exportar relatório",
+        title: "Erro ao exportar relatÃ³rio",
         description: "Tente novamente em alguns instantes.",
         variant: "destructive",
       });
@@ -4773,18 +4775,18 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 🔍 Função para aplicar filtros
+  // ðŸ” FunÃ§Ã£o para aplicar filtros
   const aplicarFiltros = () => {
     setLoading(true);
     fetchDynamicStats(filtros);
   };
 
-  // 🔧 EXECUTAR HEALTH CHECK - FASE 5
+  // ðŸ”§ EXECUTAR HEALTH CHECK - FASE 5
   const executarHealthCheck = async () => {
     try {
       setLoading(true);
       toast({
-        title: "🔍 Executando Health Check",
+        title: "ðŸ” Executando Health Check",
         description: "Verificando status do sistema Fase 5...",
       });
 
@@ -4794,13 +4796,13 @@ const RelatoriosManager = () => {
 
       const statusIcon =
         healthResult.status_geral === "saudavel"
-          ? "✅"
+          ? "âœ…"
           : healthResult.status_geral === "alerta"
-          ? "⚠️"
-          : "❌";
+          ? "âš ï¸"
+          : "âŒ";
 
       toast({
-        title: `${statusIcon} Health Check Concluído`,
+        title: `${statusIcon} Health Check ConcluÃ­do`,
         description: `Sistema: ${healthResult.status_geral.toUpperCase()} | ${
           healthResult.fases_ativas.length
         } fases ativas`,
@@ -4809,7 +4811,7 @@ const RelatoriosManager = () => {
       });
     } catch (error) {
       toast({
-        title: "❌ Erro no Health Check",
+        title: "âŒ Erro no Health Check",
         description: "Falha ao verificar status do sistema",
         variant: "destructive",
       });
@@ -4818,7 +4820,7 @@ const RelatoriosManager = () => {
     }
   };
 
-  // 🧹 Função para limpar filtros
+  // ðŸ§¹ FunÃ§Ã£o para limpar filtros
   const limparFiltros = () => {
     const filtrosVazios = {
       data_inicio: "",
@@ -4838,14 +4840,14 @@ const RelatoriosManager = () => {
         <CardContent className="p-6">
           <div className="flex items-center justify-center">
             <RefreshCw className="h-5 w-5 animate-spin mr-2" />
-            <span>Carregando relatórios dinâmicos...</span>
+            <span>Carregando relatÃ³rios dinÃ¢micos...</span>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  // 📊 RELATÓRIOS DINÂMICOS - Interface completamente atualizada
+  // ðŸ“Š RELATÃ“RIOS DINÃ‚MICOS - Interface completamente atualizada
   return (
     <Card>
       <CardHeader>
@@ -4853,8 +4855,8 @@ const RelatoriosManager = () => {
           <div className="flex items-center">
             <BarChart3 className="h-5 w-5 mr-2" />
             {user?.tipo === "admin"
-              ? "Relatórios Gerais"
-              : "Estatísticas das Minhas Turmas"}
+              ? "RelatÃ³rios Gerais"
+              : "EstatÃ­sticas das Minhas Turmas"}
           </div>
           <div className="flex items-center gap-2">
             {user?.tipo === "admin" && (
@@ -4869,14 +4871,14 @@ const RelatoriosManager = () => {
               </Button>
             )}
 
-            {/* 📊 BOTÕES DUAIS DE CSV */}
+            {/* ðŸ“Š BOTÃ•ES DUAIS DE CSV */}
             <div className="flex gap-2">
               <Button
                 onClick={downloadSimpleCSV}
                 variant="outline"
                 size="sm"
                 className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                title="CSV com dados básicos de presença (15 campos)"
+                title="CSV com dados bÃ¡sicos de presenÃ§a (15 campos)"
                 disabled={csvLoading}
               >
                 {csvLoading ? (
@@ -4897,7 +4899,7 @@ const RelatoriosManager = () => {
                 variant="outline"
                 size="sm"
                 className="text-green-600 border-green-600 hover:bg-green-50"
-                title="CSV com análise pedagógica completa (27 campos)"
+                title="CSV com anÃ¡lise pedagÃ³gica completa (27 campos)"
                 disabled={csvLoading}
               >
                 {csvLoading ? (
@@ -4914,7 +4916,7 @@ const RelatoriosManager = () => {
               </Button>
             </div>
 
-            {/* 🔧 BOTÃO HEALTH CHECK - FASE 5 */}
+            {/* ðŸ”§ BOTÃƒO HEALTH CHECK - FASE 5 */}
             <Button
               onClick={executarHealthCheck}
               variant="outline"
@@ -4934,17 +4936,17 @@ const RelatoriosManager = () => {
         </CardTitle>
         <CardDescription>
           {user?.tipo === "admin"
-            ? "Visualize relatórios completos com filtros avançados - Dados em tempo real"
-            : "Visualize índices de presença e faltas dos seus alunos - Dados em tempo real"}
+            ? "Visualize relatÃ³rios completos com filtros avanÃ§ados - Dados em tempo real"
+            : "Visualize Ã­ndices de presenÃ§a e faltas dos seus alunos - Dados em tempo real"}
         </CardDescription>
       </CardHeader>
 
-      {/* 🔍 FILTROS AVANÇADOS PARA ADMIN */}
+      {/* ðŸ” FILTROS AVANÃ‡ADOS PARA ADMIN */}
       {user?.tipo === "admin" && showFilters && (
         <div className="mx-6 mb-4 p-4 bg-gray-50 border rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Data Início</Label>
+              <Label className="text-sm font-medium">Data InÃ­cio</Label>
               <Input
                 type="date"
                 value={filtros.data_inicio}
@@ -5055,7 +5057,7 @@ const RelatoriosManager = () => {
         </div>
       )}
       <CardContent>
-        {/* Verificar se há dados após filtros */}
+        {/* Verificar se hÃ¡ dados apÃ³s filtros */}
         {stats && stats.total_alunos === 0 && user?.tipo === "admin" && (
           <div className="text-center py-8">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -5063,8 +5065,8 @@ const RelatoriosManager = () => {
               Nenhum dado encontrado
             </h3>
             <p className="text-gray-500 mb-4">
-              Os filtros aplicados não retornaram nenhum resultado. Tente
-              ajustar os critérios ou limpar os filtros.
+              Os filtros aplicados nÃ£o retornaram nenhum resultado. Tente
+              ajustar os critÃ©rios ou limpar os filtros.
             </p>
             <Button onClick={limparFiltros} variant="outline">
               <X className="h-4 w-4 mr-2" />
@@ -5076,11 +5078,11 @@ const RelatoriosManager = () => {
         {/* Dados normais */}
         {(!stats || stats.total_alunos > 0 || user?.tipo !== "admin") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* 🟢 MAIORES PRESENÇAS - Dados Dinâmicos */}
+            {/* ðŸŸ¢ MAIORES PRESENÃ‡AS - Dados DinÃ¢micos */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-green-600">
-                  Maiores Presenças
+                  Maiores PresenÃ§as
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -5109,14 +5111,14 @@ const RelatoriosManager = () => {
                   ) : (
                     <div className="text-center py-4 text-gray-500">
                       <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum dado de presença disponível ainda</p>
+                      <p>Nenhum dado de presenÃ§a disponÃ­vel ainda</p>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* 🔴 MAIORES FALTAS - Dados Dinâmicos */}
+            {/* ðŸ”´ MAIORES FALTAS - Dados DinÃ¢micos */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-red-600">
@@ -5148,14 +5150,14 @@ const RelatoriosManager = () => {
                   ) : (
                     <div className="text-center py-4 text-gray-500">
                       <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum dado de falta disponível ainda</p>
+                      <p>Nenhum dado de falta disponÃ­vel ainda</p>
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* 📊 RESUMO GERAL - Dados Dinâmicos */}
+            {/* ðŸ“Š RESUMO GERAL - Dados DinÃ¢micos */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg">
@@ -5171,13 +5173,13 @@ const RelatoriosManager = () => {
                         : stats.taxa_media_presenca || "0%"}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Taxa Média de Presença
+                      Taxa MÃ©dia de PresenÃ§a
                     </p>
                     {stats.calculo_preciso && (
                       <div className="absolute top-1 right-1">
                         <div
                           className="w-2 h-2 bg-green-500 rounded-full"
-                          title="Cálculo Preciso Fase 3"
+                          title="CÃ¡lculo Preciso Fase 3"
                         ></div>
                       </div>
                     )}
@@ -5220,7 +5222,7 @@ const RelatoriosManager = () => {
                   </div>
                 </div>
 
-                {/* 🎯 INDICADOR DE PRECISÃO - FASE 3 */}
+                {/* ðŸŽ¯ INDICADOR DE PRECISÃƒO - FASE 3 */}
                 {stats.calculo_preciso && (
                   <div
                     className={`mt-4 p-3 border rounded-lg ${
@@ -5243,8 +5245,8 @@ const RelatoriosManager = () => {
                         }`}
                       >
                         {stats.modo_offline
-                          ? "Cálculo Offline - Fase 3"
-                          : "Sistema Fase 3 - Cálculos Precisos"}
+                          ? "CÃ¡lculo Offline - Fase 3"
+                          : "Sistema Fase 3 - CÃ¡lculos Precisos"}
                       </span>
                     </div>
                     <div
@@ -5254,18 +5256,18 @@ const RelatoriosManager = () => {
                           : "text-green-700"
                       }`}
                     >
-                      <p>• Taxa de presença com precisão de centésimos</p>
+                      <p>â€¢ Taxa de presenÃ§a com precisÃ£o de centÃ©simos</p>
                       <p>
-                        • Classificação de risco: &lt;
+                        â€¢ ClassificaÃ§Ã£o de risco: &lt;
                         {stats.regras_aplicadas?.EM_RISCO}% (risco) | &lt;
-                        {stats.regras_aplicadas?.MINIMO_APROVACAO}% (crítico)
+                        {stats.regras_aplicadas?.MINIMO_APROVACAO}% (crÃ­tico)
                       </p>
                       <p>
-                        •{" "}
+                        â€¢{" "}
                         {stats.regras_aplicadas?.INCLUIR_DESISTENTES_STATS
                           ? "Incluindo"
                           : "Excluindo"}{" "}
-                        alunos desistentes das médias
+                        alunos desistentes das mÃ©dias
                       </p>
                     </div>
                   </div>
@@ -5273,7 +5275,7 @@ const RelatoriosManager = () => {
               </CardContent>
             </Card>
 
-            {/* 📋 RESUMO POR TURMA - NOVO */}
+            {/* ðŸ“‹ RESUMO POR TURMA - NOVO */}
             {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
               <Card className="md:col-span-2">
                 <CardHeader>
@@ -5292,7 +5294,7 @@ const RelatoriosManager = () => {
                             <p className="font-bold">{turma.total_alunos}</p>
                           </div>
                           <div>
-                            <p className="text-gray-600">Taxa Média</p>
+                            <p className="text-gray-600">Taxa MÃ©dia</p>
                             <p className="font-bold text-blue-600">
                               {turma.taxa_media}%
                             </p>
@@ -5319,7 +5321,7 @@ const RelatoriosManager = () => {
 
 // Alunos Manager Component COMPLETO
 const AlunosManager = () => {
-  const { user } = useAuth(); // 🔧 HOOK ORDER FIX: useAuth deve vir primeiro
+  const { user } = useAuth(); // ðŸ”§ HOOK ORDER FIX: useAuth deve vir primeiro
   const { toast } = useToast();
 
   const [alunos, setAlunos] = useState([]);
@@ -5338,10 +5340,10 @@ const AlunosManager = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
 
-  // ✅ Estados para motivos de desistência (MOVIDO DO APP PRINCIPAL)
+  // âœ… Estados para motivos de desistÃªncia (MOVIDO DO APP PRINCIPAL)
   const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
-  // 📋 Estados para justificativas/atestados fora da chamada
+  // ðŸ“‹ Estados para justificativas/atestados fora da chamada
   const [isJustifyDialogOpen, setIsJustifyDialogOpen] = useState(false);
   const [selectedAlunoJustify, setSelectedAlunoJustify] = useState(null);
   const [justifyForm, setJustifyForm] = useState({
@@ -5350,13 +5352,13 @@ const AlunosManager = () => {
     file: null,
   });
 
-  // Estados para visualização detalhada do aluno
+  // Estados para visualizaÃ§Ã£o detalhada do aluno
   const [isViewAlunoDialogOpen, setIsViewAlunoDialogOpen] = useState(false);
   const [viewingAluno, setViewingAluno] = useState(null);
   const [studentJustifications, setStudentJustifications] = useState([]);
   const [loadingJustifications, setLoadingJustifications] = useState(false);
 
-  // 🚀 BULK UPLOAD STATES
+  // ðŸš€ BULK UPLOAD STATES
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkUploadFile, setBulkUploadFile] = useState(null);
   const [updateExisting, setUpdateExisting] = useState(false);
@@ -5378,32 +5380,32 @@ const AlunosManager = () => {
     nome_responsavel: "",
     telefone_responsavel: "",
     observacoes: "",
-    turma_id: "", // ✅ Campo turma adicionado
+    turma_id: "", // âœ… Campo turma adicionado
   });
 
   useEffect(() => {
     fetchAlunos();
     fetchTurmas();
-    fetchMotivosDesistencia(); // ✅ Carregar motivos de desistência
+    fetchMotivosDesistencia(); // âœ… Carregar motivos de desistÃªncia
   }, []);
 
   const fetchAlunos = async () => {
     try {
-      console.log("🔍 Buscando alunos...");
+      console.log("ðŸ” Buscando alunos...");
       const response = await axios.get(`${API}/students`);
-      console.log("✅ Alunos recebidos:", response.data.length, "alunos");
+      console.log("âœ… Alunos recebidos:", response.data.length, "alunos");
       setAlunos(response.data);
     } catch (error) {
-      console.error("❌ Erro ao buscar alunos:", error);
+      console.error("âŒ Erro ao buscar alunos:", error);
       console.error("Status:", error.response?.status);
       console.error("Mensagem:", error.response?.data);
 
-      // Mostrar erro para o usuário
+      // Mostrar erro para o usuÃ¡rio
       toast({
         title: "Erro ao carregar alunos",
         description: `Erro ${error.response?.status || "desconhecido"}: ${
           error.response?.data?.detail ||
-          "Não foi possível carregar a lista de alunos"
+          "NÃ£o foi possÃ­vel carregar a lista de alunos"
         }`,
         variant: "destructive",
       });
@@ -5412,20 +5414,20 @@ const AlunosManager = () => {
     }
   };
 
-  // ✅ Função para buscar motivos de desistência (ADICIONADA NO ALUNOSMANAGER)
+  // âœ… FunÃ§Ã£o para buscar motivos de desistÃªncia (ADICIONADA NO ALUNOSMANAGER)
   const fetchMotivosDesistencia = async () => {
     try {
-      console.log("🔍 Buscando motivos de desistência...");
+      console.log("ðŸ” Buscando motivos de desistÃªncia...");
       const response = await axios.get(`${API}/desistencias/motivos`);
       setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
-      console.log("✅ Motivos carregados:", response.data.length, "motivos");
+      console.log("âœ… Motivos carregados:", response.data.length, "motivos");
     } catch (error) {
-      console.error("❌ Erro ao buscar motivos:", error);
+      console.error("âŒ Erro ao buscar motivos:", error);
       // Fallback com motivos oficiais do IOS
       setMotivosDesistencia([
         {
           codigo: "conflito_horario_escola",
-          descricao: "CONFLITO ENTRE O HORÁRIO DO CURSO E ESCOLA",
+          descricao: "CONFLITO ENTRE O HORÃRIO DO CURSO E ESCOLA",
         },
         {
           codigo: "conflito_curso_trabalho",
@@ -5433,7 +5435,7 @@ const AlunosManager = () => {
         },
         {
           codigo: "problemas_saude",
-          descricao: "PROBLEMAS DE SAÚDE (ALUNO OU FAMILIAR)",
+          descricao: "PROBLEMAS DE SAÃšDE (ALUNO OU FAMILIAR)",
         },
         {
           codigo: "sem_retorno_contato",
@@ -5445,11 +5447,11 @@ const AlunosManager = () => {
         },
         {
           codigo: "lactantes_gestantes",
-          descricao: "LACTANTES, GESTANTES OU EM INÍCIO DE GESTAÇÃO",
+          descricao: "LACTANTES, GESTANTES OU EM INÃCIO DE GESTAÃ‡ÃƒO",
         },
         {
           codigo: "nao_identificou_curso",
-          descricao: "NÃO SE IDENTIFICOU COM O CURSO",
+          descricao: "NÃƒO SE IDENTIFICOU COM O CURSO",
         },
         {
           codigo: "dificuldades_acompanhamento",
@@ -5465,15 +5467,15 @@ const AlunosManager = () => {
         },
         {
           codigo: "mudou_endereco",
-          descricao: "MUDOU DE ENDEREÇO",
+          descricao: "MUDOU DE ENDEREÃ‡O",
         },
         {
           codigo: "cuidar_familiar",
-          descricao: "PRECISOU CUIDAR DA/O IRMÃ/ÃO OU DE OUTRO FAMILIAR",
+          descricao: "PRECISOU CUIDAR DA/O IRMÃƒ/ÃƒO OU DE OUTRO FAMILIAR",
         },
         {
           codigo: "servico_militar",
-          descricao: "CONVOCAÇÃO DO SERVIÇO MILITAR",
+          descricao: "CONVOCAÃ‡ÃƒO DO SERVIÃ‡O MILITAR",
         },
         { codigo: "outro", descricao: "OUTRO (PREENCHIMENTO PERSONALIZADO)" },
       ]);
@@ -5482,15 +5484,15 @@ const AlunosManager = () => {
 
   const fetchTurmas = async () => {
     try {
-      console.log("🔍 Buscando turmas...");
+      console.log("ðŸ” Buscando turmas...");
       const response = await axios.get(`${API}/classes`);
-      console.log("✅ Turmas recebidas:", response.data.length, "turmas");
+      console.log("âœ… Turmas recebidas:", response.data.length, "turmas");
       setTurmas(response.data);
     } catch (error) {
-      console.error("❌ Erro ao buscar turmas:", error);
+      console.error("âŒ Erro ao buscar turmas:", error);
       toast({
         title: "Erro ao carregar turmas",
-        description: "Não foi possível carregar a lista de turmas",
+        description: "NÃ£o foi possÃ­vel carregar a lista de turmas",
         variant: "destructive",
       });
     }
@@ -5499,11 +5501,11 @@ const AlunosManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ VALIDAÇÃO: Campos obrigatórios
+    // âœ… VALIDAÃ‡ÃƒO: Campos obrigatÃ³rios
     if (!formData.nome.trim()) {
       toast({
-        title: "Campo obrigatório",
-        description: "Nome completo é obrigatório",
+        title: "Campo obrigatÃ³rio",
+        description: "Nome completo Ã© obrigatÃ³rio",
         variant: "destructive",
       });
       return;
@@ -5511,8 +5513,8 @@ const AlunosManager = () => {
 
     if (!formData.cpf.trim()) {
       toast({
-        title: "Campo obrigatório",
-        description: "CPF é obrigatório",
+        title: "Campo obrigatÃ³rio",
+        description: "CPF Ã© obrigatÃ³rio",
         variant: "destructive",
       });
       return;
@@ -5520,8 +5522,8 @@ const AlunosManager = () => {
 
     if (!formData.data_nascimento) {
       toast({
-        title: "Campo obrigatório",
-        description: "Data de nascimento é obrigatória",
+        title: "Campo obrigatÃ³rio",
+        description: "Data de nascimento Ã© obrigatÃ³ria",
         variant: "destructive",
       });
       return;
@@ -5532,13 +5534,13 @@ const AlunosManager = () => {
         await axios.put(`${API}/students/${editingAluno.id}`, formData);
         toast({
           title: "Aluno atualizado com sucesso!",
-          description: "As informações do aluno foram atualizadas.",
+          description: "As informaÃ§Ãµes do aluno foram atualizadas.",
         });
       } else {
         const response = await axios.post(`${API}/students`, formData);
         const novoAlunoId = response.data.id;
 
-        // Se turma foi selecionada (e não é "sem_turma"), adicionar aluno à turma
+        // Se turma foi selecionada (e nÃ£o Ã© "sem_turma"), adicionar aluno Ã  turma
         if (formData.turma_id && formData.turma_id !== "sem_turma") {
           try {
             await axios.put(
@@ -5547,14 +5549,14 @@ const AlunosManager = () => {
             toast({
               title: "Aluno criado e alocado com sucesso!",
               description:
-                "O aluno foi adicionado ao sistema e à turma selecionada.",
+                "O aluno foi adicionado ao sistema e Ã  turma selecionada.",
             });
           } catch (turmaError) {
-            console.error("Erro ao adicionar aluno à turma:", turmaError);
+            console.error("Erro ao adicionar aluno Ã  turma:", turmaError);
             toast({
-              title: "Aluno criado, mas erro na alocação",
+              title: "Aluno criado, mas erro na alocaÃ§Ã£o",
               description:
-                "Aluno criado com sucesso, mas não foi possível adicioná-lo à turma. Faça isso manualmente.",
+                "Aluno criado com sucesso, mas nÃ£o foi possÃ­vel adicionÃ¡-lo Ã  turma. FaÃ§a isso manualmente.",
               variant: "destructive",
             });
           }
@@ -5562,7 +5564,7 @@ const AlunosManager = () => {
           toast({
             title: "Aluno criado com sucesso!",
             description:
-              "O novo aluno foi adicionado ao sistema (sem turma específica).",
+              "O novo aluno foi adicionado ao sistema (sem turma especÃ­fica).",
           });
         }
       }
@@ -5594,7 +5596,7 @@ const AlunosManager = () => {
       nome_responsavel: "",
       telefone_responsavel: "",
       observacoes: "",
-      turma_id: "", // ✅ Campo turma resetado
+      turma_id: "", // âœ… Campo turma resetado
     });
   };
 
@@ -5710,7 +5712,7 @@ const AlunosManager = () => {
     setIsDropoutDialogOpen(true);
   };
 
-  // 📋 Função para justificar falta/anexar atestado fora da chamada
+  // ðŸ“‹ FunÃ§Ã£o para justificar falta/anexar atestado fora da chamada
   const handleJustifyStudent = (aluno) => {
     setSelectedAlunoJustify(aluno);
     setJustifyForm({
@@ -5721,7 +5723,7 @@ const AlunosManager = () => {
     setIsJustifyDialogOpen(true);
   };
 
-  // 🔄 Função para reativar aluno desistente (APENAS ADMIN)
+  // ðŸ”„ FunÃ§Ã£o para reativar aluno desistente (APENAS ADMIN)
   const handleReactivateStudent = async (aluno) => {
     if (user?.tipo !== "admin") {
       toast({
@@ -5732,38 +5734,38 @@ const AlunosManager = () => {
       return;
     }
 
-    // Confirmação dupla para ação crítica
+    // ConfirmaÃ§Ã£o dupla para aÃ§Ã£o crÃ­tica
     const confirmReactivation = window.confirm(
-      `🔄 REATIVAÇÃO DE ALUNO\n\n` +
+      `ðŸ”„ REATIVAÃ‡ÃƒO DE ALUNO\n\n` +
         `Aluno: ${aluno.nome}\n` +
         `Status atual: Desistente\n\n` +
-        `Esta ação irá:\n` +
-        `• Alterar status para "Ativo"\n` +
-        `• Remover registros de desistência\n` +
-        `• Permitir nova matrícula em turmas\n\n` +
+        `Esta aÃ§Ã£o irÃ¡:\n` +
+        `â€¢ Alterar status para "Ativo"\n` +
+        `â€¢ Remover registros de desistÃªncia\n` +
+        `â€¢ Permitir nova matrÃ­cula em turmas\n\n` +
         `Deseja continuar?`
     );
 
     if (!confirmReactivation) return;
 
     try {
-      console.log(`🔄 Iniciando reativação do aluno: ${aluno.nome}`);
+      console.log(`ðŸ”„ Iniciando reativaÃ§Ã£o do aluno: ${aluno.nome}`);
 
       const response = await axios.post(
         `${API}/students/${aluno.id}/reactivate`
       );
 
       toast({
-        title: "✅ Aluno reativado com sucesso",
+        title: "âœ… Aluno reativado com sucesso",
         description: `${aluno.nome} foi reativado e pode ser matriculado novamente.`,
       });
 
-      console.log("✅ Resposta da reativação:", response.data);
+      console.log("âœ… Resposta da reativaÃ§Ã£o:", response.data);
 
       // Atualizar lista de alunos
       fetchAlunos();
     } catch (error) {
-      console.error("❌ Erro na reativação:", error);
+      console.error("âŒ Erro na reativaÃ§Ã£o:", error);
       toast({
         title: "Erro ao reativar aluno",
         description: error.response?.data?.detail || "Tente novamente",
@@ -5781,8 +5783,8 @@ const AlunosManager = () => {
   const submitDropout = async () => {
     if (!dropoutForm.motivo_codigo) {
       toast({
-        title: "Motivo obrigatório",
-        description: "Por favor, selecione o motivo da desistência.",
+        title: "Motivo obrigatÃ³rio",
+        description: "Por favor, selecione o motivo da desistÃªncia.",
         variant: "destructive",
       });
       return;
@@ -5794,8 +5796,8 @@ const AlunosManager = () => {
       !dropoutForm.motivo_personalizado?.trim()
     ) {
       toast({
-        title: "Descrição obrigatória",
-        description: "Para 'Outro motivo', descreva o motivo específico.",
+        title: "DescriÃ§Ã£o obrigatÃ³ria",
+        description: "Para 'Outro motivo', descreva o motivo especÃ­fico.",
         variant: "destructive",
       });
       return;
@@ -5810,7 +5812,7 @@ const AlunosManager = () => {
         aluno_id: selectedStudentDropout.id,
         motivo_codigo: dropoutForm.motivo_codigo,
         motivo_descricao:
-          motivoSelecionado?.descricao || "Motivo não especificado",
+          motivoSelecionado?.descricao || "Motivo nÃ£o especificado",
         motivo_personalizado:
           dropoutForm.motivo_codigo === "outro"
             ? dropoutForm.motivo_personalizado
@@ -5826,7 +5828,7 @@ const AlunosManager = () => {
       });
 
       toast({
-        title: "✅ Desistência registrada",
+        title: "âœ… DesistÃªncia registrada",
         description: `${selectedStudentDropout.nome} foi marcado como desistente.`,
       });
 
@@ -5841,18 +5843,18 @@ const AlunosManager = () => {
     } catch (error) {
       console.error("Error marking as dropout:", error);
       toast({
-        title: "Erro ao registrar desistência",
+        title: "Erro ao registrar desistÃªncia",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
     }
   };
 
-  // 📋 Submeter justificativa/atestado fora da chamada
+  // ðŸ“‹ Submeter justificativa/atestado fora da chamada
   const submitJustification = async () => {
     if (!justifyForm.reason_text.trim()) {
       toast({
-        title: "Motivo obrigatório",
+        title: "Motivo obrigatÃ³rio",
         description: "Por favor, descreva o motivo da justificativa.",
         variant: "destructive",
       });
@@ -5861,7 +5863,7 @@ const AlunosManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório
+      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatÃ³rio
       formData.append("reason_text", justifyForm.reason_text.trim());
       if (justifyForm.observations.trim()) {
         formData.append("observations", justifyForm.observations.trim());
@@ -5881,7 +5883,7 @@ const AlunosManager = () => {
       );
 
       toast({
-        title: "✅ Justificativa registrada",
+        title: "âœ… Justificativa registrada",
         description: `Justificativa de ${selectedAlunoJustify.nome} registrada com sucesso.`,
       });
 
@@ -5893,7 +5895,7 @@ const AlunosManager = () => {
       });
       setSelectedAlunoJustify(null);
     } catch (error) {
-      console.error("❌ Erro na justificativa:", error);
+      console.error("âŒ Erro na justificativa:", error);
       toast({
         title: "Erro ao registrar justificativa",
         description: error.response?.data?.detail || "Tente novamente",
@@ -5905,7 +5907,7 @@ const AlunosManager = () => {
   const submitAtestado = async () => {
     if (!selectedFile) {
       toast({
-        title: "Arquivo obrigatório",
+        title: "Arquivo obrigatÃ³rio",
         description: "Por favor, selecione um arquivo de atestado.",
         variant: "destructive",
       });
@@ -5926,7 +5928,7 @@ const AlunosManager = () => {
 
       toast({
         title: "Atestado enviado",
-        description: `Atestado médico de ${selectedAluno.nome} foi registrado.`,
+        description: `Atestado mÃ©dico de ${selectedAluno.nome} foi registrado.`,
       });
 
       setIsAtestadoDialogOpen(false);
@@ -5942,11 +5944,11 @@ const AlunosManager = () => {
     }
   };
 
-  // 🚀 BULK UPLOAD FUNCTIONS
+  // ðŸš€ BULK UPLOAD FUNCTIONS
   const handleBulkUpload = async () => {
     if (!bulkUploadFile) {
       toast({
-        title: "Arquivo obrigatório",
+        title: "Arquivo obrigatÃ³rio",
         description: "Por favor, selecione um arquivo CSV ou Excel",
         variant: "destructive",
       });
@@ -5959,17 +5961,17 @@ const AlunosManager = () => {
       const formData = new FormData();
       formData.append("file", bulkUploadFile);
 
-      // Construir parâmetros
+      // Construir parÃ¢metros
       const params = new URLSearchParams();
       if (updateExisting) params.append("update_existing", "true");
       if (selectedTurmaForBulk && selectedTurmaForBulk !== "sem_turma_padrao") {
         params.append("turma_id", selectedTurmaForBulk);
       }
 
-      console.log("🚀 Iniciando bulk upload...");
-      console.log("📄 Arquivo:", bulkUploadFile.name);
-      console.log("🔄 Atualizar existentes:", updateExisting);
-      console.log("🎯 Turma selecionada:", selectedTurmaForBulk);
+      console.log("ðŸš€ Iniciando bulk upload...");
+      console.log("ðŸ“„ Arquivo:", bulkUploadFile.name);
+      console.log("ðŸ”„ Atualizar existentes:", updateExisting);
+      console.log("ðŸŽ¯ Turma selecionada:", selectedTurmaForBulk);
 
       const response = await axios.post(
         `${API}/students/bulk-upload?${params}`,
@@ -5981,7 +5983,7 @@ const AlunosManager = () => {
       );
 
       const result = response.data;
-      console.log("✅ Upload concluído:", result);
+      console.log("âœ… Upload concluÃ­do:", result);
 
       // Mostrar resumo
       setBulkSummaryData(result);
@@ -5999,13 +6001,13 @@ const AlunosManager = () => {
       fetchAlunos();
 
       toast({
-        title: "✅ Upload Concluído",
+        title: "âœ… Upload ConcluÃ­do",
         description: result.message,
       });
     } catch (error) {
-      console.error("❌ Erro no bulk upload:", error);
+      console.error("âŒ Erro no bulk upload:", error);
       toast({
-        title: "❌ Erro no Upload",
+        title: "âŒ Erro no Upload",
         description: error.response?.data?.detail || error.message,
         variant: "destructive",
       });
@@ -6035,7 +6037,7 @@ const AlunosManager = () => {
 
   const downloadTemplate = () => {
     const templateContent = `nome_completo,cpf,data_nascimento,email,telefone,rg,genero,endereco
-João da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
+JoÃ£o da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
 Maria Souza,987.654.321-00,22/03/1995,maria@email.com,11888888888,98.765.432-1,F,Av Paulista 456
 Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233-3,M,Rua Augusta 789`;
 
@@ -6063,19 +6065,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
     const labels = {
       ativo: "Ativo",
       desistente: "Desistente",
-      concluido: "Concluído",
+      concluido: "ConcluÃ­do",
       suspenso: "Suspenso",
     };
     return labels[status] || status;
   };
 
-  // 🎯 PRODUÇÃO: Função de debug removida
+  // ðŸŽ¯ PRODUÃ‡ÃƒO: FunÃ§Ã£o de debug removida
 
-  // 🎯 PRODUÇÃO: Função de debug removida
+  // ðŸŽ¯ PRODUÃ‡ÃƒO: FunÃ§Ã£o de debug removida
 
-  // 🎯 PRODUÇÃO: Função de debug removida
+  // ðŸŽ¯ PRODUÃ‡ÃƒO: FunÃ§Ã£o de debug removida
 
-  // 🎯 PRODUÇÃO: Função de debug removida
+  // ðŸŽ¯ PRODUÃ‡ÃƒO: FunÃ§Ã£o de debug removida
 
   if (loading) return <div>Carregando...</div>;
 
@@ -6094,7 +6096,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            {/* 🚀 BULK UPLOAD BUTTON */}
+            {/* ðŸš€ BULK UPLOAD BUTTON */}
             {user?.tipo !== "monitor" && (
               <Dialog
                 open={isBulkUploadOpen}
@@ -6109,7 +6111,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </Dialog>
             )}
 
-            {/* 🎯 PRODUÇÃO: Botões de teste removidos para usuários finais */}
+            {/* ðŸŽ¯ PRODUÃ‡ÃƒO: BotÃµes de teste removidos para usuÃ¡rios finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -6136,10 +6138,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
                   style={{ scrollbarWidth: "thin" }}
                 >
-                  {/* Campos Obrigatórios - Destacados */}
+                  {/* Campos ObrigatÃ³rios - Destacados */}
                   <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3">
-                      📋 Cadastro do aluno
+                      ðŸ“‹ Cadastro do aluno
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
@@ -6155,7 +6157,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           onChange={(e) =>
                             setFormData({ ...formData, nome: e.target.value })
                           }
-                          placeholder="Ex: João Silva Santos"
+                          placeholder="Ex: JoÃ£o Silva Santos"
                           className="border-blue-300 focus:border-blue-500"
                           required
                         />
@@ -6204,10 +6206,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     </div>
                   </div>
 
-                  {/* Campo Turma - Entre Obrigatórios e Complementares */}
+                  {/* Campo Turma - Entre ObrigatÃ³rios e Complementares */}
                   <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
                     <h3 className="text-lg font-semibold text-green-800 mb-3">
-                      🎯 Alocação em Turma
+                      ðŸŽ¯ AlocaÃ§Ã£o em Turma
                     </h3>
                     <div className="space-y-2">
                       <Label
@@ -6227,19 +6229,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="sem_turma">
-                            Sem turma (não alocado)
+                            Sem turma (nÃ£o alocado)
                           </SelectItem>
                           {turmas.map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
                               {turma.nome} -{" "}
-                              {turma.curso_nome || "Curso não informado"}
+                              {turma.curso_nome || "Curso nÃ£o informado"}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-green-600">
-                        💡 Você pode deixar sem turma e alocar depois, ou
-                        selecionar uma turma específica
+                        ðŸ’¡ VocÃª pode deixar sem turma e alocar depois, ou
+                        selecionar uma turma especÃ­fica
                       </p>
                     </div>
                   </div>
@@ -6247,7 +6249,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   {/* Campos Complementares */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-700">
-                      📄 Informações Complementares
+                      ðŸ“„ InformaÃ§Ãµes Complementares
                     </h3>
 
                     <div className="grid grid-cols-3 gap-4">
@@ -6281,7 +6283,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Gênero</Label>
+                        <Label>GÃªnero</Label>
                         <Select
                           value={formData.genero}
                           onValueChange={(value) =>
@@ -6296,7 +6298,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                             <SelectItem value="feminino">Feminino</SelectItem>
                             <SelectItem value="outro">Outro</SelectItem>
                             <SelectItem value="nao_informado">
-                              Não informado
+                              NÃ£o informado
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -6334,21 +6336,21 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="endereco">Endereço Completo</Label>
+                      <Label htmlFor="endereco">EndereÃ§o Completo</Label>
                       <Input
                         id="endereco"
                         value={formData.endereco}
                         onChange={(e) =>
                           setFormData({ ...formData, endereco: e.target.value })
                         }
-                        placeholder="Rua, número, bairro, cidade, CEP"
+                        placeholder="Rua, nÃºmero, bairro, cidade, CEP"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="nome_responsavel">
-                          Nome do Responsável
+                          Nome do ResponsÃ¡vel
                         </Label>
                         <Input
                           id="nome_responsavel"
@@ -6365,7 +6367,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
                       <div className="space-y-2">
                         <Label htmlFor="telefone_responsavel">
-                          Telefone do Responsável
+                          Telefone do ResponsÃ¡vel
                         </Label>
                         <Input
                           id="telefone_responsavel"
@@ -6382,7 +6384,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="observacoes">Observações</Label>
+                      <Label htmlFor="observacoes">ObservaÃ§Ãµes</Label>
                       <Textarea
                         id="observacoes"
                         value={formData.observacoes}
@@ -6392,7 +6394,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                             observacoes: e.target.value,
                           })
                         }
-                        placeholder="Observações sobre o aluno..."
+                        placeholder="ObservaÃ§Ãµes sobre o aluno..."
                       />
                     </div>
                   </div>
@@ -6411,48 +6413,48 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardHeader>
 
-      {/* Card de Permissões para Usuários Não-Admin */}
+      {/* Card de PermissÃµes para UsuÃ¡rios NÃ£o-Admin */}
       {user?.tipo !== "admin" && (
         <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-center gap-2 text-orange-800">
             <Info className="h-4 w-4" />
-            <span className="text-sm font-medium">Suas Permissões:</span>
+            <span className="text-sm font-medium">Suas PermissÃµes:</span>
           </div>
           <div className="mt-2 text-sm text-orange-700">
             <p>
-              • <strong>Tipo:</strong>{" "}
+              â€¢ <strong>Tipo:</strong>{" "}
               {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}
             </p>
             <p>
-              • <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
+              â€¢ <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
             </p>
             <p>
-              • <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
+              â€¢ <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
             </p>
             <p>
-              • <strong>Escopo:</strong>{" "}
+              â€¢ <strong>Escopo:</strong>{" "}
               {user?.tipo === "instrutor"
-                ? "Alunos do seu curso específico"
+                ? "Alunos do seu curso especÃ­fico"
                 : user?.tipo === "pedagogo"
                 ? "Todos os alunos da sua unidade"
-                : "Alunos das turmas que você monitora"}
+                : "Alunos das turmas que vocÃª monitora"}
             </p>
             <p>
-              • <strong>CSV:</strong>{" "}
+              â€¢ <strong>CSV:</strong>{" "}
               {user?.tipo === "instrutor"
                 ? "Pode importar apenas do seu curso"
                 : user?.tipo === "pedagogo"
                 ? "Pode importar de qualquer curso da unidade"
-                : "Não pode importar (apenas visualizar)"}
+                : "NÃ£o pode importar (apenas visualizar)"}
             </p>
             {user?.tipo === "instrutor" && (
               <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                <p className="font-medium">💡 Dicas para Instrutores:</p>
+                <p className="font-medium">ðŸ’¡ Dicas para Instrutores:</p>
                 <p>
-                  • Turmas inexistentes no CSV serão criadas automaticamente
+                  â€¢ Turmas inexistentes no CSV serÃ£o criadas automaticamente
                 </p>
-                <p>• Alunos sem turma definida ficarão como "não alocado"</p>
-                <p>• Você pode gerenciar alunos entre suas turmas</p>
+                <p>â€¢ Alunos sem turma definida ficarÃ£o como "nÃ£o alocado"</p>
+                <p>â€¢ VocÃª pode gerenciar alunos entre suas turmas</p>
               </div>
             )}
           </div>
@@ -6469,7 +6471,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 <TableHead>Idade</TableHead>
                 <TableHead>Contato</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -6537,13 +6539,13 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           variant="outline"
                           size="sm"
                           onClick={() => handleMarkAsDropout(aluno)}
-                          title="Registrar desistência"
+                          title="Registrar desistÃªncia"
                           className="text-red-600 border-red-600 hover:bg-red-50"
                         >
                           <UserX className="h-4 w-4" />
                         </Button>
                       )}
-                      {/* 🔄 Botão de reativação - APENAS ADMIN */}
+                      {/* ðŸ”„ BotÃ£o de reativaÃ§Ã£o - APENAS ADMIN */}
                       {user?.tipo === "admin" &&
                         aluno.status === "desistente" && (
                           <Button
@@ -6565,7 +6567,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardContent>
 
-      {/* � Dialog para justificar falta/anexar atestado */}
+      {/* ï¿½ Dialog para justificar falta/anexar atestado */}
       <Dialog open={isJustifyDialogOpen} onOpenChange={setIsJustifyDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -6579,7 +6581,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             <div>
               <Label>Motivo da falta *</Label>
               <Textarea
-                placeholder="Descreva o motivo da falta (ex: consulta médica, problema familiar, etc.)"
+                placeholder="Descreva o motivo da falta (ex: consulta mÃ©dica, problema familiar, etc.)"
                 value={justifyForm.reason_text}
                 onChange={(e) =>
                   setJustifyForm((prev) => ({
@@ -6590,15 +6592,15 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 className="min-h-[80px]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                💡 Seja específico para facilitar o controle de frequência
+                ðŸ’¡ Seja especÃ­fico para facilitar o controle de frequÃªncia
               </p>
             </div>
 
-            {/* Campo de observações */}
+            {/* Campo de observaÃ§Ãµes */}
             <div>
-              <Label>Observações</Label>
+              <Label>ObservaÃ§Ãµes</Label>
               <Textarea
-                placeholder="Observações adicionais sobre a falta (opcional)"
+                placeholder="ObservaÃ§Ãµes adicionais sobre a falta (opcional)"
                 value={justifyForm.observations}
                 onChange={(e) =>
                   setJustifyForm((prev) => ({
@@ -6624,7 +6626,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 }
               />
               <p className="text-xs text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+                Formatos aceitos: PDF, JPG, PNG (mÃ¡x. 5MB)
               </p>
             </div>
           </div>
@@ -6644,19 +6646,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* �🚪 Dialog para registrar desistência - SISTEMA ESTRUTURADO */}
+      {/* ï¿½ðŸšª Dialog para registrar desistÃªncia - SISTEMA ESTRUTURADO */}
       <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Registrar Desistência</DialogTitle>
+            <DialogTitle>Registrar DesistÃªncia</DialogTitle>
             <DialogDescription>
-              Registrar a desistência de {selectedStudentDropout?.nome}
+              Registrar a desistÃªncia de {selectedStudentDropout?.nome}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {/* Seletor de motivo estruturado */}
             <div>
-              <Label>Motivo da desistência *</Label>
+              <Label>Motivo da desistÃªncia *</Label>
               <Select
                 value={dropoutForm.motivo_codigo}
                 onValueChange={(value) =>
@@ -6689,15 +6691,15 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       motivo_personalizado: e.target.value,
                     }))
                   }
-                  placeholder="Descreva o motivo específico da desistência..."
+                  placeholder="Descreva o motivo especÃ­fico da desistÃªncia..."
                   rows={3}
                 />
               </div>
             )}
 
-            {/* Observações adicionais */}
+            {/* ObservaÃ§Ãµes adicionais */}
             <div>
-              <Label>Observações (opcional)</Label>
+              <Label>ObservaÃ§Ãµes (opcional)</Label>
               <Textarea
                 value={dropoutForm.observacoes}
                 onChange={(e) =>
@@ -6706,7 +6708,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     observacoes: e.target.value,
                   }))
                 }
-                placeholder="Informações adicionais sobre a desistência..."
+                placeholder="InformaÃ§Ãµes adicionais sobre a desistÃªncia..."
                 rows={2}
               />
             </div>
@@ -6721,7 +6723,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 onClick={submitDropout}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Registrar Desistência
+                Registrar DesistÃªncia
               </Button>
             </div>
           </div>
@@ -6735,9 +6737,9 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Atestado Médico</DialogTitle>
+            <DialogTitle>Upload Atestado MÃ©dico</DialogTitle>
             <DialogDescription>
-              Enviar atestado médico para {selectedAluno?.nome}
+              Enviar atestado mÃ©dico para {selectedAluno?.nome}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -6749,7 +6751,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 onChange={(e) => setSelectedFile(e.target.files[0])}
               />
               <p className="text-sm text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (máx. 5MB)
+                Formatos aceitos: PDF, JPG, PNG (mÃ¡x. 5MB)
               </p>
             </div>
             <div className="flex justify-end space-x-2">
@@ -6771,19 +6773,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* 🚀 BULK UPLOAD DIALOG */}
+      {/* ðŸš€ BULK UPLOAD DIALOG */}
       <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               <Upload className="h-5 w-5 mr-2 inline" />
-              Importação em Massa de Alunos
+              ImportaÃ§Ã£o em Massa de Alunos
             </DialogTitle>
             <DialogDescription>
-              Importe múltiplos alunos usando arquivo CSV.
+              Importe mÃºltiplos alunos usando arquivo CSV.
               {user?.tipo === "admin"
-                ? " Você pode importar para qualquer curso."
-                : ` Você pode importar apenas para ${
+                ? " VocÃª pode importar para qualquer curso."
+                : ` VocÃª pode importar apenas para ${
                     user?.curso_nome || "seu curso"
                   }.`}
             </DialogDescription>
@@ -6793,14 +6795,14 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
             style={{ scrollbarWidth: "thin" }}
           >
-            {/* 📋 INSTRUÇÕES */}
+            {/* ðŸ“‹ INSTRUÃ‡Ã•ES */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">
-                📋 Formato do CSV
+                ðŸ“‹ Formato do CSV
               </h3>
               <div className="text-sm text-blue-700 space-y-1">
                 <p>
-                  <strong>Campos obrigatórios:</strong> nome_completo, cpf,
+                  <strong>Campos obrigatÃ³rios:</strong> nome_completo, cpf,
                   data_nascimento
                 </p>
                 <p>
@@ -6811,13 +6813,13 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   <strong>Formato data:</strong> DD/MM/AAAA (ex: 15/03/1990)
                 </p>
                 <p>
-                  <strong>Formato CPF:</strong> Com ou sem pontuação (ex:
+                  <strong>Formato CPF:</strong> Com ou sem pontuaÃ§Ã£o (ex:
                   123.456.789-09 ou 12345678909)
                 </p>
               </div>
             </div>
 
-            {/* 🎯 SELEÇÃO DE ARQUIVO */}
+            {/* ðŸŽ¯ SELEÃ‡ÃƒO DE ARQUIVO */}
             <div className="space-y-4">
               <div>
                 <Label className="text-lg font-medium">
@@ -6832,16 +6834,16 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   />
                   {bulkUploadFile && (
                     <p className="text-sm text-green-600 mt-2">
-                      ✅ Arquivo selecionado: {bulkUploadFile.name}
+                      âœ… Arquivo selecionado: {bulkUploadFile.name}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* 🎯 OPÇÕES DE IMPORTAÇÃO */}
+              {/* ðŸŽ¯ OPÃ‡Ã•ES DE IMPORTAÃ‡ÃƒO */}
               <div className="space-y-3">
                 <Label className="text-lg font-medium">
-                  2. Opções de Importação
+                  2. OpÃ§Ãµes de ImportaÃ§Ã£o
                 </Label>
 
                 {/* Atualizar existentes */}
@@ -6858,20 +6860,20 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   </label>
                 </div>
 
-                {/* Seleção de turma padrão */}
+                {/* SeleÃ§Ã£o de turma padrÃ£o */}
                 {user?.tipo !== "monitor" && (
                   <div className="space-y-2">
-                    <Label>Turma padrão (opcional)</Label>
+                    <Label>Turma padrÃ£o (opcional)</Label>
                     <Select
                       value={selectedTurmaForBulk}
                       onValueChange={setSelectedTurmaForBulk}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma turma padrão ou deixe em branco" />
+                        <SelectValue placeholder="Selecione uma turma padrÃ£o ou deixe em branco" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="sem_turma_padrao">
-                          Sem turma padrão
+                          Sem turma padrÃ£o
                         </SelectItem>
                         {turmas
                           .filter(
@@ -6882,13 +6884,13 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           .map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
                               {turma.nome} -{" "}
-                              {turma.curso_nome || "Curso não informado"}
+                              {turma.curso_nome || "Curso nÃ£o informado"}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500">
-                      💡 Alunos sem turma especificada no CSV serão alocados
+                      ðŸ’¡ Alunos sem turma especificada no CSV serÃ£o alocados
                       nesta turma
                     </p>
                   </div>
@@ -6896,7 +6898,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </div>
             </div>
 
-            {/* 🎯 AÇÕES */}
+            {/* ðŸŽ¯ AÃ‡Ã•ES */}
             <div className="flex justify-between">
               <div className="space-x-2">
                 <Button
@@ -6939,11 +6941,11 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* 📊 BULK UPLOAD SUMMARY DIALOG */}
+      {/* ðŸ“Š BULK UPLOAD SUMMARY DIALOG */}
       <Dialog open={showBulkSummary} onOpenChange={setShowBulkSummary}>
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>📊 Resultado da Importação em Massa</DialogTitle>
+            <DialogTitle>ðŸ“Š Resultado da ImportaÃ§Ã£o em Massa</DialogTitle>
             <DialogDescription>
               Resumo detalhado do processamento do arquivo CSV
             </DialogDescription>
@@ -6954,40 +6956,40 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
               style={{ scrollbarWidth: "thin" }}
             >
-              {/* 📈 MÉTRICAS GERAIS */}
+              {/* ðŸ“ˆ MÃ‰TRICAS GERAIS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-700">
                     {bulkSummaryData.resumo?.sucessos || 0}
                   </div>
-                  <div className="text-sm text-green-600">✅ Sucessos</div>
+                  <div className="text-sm text-green-600">âœ… Sucessos</div>
                 </div>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-red-700">
                     {bulkSummaryData.resumo?.erros || 0}
                   </div>
-                  <div className="text-sm text-red-600">❌ Erros</div>
+                  <div className="text-sm text-red-600">âŒ Erros</div>
                 </div>
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-yellow-700">
                     {bulkSummaryData.resumo?.duplicados || 0}
                   </div>
-                  <div className="text-sm text-yellow-600">🔄 Duplicados</div>
+                  <div className="text-sm text-yellow-600">ðŸ”„ Duplicados</div>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-700">
                     {bulkSummaryData.resumo?.total || 0}
                   </div>
-                  <div className="text-sm text-blue-600">📋 Total</div>
+                  <div className="text-sm text-blue-600">ðŸ“‹ Total</div>
                 </div>
               </div>
 
-              {/* 📝 DETALHES */}
+              {/* ðŸ“ DETALHES */}
               {bulkSummaryData.detalhes &&
                 bulkSummaryData.detalhes.length > 0 && (
                   <div>
                     <h3 className="font-semibold mb-3">
-                      📝 Detalhes do Processamento
+                      ðŸ“ Detalhes do Processamento
                     </h3>
                     <div className="max-h-40 overflow-y-auto border rounded-lg">
                       <Table>
@@ -7013,8 +7015,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                                   }
                                 >
                                   {item.status === "sucesso"
-                                    ? "✅ Sucesso"
-                                    : "❌ Erro"}
+                                    ? "âœ… Sucesso"
+                                    : "âŒ Erro"}
                                 </Badge>
                               </TableCell>
                               <TableCell className="max-w-xs truncate">
@@ -7028,12 +7030,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   </div>
                 )}
 
-              {/* ⚠️ ERROS */}
+              {/* âš ï¸ ERROS */}
               {bulkSummaryData.erros && bulkSummaryData.erros.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-semibold text-red-700">
-                      ⚠️ Erros Encontrados
+                      âš ï¸ Erros Encontrados
                     </h3>
                     <Button
                       variant="outline"
@@ -7042,7 +7044,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       className="text-red-600 border-red-600 hover:bg-red-50"
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Baixar Relatório de Erros
+                      Baixar RelatÃ³rio de Erros
                     </Button>
                   </div>
                   <div className="max-h-32 overflow-y-auto bg-red-50 border border-red-200 rounded-lg p-3">
@@ -7054,19 +7056,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     {bulkSummaryData.erros.length > 5 && (
                       <div className="text-sm text-red-600 italic">
                         ... e mais {bulkSummaryData.erros.length - 5} erros.
-                        Baixe o relatório completo.
+                        Baixe o relatÃ³rio completo.
                       </div>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* ✅ SUCESSOS */}
+              {/* âœ… SUCESSOS */}
               {bulkSummaryData.sucessos &&
                 bulkSummaryData.sucessos.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-green-700 mb-3">
-                      ✅ Alunos Importados com Sucesso
+                      âœ… Alunos Importados com Sucesso
                     </h3>
                     <div className="max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3">
                       {bulkSummaryData.sucessos
@@ -7077,7 +7079,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                             className="text-sm text-green-700 mb-1"
                           >
                             <strong>{sucesso.nome}</strong> - CPF: {sucesso.cpf}
-                            {sucesso.turma && ` → Turma: ${sucesso.turma}`}
+                            {sucesso.turma && ` â†’ Turma: ${sucesso.turma}`}
                           </div>
                         ))}
                       {bulkSummaryData.sucessos.length > 10 && (
@@ -7110,7 +7112,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de visualização detalhada do aluno */}
+      {/* Dialog de visualizaÃ§Ã£o detalhada do aluno */}
       <Dialog
         open={isViewAlunoDialogOpen}
         onOpenChange={setIsViewAlunoDialogOpen}
@@ -7122,7 +7124,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               Perfil Completo - {viewingAluno?.nome}
             </DialogTitle>
             <DialogDescription>
-              Visualize informações detalhadas e justificativas do aluno
+              Visualize informaÃ§Ãµes detalhadas e justificativas do aluno
             </DialogDescription>
           </DialogHeader>
 
@@ -7142,12 +7144,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 {/* Aba de Dados Pessoais */}
                 <TabsContent value="dados" className="space-y-4 mt-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Dados Obrigatórios */}
+                    {/* Dados ObrigatÃ³rios */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center">
                           <UserCheck className="h-5 w-5 mr-2" />
-                          Dados Obrigatórios
+                          Dados ObrigatÃ³rios
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
@@ -7207,7 +7209,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         </div>
                         <div>
                           <Label className="text-sm font-medium text-gray-600">
-                            Gênero
+                            GÃªnero
                           </Label>
                           <p className="text-base">
                             {viewingAluno.genero || "N/A"}
@@ -7232,18 +7234,18 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       </CardContent>
                     </Card>
 
-                    {/* Dados do Responsável */}
+                    {/* Dados do ResponsÃ¡vel */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center">
                           <Users className="h-5 w-5 mr-2" />
-                          Dados do Responsável
+                          Dados do ResponsÃ¡vel
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div>
                           <Label className="text-sm font-medium text-gray-600">
-                            Nome do Responsável
+                            Nome do ResponsÃ¡vel
                           </Label>
                           <p className="text-base">
                             {viewingAluno.nome_responsavel || "N/A"}
@@ -7251,7 +7253,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         </div>
                         <div>
                           <Label className="text-sm font-medium text-gray-600">
-                            Telefone do Responsável
+                            Telefone do ResponsÃ¡vel
                           </Label>
                           <p className="text-base">
                             {viewingAluno.telefone_responsavel || "N/A"}
@@ -7260,18 +7262,18 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       </CardContent>
                     </Card>
 
-                    {/* Endereço e Observações */}
+                    {/* EndereÃ§o e ObservaÃ§Ãµes */}
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center">
                           <Building2 className="h-5 w-5 mr-2" />
-                          Outras Informações
+                          Outras InformaÃ§Ãµes
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <div>
                           <Label className="text-sm font-medium text-gray-600">
-                            Endereço
+                            EndereÃ§o
                           </Label>
                           <p className="text-base">
                             {viewingAluno.endereco || "N/A"}
@@ -7279,7 +7281,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         </div>
                         <div>
                           <Label className="text-sm font-medium text-gray-600">
-                            Observações
+                            ObservaÃ§Ãµes
                           </Label>
                           <p className="text-base">
                             {viewingAluno.observacoes || "N/A"}
@@ -7304,7 +7306,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <FileText className="h-5 w-5 mr-2" />
-                        Histórico de Justificativas
+                        HistÃ³rico de Justificativas
                       </CardTitle>
                       <CardDescription>
                         Justificativas de faltas registradas para este aluno
@@ -7323,7 +7325,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                           <p>Nenhuma justificativa registrada</p>
                           <p className="text-sm">
-                            Este aluno não possui justificativas de faltas
+                            Este aluno nÃ£o possui justificativas de faltas
                           </p>
                         </div>
                       ) : (
@@ -7350,7 +7352,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                                     {justification.observations && (
                                       <div className="mb-3">
                                         <Label className="text-sm font-medium text-gray-600">
-                                          Observações:
+                                          ObservaÃ§Ãµes:
                                         </Label>
                                         <p className="text-sm bg-gray-50 p-2 rounded border">
                                           {justification.observations}
@@ -7360,7 +7362,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
                                     {justification.attendance_id && (
                                       <div className="text-xs text-gray-500">
-                                        Vinculada à chamada:{" "}
+                                        Vinculada Ã  chamada:{" "}
                                         {justification.attendance_id}
                                       </div>
                                     )}
@@ -7459,7 +7461,7 @@ const UnidadesManager = () => {
         await axios.put(`${API}/units/${editingUnidade.id}`, formData);
         toast({
           title: "Unidade atualizada com sucesso!",
-          description: "As informações da unidade foram atualizadas.",
+          description: "As informaÃ§Ãµes da unidade foram atualizadas.",
         });
       } else {
         await axios.post(`${API}/units`, formData);
@@ -7583,14 +7585,14 @@ const UnidadesManager = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
+                  <Label htmlFor="endereco">EndereÃ§o</Label>
                   <Input
                     id="endereco"
                     value={formData.endereco}
                     onChange={(e) =>
                       setFormData({ ...formData, endereco: e.target.value })
                     }
-                    placeholder="Rua, número, bairro, cidade"
+                    placeholder="Rua, nÃºmero, bairro, cidade"
                     required
                   />
                 </div>
@@ -7608,14 +7610,14 @@ const UnidadesManager = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="responsavel">Responsável</Label>
+                  <Label htmlFor="responsavel">ResponsÃ¡vel</Label>
                   <Input
                     id="responsavel"
                     value={formData.responsavel}
                     onChange={(e) =>
                       setFormData({ ...formData, responsavel: e.target.value })
                     }
-                    placeholder="Nome do responsável"
+                    placeholder="Nome do responsÃ¡vel"
                   />
                 </div>
 
@@ -7650,11 +7652,11 @@ const UnidadesManager = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Endereço</TableHead>
+                <TableHead>EndereÃ§o</TableHead>
                 <TableHead>Contato</TableHead>
-                <TableHead>Responsável</TableHead>
+                <TableHead>ResponsÃ¡vel</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -7730,7 +7732,7 @@ const CursosManager = () => {
     carga_horaria: "",
     categoria: "",
     pre_requisitos: "",
-    dias_aula: ["segunda", "terca", "quarta", "quinta"], // 📅 Dias de aula padrão
+    dias_aula: ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Dias de aula padrÃ£o
   });
   const { toast } = useToast();
 
@@ -7761,7 +7763,7 @@ const CursosManager = () => {
         await axios.put(`${API}/courses/${editingCurso.id}`, submitData);
         toast({
           title: "Curso atualizado com sucesso!",
-          description: "As informações do curso foram atualizadas.",
+          description: "As informaÃ§Ãµes do curso foram atualizadas.",
         });
       } else {
         await axios.post(`${API}/courses`, submitData);
@@ -7791,7 +7793,7 @@ const CursosManager = () => {
       carga_horaria: "",
       categoria: "",
       pre_requisitos: "",
-      dias_aula: ["segunda", "terca", "quarta", "quinta"], // 📅 Resetar dias padrão
+      dias_aula: ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Resetar dias padrÃ£o
     });
   };
 
@@ -7803,7 +7805,7 @@ const CursosManager = () => {
       carga_horaria: curso.carga_horaria.toString(),
       categoria: curso.categoria || "",
       pre_requisitos: curso.pre_requisitos || "",
-      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // 📅 Carregar dias de aula
+      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Carregar dias de aula
     });
     setIsDialogOpen(true);
   };
@@ -7879,13 +7881,13 @@ const CursosManager = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, nome: e.target.value })
                     }
-                    placeholder="Ex: Informática Básica"
+                    placeholder="Ex: InformÃ¡tica BÃ¡sica"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição</Label>
+                  <Label htmlFor="descricao">DescriÃ§Ã£o</Label>
                   <Textarea
                     id="descricao"
                     value={formData.descricao}
@@ -7897,7 +7899,7 @@ const CursosManager = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="carga_horaria">Carga Horária (horas)</Label>
+                  <Label htmlFor="carga_horaria">Carga HorÃ¡ria (horas)</Label>
                   <Input
                     id="carga_horaria"
                     type="number"
@@ -7914,17 +7916,17 @@ const CursosManager = () => {
                   />
                 </div>
 
-                {/* 📅 Campo Dias de Aula */}
+                {/* ðŸ“… Campo Dias de Aula */}
                 <div className="space-y-2">
                   <Label>Dias de Aula</Label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { key: "segunda", label: "Segunda" },
-                      { key: "terca", label: "Terça" },
+                      { key: "terca", label: "TerÃ§a" },
                       { key: "quarta", label: "Quarta" },
                       { key: "quinta", label: "Quinta" },
                       { key: "sexta", label: "Sexta" },
-                      { key: "sabado", label: "Sábado" },
+                      { key: "sabado", label: "SÃ¡bado" },
                     ].map((dia) => (
                       <div
                         key={dia.key}
@@ -7971,12 +7973,12 @@ const CursosManager = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, categoria: e.target.value })
                     }
-                    placeholder="Ex: Tecnologia, Gestão"
+                    placeholder="Ex: Tecnologia, GestÃ£o"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pre_requisitos">Pré-requisitos</Label>
+                  <Label htmlFor="pre_requisitos">PrÃ©-requisitos</Label>
                   <Textarea
                     id="pre_requisitos"
                     value={formData.pre_requisitos}
@@ -7986,7 +7988,7 @@ const CursosManager = () => {
                         pre_requisitos: e.target.value,
                       })
                     }
-                    placeholder="Liste os pré-requisitos..."
+                    placeholder="Liste os prÃ©-requisitos..."
                   />
                 </div>
 
@@ -8009,10 +8011,10 @@ const CursosManager = () => {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
-                <TableHead>Carga Horária</TableHead>
-                <TableHead>Descrição</TableHead>
+                <TableHead>Carga HorÃ¡ria</TableHead>
+                <TableHead>DescriÃ§Ã£o</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
+                <TableHead>AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -8086,7 +8088,7 @@ function App() {
           </Routes>
         </BrowserRouter>
         <Toaster />
-        {/* Debug Panel sempre disponível */}
+        {/* Debug Panel sempre disponÃ­vel */}
         <DebugPanel />
       </div>
     </AuthProvider>
@@ -8104,7 +8106,7 @@ const LoginRoute = () => {
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando IOS...</p>
           <p className="text-sm text-gray-400 mt-2">
-            Se demorar muito, recarregue a página
+            Se demorar muito, recarregue a pÃ¡gina
           </p>
         </div>
       </div>
@@ -8122,7 +8124,7 @@ const ProtectedRoute = ({ children }) => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando autenticação...</p>
+          <p className="mt-4 text-gray-600">Verificando autenticaÃ§Ã£o...</p>
         </div>
       </div>
     );
@@ -8131,7 +8133,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🔍 COMPONENTE DE DEBUG UNIVERSAL - Para teste em outros computadores
+// ðŸ” COMPONENTE DE DEBUG UNIVERSAL - Para teste em outros computadores
 const DebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -8140,7 +8142,7 @@ const DebugPanel = () => {
     const savedLogs = JSON.parse(
       localStorage.getItem("ios_debug_logs") || "[]"
     );
-    setLogs(savedLogs.slice(-20)); // Últimos 20 logs
+    setLogs(savedLogs.slice(-20)); // Ãšltimos 20 logs
   }, [isOpen]);
 
   const toggleDebug = () => {
@@ -8157,7 +8159,7 @@ const DebugPanel = () => {
   const clearLogs = () => {
     localStorage.removeItem("ios_debug_logs");
     setLogs([]);
-    debugLog("Logs limpos pelo usuário");
+    debugLog("Logs limpos pelo usuÃ¡rio");
   };
 
   const exportLogs = () => {
@@ -8177,21 +8179,21 @@ const DebugPanel = () => {
   };
 
   const testConnection = async () => {
-    debugLog("TESTE DE CONEXÃO INICIADO");
+    debugLog("TESTE DE CONEXÃƒO INICIADO");
     try {
       const response = await axios.get(`${API}/ping`, { timeout: 10000 });
-      debugLog("TESTE DE CONEXÃO SUCESSO", response.data);
+      debugLog("TESTE DE CONEXÃƒO SUCESSO", response.data);
       alert(
-        `✅ Conexão OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
+        `âœ… ConexÃ£o OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
       );
     } catch (error) {
-      debugLog("TESTE DE CONEXÃO ERRO", {
+      debugLog("TESTE DE CONEXÃƒO ERRO", {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
       });
       alert(
-        `❌ Erro de Conexão!\nErro: ${error.message}\nStatus: ${
+        `âŒ Erro de ConexÃ£o!\nErro: ${error.message}\nStatus: ${
           error.response?.status || "N/A"
         }`
       );
@@ -8199,22 +8201,22 @@ const DebugPanel = () => {
   };
 
   const testReactDOM = () => {
-    debugLog("TESTE REACT DOM INICIADO - Simulando mudanças de estado");
+    debugLog("TESTE REACT DOM INICIADO - Simulando mudanÃ§as de estado");
 
-    // Simular as mudanças de estado que causam o problema
+    // Simular as mudanÃ§as de estado que causam o problema
     try {
-      // Criar elementos DOM temporários para testar
+      // Criar elementos DOM temporÃ¡rios para testar
       const testDiv = document.createElement("div");
       testDiv.id = "react-dom-test";
       document.body.appendChild(testDiv);
 
-      // Simular remoção imediata (similar ao que acontece na chamada)
+      // Simular remoÃ§Ã£o imediata (similar ao que acontece na chamada)
       setTimeout(() => {
         if (document.getElementById("react-dom-test")) {
           document.body.removeChild(testDiv);
-          debugLog("TESTE REACT DOM SUCESSO - Remoção de elemento funcionou");
+          debugLog("TESTE REACT DOM SUCESSO - RemoÃ§Ã£o de elemento funcionou");
           alert(
-            "✅ Teste React DOM OK - Não há problema de removeChild neste computador"
+            "âœ… Teste React DOM OK - NÃ£o hÃ¡ problema de removeChild neste computador"
           );
         }
       }, 10);
@@ -8223,7 +8225,7 @@ const DebugPanel = () => {
         message: error.message,
         stack: error.stack,
       });
-      alert(`❌ Erro React DOM detectado!\nErro: ${error.message}`);
+      alert(`âŒ Erro React DOM detectado!\nErro: ${error.message}`);
     }
   };
 
@@ -8235,7 +8237,7 @@ const DebugPanel = () => {
           className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
           size="sm"
         >
-          🔍 Debug
+          ðŸ” Debug
         </Button>
       </div>
     );
@@ -8251,12 +8253,12 @@ const DebugPanel = () => {
       </div>
 
       <div className="p-4 space-y-2">
-        {/* Instruções para usuários */}
+        {/* InstruÃ§Ãµes para usuÃ¡rios */}
         <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-          <p className="font-semibold">🔍 Instruções para Fabiana e Ione:</p>
+          <p className="font-semibold">ðŸ” InstruÃ§Ãµes para Fabiana e Ione:</p>
           <p>1. Ative o Debug Mode</p>
-          <p>2. Teste a conexão com "Testar API"</p>
-          <p>3. Faça uma chamada normalmente</p>
+          <p>2. Teste a conexÃ£o com "Testar API"</p>
+          <p>3. FaÃ§a uma chamada normalmente</p>
           <p>4. Se der erro, exporte os logs e envie</p>
         </div>
 
@@ -8288,7 +8290,7 @@ const DebugPanel = () => {
 
         <div className="max-h-48 overflow-y-auto text-xs font-mono bg-gray-100 p-2 rounded">
           {logs.length === 0 ? (
-            <p className="text-gray-500">Nenhum log disponível</p>
+            <p className="text-gray-500">Nenhum log disponÃ­vel</p>
           ) : (
             logs.map((log, index) => (
               <div key={index} className="mb-1">
@@ -8310,7 +8312,7 @@ const DebugPanel = () => {
   );
 };
 
-// 🛡️ App envolvido com ErrorBoundary
+// ðŸ›¡ï¸ App envolvido com ErrorBoundary
 const AppWithErrorBoundary = () => {
   return (
     <ErrorBoundary>
@@ -8320,4 +8322,3 @@ const AppWithErrorBoundary = () => {
 };
 
 export default AppWithErrorBoundary;
-
