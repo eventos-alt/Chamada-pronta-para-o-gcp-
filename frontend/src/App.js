@@ -1,19 +1,19 @@
-﻿import React, { useState, useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
+﻿import React, { useState, useEffect } from react;
+import ./App.css;
+import { BrowserRouter, Routes, Route, Navigate } from react-router-dom;
+import axios from axios;
+import { Button } from ./components/ui/button;
+import { Input } from ./components/ui/input;
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./components/ui/card";
-import { Label } from "./components/ui/label";
-import { Badge } from "./components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+} from ./components/ui/card;
+import { Label } from ./components/ui/label;
+import { Badge } from ./components/ui/badge;
+import { Tabs, TabsContent, TabsList, TabsTrigger } from ./components/ui/tabs;
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./components/ui/dialog";
+} from ./components/ui/dialog;
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,16 +29,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./components/ui/dropdown-menu";
+} from ./components/ui/dropdown-menu;
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./components/ui/select";
-import { Textarea } from "./components/ui/textarea";
-import { Checkbox } from "./components/ui/checkbox";
+} from ./components/ui/select;
+import { Textarea } from ./components/ui/textarea;
+import { Checkbox } from ./components/ui/checkbox;
 import {
   Table,
   TableBody,
@@ -46,9 +46,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./components/ui/table";
-import { useToast } from "./hooks/use-toast";
-import { Toaster } from "./components/ui/toaster";
+} from ./components/ui/table;
+import { useToast } from ./hooks/use-toast;
+import { Toaster } from ./components/ui/toaster;
 
 // ›¡¸ Error Boundary para capturar erros DOM
 class ErrorBoundary extends React.Component {
@@ -62,26 +62,26 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("¨ ErrorBoundary capturou erro:", error, errorInfo);
+    console.error(¨ ErrorBoundary capturou erro:, error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-          <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-            <h2 className="text-xl font-bold text-red-600 mb-4">
+        <div className=flex items-center justify-center min-h-screen bg-gray-50>
+          <div className=text-center p-8 bg-white rounded-lg shadow-lg max-w-md>
+            <h2 className=text-xl font-bold text-red-600 mb-4>
               âš ¸ Erro Capturado
             </h2>
-            <p className="text-gray-600 mb-4">
-              Ocorreu um erro na aplicação. A pí¡gina será¡ recarregada
+            <p className=text-gray-600 mb-4>
+              Ocorreu um erro na aplicação. A pá¡gina será¡ recarregada
               automaticamente.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className=px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700
             >
-              ”„ Recarregar Pí¡gina
+              ”„ Recarregar Pá¡gina
             </button>
           </div>
         </div>
@@ -131,36 +131,36 @@ import {
   BellRing,
   AlertTriangle,
   TriangleAlert,
-} from "lucide-react";
+} from lucide-react;
 
 // ¿½¸ ERROR BOUNDARY para evitar tela branca
-// ¿½€ RENDER OBRIGATí“RIO - Sistema ní­vel Brasil
+// ¿½€ RENDER OBRIGATá“RIO - Sistema ná­vel Brasil
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL ||
-  "https://sistema-ios-backend.onrender.com";
+  https://sistema-ios-backend.onrender.com;
 const API = `${BACKEND_URL}/api`;
 
 // ” SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
 const DEBUG_MODE =
-  localStorage.getItem("ios_debug") === "true" ||
-  process.env.NODE_ENV === "development";
+  localStorage.getItem(ios_debug) === true ||
+  process.env.NODE_ENV === development;
 
 const debugLog = (message, data = null) => {
-  if (DEBUG_MODE || process.env.NODE_ENV === "development") {
+  if (DEBUG_MODE || process.env.NODE_ENV === development) {
     const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] IOS DEBUG:`, message, data || "");
+    console.log(`[${timestamp}] IOS DEBUG:`, message, data || );
 
-    // Salvar log no localStorage para aní¡lise posterior
-    const logs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
+    // Salvar log no localStorage para aná¡lise posterior
+    const logs = JSON.parse(localStorage.getItem(ios_debug_logs) || []);
     logs.push({ timestamp, message, data });
-    if (logs.length > 100) logs.shift(); // Manter apenas íºltimos 100 logs
-    localStorage.setItem("ios_debug_logs", JSON.stringify(logs));
+    if (logs.length > 100) logs.shift(); // Manter apenas últimos 100 logs
+    localStorage.setItem(ios_debug_logs, JSON.stringify(logs));
   }
 };
 
 // ¨ CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
-window.addEventListener("error", (event) => {
-  debugLog("ERRO GLOBAL CAPTURADO", {
+window.addEventListener(error, (event) => {
+  debugLog(ERRO GLOBAL CAPTURADO, {
     message: event.message,
     filename: event.filename,
     lineno: event.lineno,
@@ -168,12 +168,12 @@ window.addEventListener("error", (event) => {
     stack: event.error?.stack,
   });
 
-  // Verificar se í© o erro especí­fico do removeChild
+  // Verificar se á© o erro especá­fico do removeChild
   if (
-    event.message.includes("removeChild") ||
-    event.message.includes("NotFoundError")
+    event.message.includes(removeChild) ||
+    event.message.includes(NotFoundError)
   ) {
-    debugLog("ERRO REACT DOM removeChild DETECTADO", {
+    debugLog(ERRO REACT DOM removeChild DETECTADO, {
       message: event.message,
       userAgent: navigator.userAgent,
       url: window.location.href,
@@ -181,8 +181,8 @@ window.addEventListener("error", (event) => {
   }
 });
 
-window.addEventListener("unhandledrejection", (event) => {
-  debugLog("PROMISE REJEITADA NíƒO TRATADA", {
+window.addEventListener(unhandledrejection, (event) => {
+  debugLog(PROMISE REJEITADA NáƒO TRATADA, {
     reason: event.reason,
     stack: event.reason?.stack,
   });
@@ -191,7 +191,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // Configurar timeout global para axios
 axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
-// ”„ INTERCEPTOR COM RETRY - FASE 2 (Correí§í£o de Timeout)
+// ”„ INTERCEPTOR COM RETRY - FASE 2 (Correá§á£o de Timeout)
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -200,7 +200,7 @@ axios.interceptors.response.use(
 
     if (
       config.retry < 3 &&
-      (error.code === "ECONNABORTED" || error.name === "AxiosError")
+      (error.code === ECONNABORTED || error.name === AxiosError)
     ) {
       config.retry += 1;
       console.log(`”„ Tentativa ${config.retry}/3 para ${config.url}`);
@@ -208,7 +208,7 @@ axios.interceptors.response.use(
     }
 
     // Log estruturado do erro
-    console.error("âŒ Erro na requisií§í£o:", {
+    console.error(âŒ Erro na requisiá§á£o:, {
       url: config?.url,
       method: config?.method,
       error: error.message,
@@ -219,28 +219,28 @@ axios.interceptors.response.use(
   }
 );
 
-// ¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisí£o dos Cí¡lculos)
+// ¿½ REGRAS DE NEGá“CIO - FASE 3 (Precisá£o dos Cá¡lculos)
 const REGRAS_PRESENCA = {
-  MINIMO_APROVACAO: 75, // % mí­nimo para Aprovação
+  MINIMO_APROVACAO: 75, // % má­nimo para Aprovação
   EM_RISCO: 60, // 60-74% = Aluno em risco
-  CRITICO: 40, // < 60% = Situaí§í£o crí­tica
+  CRITICO: 40, // < 60% = Situaá§á£o crá­tica
   ALERTA_FALTAS_CONSECUTIVAS: 3, // 3+ faltas seguidas = alerta
-  PERIODO_ANALISE_TENDENCIA: 30, // Dias para aní¡lise preditiva
-  INCLUIR_DESISTENTES_STATS: false, // nío contar desistentes nas mí©dias
+  PERIODO_ANALISE_TENDENCIA: 30, // Dias para aná¡lise preditiva
+  INCLUIR_DESISTENTES_STATS: false, // náo contar desistentes nas má©dias
 };
 
 // Ž¯ CLASSIFICADOR DE RISCO DE ALUNO
 const classificarRiscoAluno = (percentualPresenca) => {
-  if (percentualPresenca >= REGRAS_PRESENCA.MINIMO_APROVACAO) return "adequado";
-  if (percentualPresenca >= REGRAS_PRESENCA.EM_RISCO) return "em_risco";
-  return "critico";
+  if (percentualPresenca >= REGRAS_PRESENCA.MINIMO_APROVACAO) return adequado;
+  if (percentualPresenca >= REGRAS_PRESENCA.EM_RISCO) return em_risco;
+  return critico;
 };
 
-// “ˆ CALCULADORA DE ESTATíSTICAS PRECISAS
+// “ˆ CALCULADORA DE ESTATáSTICAS PRECISAS
 const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   const alunosAtivos = REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS
     ? alunos
-    : alunos.filter((aluno) => aluno.status !== "desistente");
+    : alunos.filter((aluno) => aluno.status !== desistente);
 
   const totalAlunos = alunosAtivos.length;
 
@@ -248,7 +248,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
     return {
       totalAlunos: 0,
       alunosEmRisco: 0,
-      desistentes: alunos.filter((a) => a.status === "desistente").length,
+      desistentes: alunos.filter((a) => a.status === desistente).length,
       taxaMediaPresenca: 0,
     };
 
@@ -269,9 +269,9 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
     };
   });
 
-  // Estatí­sticas gerais
+  // Estatá­sticas gerais
   const alunosEmRisco = estatisticasPorAluno.filter(
-    (a) => a.classificacao === "em_risco" || a.classificacao === "critico"
+    (a) => a.classificacao === em_risco || a.classificacao === critico
   ).length;
 
   const taxaMediaPresenca =
@@ -285,7 +285,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   return {
     totalAlunos,
     alunosEmRisco,
-    desistentes: alunos.filter((a) => a.status === "desistente").length,
+    desistentes: alunos.filter((a) => a.status === desistente).length,
     taxaMediaPresenca: Math.round(taxaMediaPresenca * 100) / 100,
     estatisticasPorAluno,
   };
@@ -294,99 +294,99 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
 // ¿½‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
 const getUserTypeLabel = (tipo) => {
   const labels = {
-    admin: "Administrador(a)",
-    instrutor: "Professor(a)",
-    pedagogo: "Coord. Pedagógico",
-    monitor: "Assistente",
+    admin: Administrador(a),
+    instrutor: Professor(a),
+    pedagogo: Coord. Pedagógico,
+    monitor: Assistente,
   };
   return labels[tipo] || tipo;
 };
 
 // “Š GERADOR CSV COM DADOS PRECISOS - FASE 4
 const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
-  console.log("”§ Gerando CSV com dados precisos Fase 4");
+  console.log(”§ Gerando CSV com dados precisos Fase 4);
 
-  // “‹ CABEí‡ALHO APRIMORADO COM NOVOS CAMPOS
+  // “‹ CABEá‡ALHO APRIMORADO COM NOVOS CAMPOS
   const headers = [
-    "Nome do Aluno",
-    "CPF",
-    "Total de Chamadas",
-    "Presenças",
-    "Faltas",
-    "% Presença (Preciso)",
-    "Classificaí§í£o de Risco",
-    "Status do Aluno",
-    "Data de Nascimento",
-    "Email",
-    "Telefone",
-    "ObservAções",
+    Nome do Aluno,
+    CPF,
+    Total de Chamadas,
+    Presenças,
+    Faltas,
+    % Presença (Preciso),
+    Classificaá§á£o de Risco,
+    Status do Aluno,
+    Data de Nascimento,
+    Email,
+    Telefone,
+    ObservAções,
   ];
 
-  // “Š PROCESSAR DADOS COM CíLCULOS PRECISOS
+  // “Š PROCESSAR DADOS COM CáLCULOS PRECISOS
   const linhas = estatisticasPrecisas.estatisticasPorAluno.map((aluno) => {
     const faltas = aluno.totalChamadas - aluno.presencas;
 
-    // Ž¯ Traduzir classificaí§í£o para texto legí­vel
+    // Ž¯ Traduzir classificaá§á£o para texto legá­vel
     const classificacaoTexto =
       {
-        adequado: "Frequíªncia Adequada",
-        em_risco: "Aluno em Risco",
-        critico: "Situaí§í£o Crí­tica",
-      }[aluno.classificacao] || "nío Classificado";
+        adequado: Frequáªncia Adequada,
+        em_risco: Aluno em Risco,
+        critico: Situaá§á£o Crá­tica,
+      }[aluno.classificacao] || náo Classificado;
 
     // Ž¯ Status traduzido
     const statusTexto =
       {
-        ativo: "Ativo",
-        desistente: "Desistente",
-        concluido: "Concluí­do",
-      }[aluno.status] || "Ativo";
+        ativo: Ativo,
+        desistente: Desistente,
+        concluido: Concluá­do,
+      }[aluno.status] || Ativo;
 
     return [
-      aluno.nome || "N/A",
-      aluno.cpf || "N/A",
+      aluno.nome || N/A,
+      aluno.cpf || N/A,
       aluno.totalChamadas.toString(),
       aluno.presencas.toString(),
       faltas.toString(),
-      `${aluno.percentualPresenca.toFixed(2)}%`, // PRECISíƒO DE 2 CASAS
+      `${aluno.percentualPresenca.toFixed(2)}%`, // PRECISáƒO DE 2 CASAS
       classificacaoTexto,
       statusTexto,
-      aluno.data_nascimento || "N/A",
-      aluno.email || "N/A",
-      aluno.telefone || "N/A",
-      aluno.observacoes || "",
+      aluno.data_nascimento || N/A,
+      aluno.email || N/A,
+      aluno.telefone || N/A,
+      aluno.observacoes || ,
     ];
   });
 
-  // “ˆ RODAPí‰ COM ESTATíSTICAS GERAIS
+  // “ˆ RODAPá‰ COM ESTATáSTICAS GERAIS
   const rodape = [
-    [""],
-    ["=== ESTATíSTICAS GERAIS (FASE 3) ==="],
+    [],
+    [=== ESTATáSTICAS GERAIS (FASE 3) ===],
     [`Total de Alunos Ativos: ${estatisticasPrecisas.totalAlunos}`],
     [`Alunos em Risco: ${estatisticasPrecisas.alunosEmRisco}`],
     [`Desistentes: ${estatisticasPrecisas.desistentes}`],
     [
-      `Taxa Mí©dia de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
+      `Taxa Má©dia de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
         2
       )}%`,
     ],
-    [""],
-    ["=== REGRAS APLICADAS ==="],
-    [`Mí­nimo para Aprovação: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
+    [],
+    [=== REGRAS APLICADAS ===],
+    [`Má­nimo para Aprovação: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
     [
       `Alerta de Risco: ${REGRAS_PRESENCA.EM_RISCO}% - ${
         REGRAS_PRESENCA.MINIMO_APROVACAO - 1
       }%`,
     ],
-    [`Situaí§í£o Crí­tica: <${REGRAS_PRESENCA.EM_RISCO}%`],
+    [`Situaá§á£o Crá­tica: <${REGRAS_PRESENCA.EM_RISCO}%`],
     [
-      `Desistentes nas mí©dias: ${
-        REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? "SIM" : "NíƒO"
+      `Desistentes nas má©dias: ${
+        REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? SIM : NáƒO
       }`,
     ],
-    [""],
-    [`Relatí³rio gerado em: ${new Date().toLocaleString("pt-BR")}`],
-    [`Sistema: IOS - Fase 4 (Cí¡lculos Precisos)`],
+    [],
+    [`Relatá³rio gerado em: ${new Date().toLocaleString(pt-BR)}`],
+    [`Sistema: IOS - Fase 4 (Cá¡lculos Precisos)`],
   ];
 
   // ”„ CONVERTER PARA CSV
@@ -394,13 +394,13 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
   const csvContent = todasLinhas
     .map((linha) =>
       linha
-        .map((campo) => `"${campo.toString().replace(/"/g, '""')}"`)
-        .join(",")
+        .map((campo) => `${campo.toString().replace(//g, '')}`)
+        .join(,)
     )
-    .join("\n");
+    .join(\n);
 
   // “‹ ADICIONAR BOM (Byte Order Mark) para UTF-8
-  const csvComBOM = "\ufeff" + csvContent;
+  const csvComBOM = \ufeff + csvContent;
 
   console.log(
     `âœ… CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
@@ -410,14 +410,14 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
 
 // ”§ HEALTH CHECK SISTEMA - FASE 5
 const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
-  console.log("” Executando Health Check - Fase 5");
+  console.log(” Executando Health Check - Fase 5);
 
   const healthStatus = {
     timestamp: new Date().toISOString(),
-    versao_sistema: "IOS v2.0 - Fase 5",
+    versao_sistema: IOS v2.0 - Fase 5,
     fases_ativas: [],
-    backend_status: "unknown",
-    frontend_status: "ok",
+    backend_status: unknown,
+    frontend_status: ok,
     dados_disponiveis: false,
     calculos_precisos: false,
     csv_funcionando: false,
@@ -428,12 +428,12 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
     // Ž¯ TESTAR CONECTIVIDADE BACKEND
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 5000 });
-      healthStatus.backend_status = "ok";
+      healthStatus.backend_status = ok;
       healthStatus.backend_response_time =
-        pingResponse.config.timeout || "< 5s";
+        pingResponse.config.timeout || < 5s;
     } catch (backendError) {
-      console.warn("âš ¸ Backend offline, continuando em modo local");
-      healthStatus.backend_status = "offline";
+      console.warn(âš ¸ Backend offline, continuando em modo local);
+      healthStatus.backend_status = offline;
       healthStatus.modo_offline = true;
     }
 
@@ -443,22 +443,22 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       healthStatus.total_alunos = alunosData.length;
       healthStatus.total_chamadas = chamadasData ? chamadasData.length : 0;
 
-      // Testar cí¡lculos precisos da Fase 3
+      // Testar cá¡lculos precisos da Fase 3
       try {
         const testeCalculo = calcularEstatisticasPrecisas(
           alunosData.slice(0, 5),
           chamadasData || []
         );
         healthStatus.calculos_precisos = true;
-        healthStatus.fases_ativas.push("Fase 3 - Cí¡lculos Precisos");
+        healthStatus.fases_ativas.push(Fase 3 - Cá¡lculos Precisos);
         healthStatus.estatisticas.taxa_media = testeCalculo.taxaMediaPresenca;
         healthStatus.estatisticas.alunos_em_risco = testeCalculo.alunosEmRisco;
       } catch (calculoError) {
-        console.error("âŒ Erro nos cí¡lculos Fase 3:", calculoError);
+        console.error(âŒ Erro nos cá¡lculos Fase 3:, calculoError);
         healthStatus.calculos_precisos = false;
       }
 
-      // Testar geraí§í£o CSV da Fase 4
+      // Testar geraá§á£o CSV da Fase 4
       try {
         const testeCsv = gerarCSVComDadosPrecisos(
           {
@@ -467,7 +467,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
               totalChamadas: 10,
               presencas: 8,
               percentualPresenca: 80,
-              classificacao: "adequado",
+              classificacao: adequado,
             })),
             totalAlunos: 2,
             alunosEmRisco: 0,
@@ -478,37 +478,37 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
         );
         healthStatus.csv_funcionando = testeCsv.length > 100;
         if (healthStatus.csv_funcionando) {
-          healthStatus.fases_ativas.push("Fase 4 - CSV Aprimorado");
+          healthStatus.fases_ativas.push(Fase 4 - CSV Aprimorado);
         }
       } catch (csvError) {
-        console.error("âŒ Erro na geraí§í£o CSV Fase 4:", csvError);
+        console.error(âŒ Erro na geraá§á£o CSV Fase 4:, csvError);
         healthStatus.csv_funcionando = false;
       }
     }
 
     // Ž¯ VERIFICAR FASES IMPLEMENTADAS
-    if (typeof REGRAS_PRESENCA !== "undefined") {
-      healthStatus.fases_ativas.push("Fase 3 - Regras de Negí³cio");
+    if (typeof REGRAS_PRESENCA !== undefined) {
+      healthStatus.fases_ativas.push(Fase 3 - Regras de Negá³cio);
     }
-    if (typeof getUserTypeLabel !== "undefined") {
-      healthStatus.fases_ativas.push("Fase 1 - Nomenclatura Unissex");
+    if (typeof getUserTypeLabel !== undefined) {
+      healthStatus.fases_ativas.push(Fase 1 - Nomenclatura Unissex);
     }
 
-    healthStatus.fases_ativas.push("Fase 5 - Health Check");
+    healthStatus.fases_ativas.push(Fase 5 - Health Check);
 
     // Ž¯ STATUS GERAL
     healthStatus.status_geral =
-      healthStatus.backend_status === "ok" &&
+      healthStatus.backend_status === ok &&
       healthStatus.dados_disponiveis &&
       healthStatus.calculos_precisos
-        ? "saudavel"
-        : "alerta";
+        ? saudavel
+        : alerta;
 
-    console.log("âœ… Health Check concluí­do:", healthStatus);
+    console.log(âœ… Health Check concluá­do:, healthStatus);
     return healthStatus;
   } catch (error) {
-    console.error("âŒ Erro no Health Check:", error);
-    healthStatus.status_geral = "erro";
+    console.error(âŒ Erro no Health Check:, error);
+    healthStatus.status_geral = erro;
     healthStatus.erro = error.message;
     return healthStatus;
   }
@@ -520,20 +520,20 @@ const AuthContext = React.createContext();
 const useAuth = () => {
   const context = React.useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error(useAuth must be used within an AuthProvider);
   }
   return context;
 };
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+  const [token, setToken] = useState(localStorage.getItem(token));
   const [loading, setLoading] = useState(true);
 
-  // Timeout de seguraní§a - nunca deixar loading indefinidamente
+  // Timeout de seguraná§a - nunca deixar loading indefinidamente
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
-      console.warn("âš ¸ Timeout de seguraní§a ativado - parando loading");
+      console.warn(âš ¸ Timeout de seguraná§a ativado - parando loading);
       setLoading(false);
     }, 15000); // 15 segundos
 
@@ -541,36 +541,36 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("€ Inicializando autenticaí§í£o...");
-    console.log("”— Backend URL:", BACKEND_URL);
+    console.log(€ Inicializando autenticaá§á£o...);
+    console.log(”— Backend URL:, BACKEND_URL);
 
     if (!BACKEND_URL) {
-      console.error("âŒ BACKEND_URL nío configurado!");
+      console.error(âŒ BACKEND_URL náo configurado!);
       setLoading(false);
       return;
     }
 
     if (token) {
-      console.log("”‘ Token encontrado, verificando usuí¡rio...");
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      console.log(”‘ Token encontrado, verificando usuá¡rio...);
+      axios.defaults.headers.common[Authorization] = `Bearer ${token}`;
       fetchCurrentUser();
     } else {
-      console.log("â„¹¸ Sem token, direcionando para login");
+      console.log(â„¹¸ Sem token, direcionando para login);
       setLoading(false);
     }
   }, [token]);
 
   const fetchCurrentUser = async () => {
     try {
-      console.log("” Verificando usuí¡rio atual...");
+      console.log(” Verificando usuá¡rio atual...);
       const response = await axios.get(`${API}/auth/me`);
-      console.log("âœ… Usuí¡rio carregado:", response.data.email);
+      console.log(âœ… Usuá¡rio carregado:, response.data.email);
       setUser(response.data);
     } catch (error) {
-      console.error("âŒ Erro ao buscar usuí¡rio:", error);
-      // Limpar dados inví¡lidos e permitir novo login
-      localStorage.removeItem("token");
-      delete axios.defaults.headers.common["Authorization"];
+      console.error(âŒ Erro ao buscar usuá¡rio:, error);
+      // Limpar dados invá¡lidos e permitir novo login
+      localStorage.removeItem(token);
+      delete axios.defaults.headers.common[Authorization];
       setUser(null);
     } finally {
       setLoading(false);
@@ -581,8 +581,8 @@ const AuthProvider = ({ children }) => {
     const response = await axios.post(`${API}/auth/login`, { email, senha });
     const { access_token, user: userData } = response.data;
 
-    localStorage.setItem("token", access_token);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+    localStorage.setItem(token, access_token);
+    axios.defaults.headers.common[Authorization] = `Bearer ${access_token}`;
     setToken(access_token);
     setUser(userData);
 
@@ -590,8 +590,8 @@ const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
-    delete axios.defaults.headers.common["Authorization"];
+    localStorage.removeItem(token);
+    delete axios.defaults.headers.common[Authorization];
     setToken(null);
     setUser(null);
   };
@@ -611,10 +611,10 @@ const usePendingAttendances = () => {
   const [error, setError] = useState(null);
 
   const fetchPending = async () => {
-    // âœ… CORREí‡íƒO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
+    // âœ… CORREá‡áƒO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
     if (
       !user ||
-      !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
+      ![admin, instrutor, pedagogo, monitor].includes(user.tipo)
     ) {
       setPending([]);
       setLoading(false);
@@ -629,7 +629,7 @@ const usePendingAttendances = () => {
       setPending(response.data.pending || []);
       setError(null);
     } catch (err) {
-      console.error("Erro ao buscar chamadas pendentes:", err);
+      console.error(Erro ao buscar chamadas pendentes:, err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -640,7 +640,7 @@ const usePendingAttendances = () => {
     fetchPending();
   }, [user]);
 
-  // Remover turma da lista apí³s chamada feita
+  // Remover turma da lista apá³s chamada feita
   const markAttendanceComplete = (turmaId) => {
     setPending((prev) => prev.filter((p) => p.turma_id !== turmaId));
   };
@@ -658,7 +658,7 @@ const usePendingAttendances = () => {
 const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
-  const [observacao, setObservacao] = useState("");
+  const [observacao, setObservacao] = useState();
   const [showConfirm, setShowConfirm] = useState(false);
 
   // Inicializar todos os alunos como presentes
@@ -703,9 +703,9 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
         presente: r.presente,
       }));
 
-      // Usar endpoint com data especí­fica para permitir chamadas retroativas
+      // Usar endpoint com data especá­fica para permitir chamadas retroativas
       const dataUrl =
-        turma.data_pendente || new Date().toISOString().split("T")[0];
+        turma.data_pendente || new Date().toISOString().split(T)[0];
       await axios.post(
         `${API}/classes/${turma.turma_id}/attendance/${dataUrl}`,
         {
@@ -715,7 +715,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
       );
 
       toast({
-        title: "âœ… Chamada Salva",
+        title: âœ… Chamada Salva,
         description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
       });
 
@@ -725,15 +725,15 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
     } catch (error) {
       if (error.response?.status === 409) {
         toast({
-          title: "âš ¸ Chamada Jí¡ Realizada",
-          description: "A chamada desta turma jí¡ foi registrada hoje",
-          variant: "destructive",
+          title: âš ¸ Chamada Já¡ Realizada,
+          description: A chamada desta turma já¡ foi registrada hoje,
+          variant: destructive,
         });
       } else {
         toast({
-          title: "âŒ Erro",
-          description: "Erro ao salvar chamada. Tente novamente.",
-          variant: "destructive",
+          title: âŒ Erro,
+          description: Erro ao salvar chamada. Tente novamente.,
+          variant: destructive,
         });
       }
     } finally {
@@ -747,75 +747,75 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className=max-w-2xl max-h-[90vh] flex flex-col>
+        <DialogHeader className=flex-shrink-0>
           <DialogTitle>
             “‹ Chamada: {turma?.turma_nome}
             {turma?.data_pendente && (
-              <span className="text-sm font-normal text-gray-600 ml-2">
+              <span className=text-sm font-normal text-gray-600 ml-2>
                 (
-                {new Date(turma.data_pendente + "T00:00:00").toLocaleDateString(
-                  "pt-BR"
+                {new Date(turma.data_pendente + T00:00:00).toLocaleDateString(
+                  pt-BR
                 )}
                 )
               </span>
             )}
           </DialogTitle>
           <DialogDescription>
-            {turma?.status_msg || "Marque os alunos presentes."} A chamada será¡
-            salva e nío poderí¡ ser alterada.
+            {turma?.status_msg || Marque os alunos presentes.} A chamada será¡
+            salva e náo poderá¡ ser alterada.
           </DialogDescription>
         </DialogHeader>
 
         <div
-          className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-          style={{ scrollbarWidth: "thin" }}
+          className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+          style={{ scrollbarWidth: thin }}
         >
           {/* Resumo */}
-          <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+          <div className=flex gap-4 p-3 bg-gray-50 rounded-lg>
+            <div className=text-center>
+              <div className=text-2xl font-bold text-green-600>
                 {presenteCount}
               </div>
-              <div className="text-sm text-green-700">Presentes</div>
+              <div className=text-sm text-green-700>Presentes</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">
+            <div className=text-center>
+              <div className=text-2xl font-bold text-red-600>
                 {absentCount}
               </div>
-              <div className="text-sm text-red-700">Ausentes</div>
+              <div className=text-sm text-red-700>Ausentes</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+            <div className=text-center>
+              <div className=text-2xl font-bold text-blue-600>
                 {records.length}
               </div>
-              <div className="text-sm text-blue-700">Total</div>
+              <div className=text-sm text-blue-700>Total</div>
             </div>
           </div>
 
           {/* Lista de Alunos */}
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className=space-y-2 max-h-64 overflow-y-auto>
             {records.map((record, index) => (
               <div
                 key={record.aluno_id}
                 className={`flex items-center justify-between p-3 rounded-lg border ${
                   record.presente
-                    ? "bg-green-50 border-green-200"
-                    : "bg-red-50 border-red-200"
+                    ? bg-green-50 border-green-200
+                    : bg-red-50 border-red-200
                 }`}
               >
-                <span className="font-medium">{record.nome}</span>
-                <div className="flex items-center space-x-2">
+                <span className=font-medium>{record.nome}</span>
+                <div className=flex items-center space-x-2>
                   <Checkbox
                     checked={record.presente}
                     onCheckedChange={() => togglePresence(index)}
                   />
                   <span
                     className={`text-sm font-medium ${
-                      record.presente ? "text-green-700" : "text-red-700"
+                      record.presente ? text-green-700 : text-red-700
                     }`}
                   >
-                    {record.presente ? "Presente" : "Ausente"}
+                    {record.presente ? Presente : Ausente}
                   </span>
                 </div>
               </div>
@@ -823,32 +823,32 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
           </div>
 
           {/* ObservAções */}
-          <div className="space-y-2">
+          <div className=space-y-2>
             <Label>ObservAções da Aula (opcional)</Label>
             <Textarea
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
-              placeholder="Anote ObservAções sobre a aula, conteúdo ministrado, etc..."
+              placeholder=Anote ObservAções sobre a aula, conteúdo ministrado, etc...
               rows={3}
             />
           </div>
 
-          {/* Confirmaí§í£o */}
+          {/* Confirmaá§á£o */}
           {showConfirm && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800 font-medium">
-                âš ¸ Confirmaí§í£o Necessí¡ria
+            <div className=p-4 bg-yellow-50 border border-yellow-200 rounded-lg>
+              <p className=text-yellow-800 font-medium>
+                âš ¸ Confirmaá§á£o Necessá¡ria
               </p>
-              <p className="text-yellow-700 text-sm mt-1">
-                A chamada será¡ salva e <strong>nío poderí¡ ser alterada</strong>.
-                Deseja continuar?
+              <p className=text-yellow-700 text-sm mt-1>
+                A chamada será¡ salva e{ }
+                <strong>náo poderá¡ ser alterada</strong>. Deseja continuar?
               </p>
             </div>
           )}
 
           {/* Botões */}
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={onClose} disabled={saving}>
+          <div className=flex justify-end space-x-2 pt-4>
+            <Button variant=outline onClick={onClose} disabled={saving}>
               Cancelar
             </Button>
             <Button
@@ -856,19 +856,19 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
               disabled={saving}
               className={
                 showConfirm
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-blue-600 hover:bg-blue-700"
+                  ? bg-red-600 hover:bg-red-700
+                  : bg-blue-600 hover:bg-blue-700
               }
             >
               {saving ? (
-                <span className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span className=flex items-center gap-2>
+                  <div className=animate-spin rounded-full h-4 w-4 border-b-2 border-white></div>
                   Salvando...
                 </span>
               ) : showConfirm ? (
-                "âœ… Confirmar e Salvar"
+                âœ… Confirmar e Salvar
               ) : (
-                "’¾ Salvar Chamada"
+                ’¾ Salvar Chamada
               )}
             </Button>
           </div>
@@ -890,26 +890,26 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
   // Definir cores baseadas na prioridade
   const getPriorityStyle = (prioridade) => {
     switch (prioridade) {
-      case "urgente":
+      case urgente:
         return {
-          cardClass: "border-red-300 bg-red-50",
-          badgeClass: "text-red-700 border-red-400 bg-red-100",
-          textClass: "text-red-800",
-          buttonClass: "bg-red-600 hover:bg-red-700",
+          cardClass: border-red-300 bg-red-50,
+          badgeClass: text-red-700 border-red-400 bg-red-100,
+          textClass: text-red-800,
+          buttonClass: bg-red-600 hover:bg-red-700,
         };
-      case "importante":
+      case importante:
         return {
-          cardClass: "border-orange-300 bg-orange-50",
-          badgeClass: "text-orange-700 border-orange-400 bg-orange-100",
-          textClass: "text-orange-800",
-          buttonClass: "bg-orange-600 hover:bg-orange-700",
+          cardClass: border-orange-300 bg-orange-50,
+          badgeClass: text-orange-700 border-orange-400 bg-orange-100,
+          textClass: text-orange-800,
+          buttonClass: bg-orange-600 hover:bg-orange-700,
         };
       default:
         return {
-          cardClass: "border-yellow-300 bg-yellow-50",
-          badgeClass: "text-yellow-700 border-yellow-400 bg-yellow-100",
-          textClass: "text-yellow-800",
-          buttonClass: "bg-yellow-600 hover:bg-yellow-700",
+          cardClass: border-yellow-300 bg-yellow-50,
+          badgeClass: text-yellow-700 border-yellow-400 bg-yellow-100,
+          textClass: text-yellow-800,
+          buttonClass: bg-yellow-600 hover:bg-yellow-700,
         };
     }
   };
@@ -919,8 +919,8 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
   // Formatar data brasileira
   const formatDate = (dateStr) => {
     try {
-      const date = new Date(dateStr + "T00:00:00");
-      return date.toLocaleDateString("pt-BR");
+      const date = new Date(dateStr + T00:00:00);
+      return date.toLocaleDateString(pt-BR);
     } catch {
       return dateStr;
     }
@@ -929,12 +929,12 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
   return (
     <>
       <Card className={styles.cardClass}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+        <CardHeader className=pb-3>
+          <div className=flex items-center justify-between>
             <CardTitle className={`text-lg ${styles.textClass}`}>
               {turma.turma_nome}
             </CardTitle>
-            <Badge variant="outline" className={styles.badgeClass}>
+            <Badge variant=outline className={styles.badgeClass}>
               {turma.prioridade?.charAt(0).toUpperCase() +
                 turma.prioridade?.slice(1)}
             </Badge>
@@ -945,20 +945,20 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className=space-y-3>
           <div
             className={`flex items-center gap-4 text-sm ${styles.textClass} opacity-80`}
           >
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{turma.horario || "Horí¡rio nío definido"}</span>
+            <div className=flex items-center gap-1>
+              <Clock className=h-4 w-4 />
+              <span>{turma.horario || Horá¡rio náo definido}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
+            <div className=flex items-center gap-1>
+              <Users className=h-4 w-4 />
               <span>{turma.alunos?.length || 0} alunos</span>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
+            <div className=flex items-center gap-1>
+              <Calendar className=h-4 w-4 />
               <span>{formatDate(turma.data_pendente)}</span>
             </div>
           </div>
@@ -984,22 +984,22 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
 
 // Login Component
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState();
+  const [senha, setSenha] = useState();
   const [loading, setLoading] = useState(false);
   const [showFirstAccess, setShowFirstAccess] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState("");
+  const [resetEmail, setResetEmail] = useState();
   const [resetLoading, setResetLoading] = useState(false);
   const [showBrandCard, setShowBrandCard] = useState(false);
   const [firstAccessData, setFirstAccessData] = useState(() => {
-    console.log("”§ Inicializando firstAccessData");
+    console.log(”§ Inicializando firstAccessData);
     const initialData = {
-      nome: "",
-      email: "",
-      tipo: "instrutor",
+      nome: ,
+      email: ,
+      tipo: instrutor,
     };
-    console.log("“ Dados iniciais:", initialData);
+    console.log(“ Dados iniciais:, initialData);
     return initialData;
   });
   const { login } = useAuth();
@@ -1008,27 +1008,27 @@ const Login = () => {
   // Error boundary para capturar erros que causam tela branca
   useEffect(() => {
     const handleError = (error) => {
-      console.error("âŒ Erro capturado no Login Component:", error);
+      console.error(âŒ Erro capturado no Login Component:, error);
       toast({
-        title: "Erro detectado",
+        title: Erro detectado,
         description:
-          "Um erro foi detectado. Verifique o console para detalhes.",
-        variant: "destructive",
+          Um erro foi detectado. Verifique o console para detalhes.,
+        variant: destructive,
       });
     };
 
-    window.addEventListener("error", handleError);
-    return () => window.removeEventListener("error", handleError);
+    window.addEventListener(error, handleError);
+    return () => window.removeEventListener(error, handleError);
   }, [toast]);
 
-  // Animaí§í£o do card temporal da marca
+  // Animaá§á£o do card temporal da marca
   useEffect(() => {
-    // Mostrar o card apí³s 500ms
+    // Mostrar o card apá³s 500ms
     const showTimer = setTimeout(() => {
       setShowBrandCard(true);
     }, 500);
 
-    // Esconder o card apí³s 4 segundos
+    // Esconder o card apá³s 4 segundos
     const hideTimer = setTimeout(() => {
       setShowBrandCard(false);
     }, 4500);
@@ -1048,22 +1048,22 @@ const Login = () => {
 
       if (userData.primeiro_acesso) {
         toast({
-          title: "Primeiro acesso detectado",
-          description: "Vocíª precisa alterar sua senha",
+          title: Primeiro acesso detectado,
+          description: Vocáª precisa alterar sua senha,
         });
         // Redirect to change password
       } else {
         toast({
-          title: "Login realizado com sucesso!",
-          description: "Bem-vindo ao Sistema de Controle de Presença",
+          title: Login realizado com sucesso!,
+          description: Bem-vindo ao Sistema de Controle de Presença,
         });
       }
     } catch (error) {
       toast({
-        title: "Erro no login",
+        title: Erro no login,
         description:
-          error.response?.data?.detail || "Verifique suas credenciais",
-        variant: "destructive",
+          error.response?.data?.detail || Verifique suas credenciais,
+        variant: destructive,
       });
     } finally {
       setLoading(false);
@@ -1074,28 +1074,28 @@ const Login = () => {
     e.preventDefault();
 
     // Debug log para diagnosticar problemas
-    console.log("” Dados do primeiro acesso:", firstAccessData);
+    console.log(” Dados do primeiro acesso:, firstAccessData);
 
     try {
       const response = await axios.post(
         `${API}/auth/first-access`,
         firstAccessData
       );
-      console.log("âœ… Resposta do servidor:", response.data);
+      console.log(âœ… Resposta do servidor:, response.data);
 
       toast({
-        title: "Solicitaí§í£o enviada!",
+        title: Solicitaá§á£o enviada!,
         description:
-          "Aguarde a Aprovação do administrador para acessar o sistema.",
+          Aguarde a Aprovação do administrador para acessar o sistema.,
       });
       setShowFirstAccess(false);
-      setFirstAccessData({ nome: "", email: "", tipo: "instrutor" });
+      setFirstAccessData({ nome: , email: , tipo: instrutor });
     } catch (error) {
-      console.error("âŒ Erro na solicitaí§í£o de primeiro acesso:", error);
+      console.error(âŒ Erro na solicitaá§á£o de primeiro acesso:, error);
       toast({
-        title: "Erro na solicitaí§í£o",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro na solicitaá§á£o,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -1109,19 +1109,19 @@ const Login = () => {
         email: resetEmail,
       });
 
-      // ” SEGURANí‡A: nío mostra mais a senha na tela
+      // ” SEGURANá‡A: náo mostra mais a senha na tela
       toast({
-        title: "Solicitaí§í£o enviada!",
+        title: Solicitaá§á£o enviada!,
         description: response.data.message,
-        variant: "default",
+        variant: default,
       });
       setShowResetPassword(false);
-      setResetEmail("");
+      setResetEmail();
     } catch (error) {
       toast({
-        title: "Erro ao resetar senha",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao resetar senha,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     } finally {
       setResetLoading(false);
@@ -1129,72 +1129,72 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4 relative">
-      <Card className="w-full max-w-md shadow-xl border-purple-200">
-        <CardHeader className="text-center">
+    <div className=min-h-screen bg-gradient-to-br from-purple-50 via-white to-orange-50 flex items-center justify-center p-4 relative>
+      <Card className=w-full max-w-md shadow-xl border-purple-200>
+        <CardHeader className=text-center>
           {/* Logo principal do sistema + nome */}
-          <div className="login-header mb-6">
+          <div className=login-header mb-6>
             <img
-              src="/logo-sistema.jpg"
-              alt="Logo do Sistema IOS"
-              className="system-logo h-32 w-auto object-contain mx-auto mb-4 opacity-95 transition-all duration-700 ease-in-out animate-fade-in"
+              src=/logo-sistema.jpg
+              alt=Logo do Sistema IOS
+              className=system-logo h-32 w-auto object-contain mx-auto mb-4 opacity-95 transition-all duration-700 ease-in-out animate-fade-in
             />
-            <h1 className="system-name text-3xl font-semibold text-center tracking-wide font-poppins bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent">
+            <h1 className=system-name text-3xl font-semibold text-center tracking-wide font-poppins bg-gradient-to-r from-purple-600 to-orange-500 bg-clip-text text-transparent>
               IOS
             </h1>
           </div>
-          <CardDescription className="text-gray-600">
+          <CardDescription className=text-gray-600>
             Sistema de Controle de Presença
           </CardDescription>
         </CardHeader>
         <CardContent>
           {!showFirstAccess && !showResetPassword ? (
             <>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+              <form onSubmit={handleSubmit} className=space-y-4>
+                <div className=space-y-2>
+                  <Label htmlFor=email>Email</Label>
                   <Input
-                    id="email"
-                    type="email"
+                    id=email
+                    type=email
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu.email@ios.org.br"
+                    placeholder=seu.email@ios.org.br
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="senha">Senha</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=senha>Senha</Label>
                   <Input
-                    id="senha"
-                    type="password"
+                    id=senha
+                    type=password
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    placeholder="Digite sua senha"
+                    placeholder=Digite sua senha
                     required
                   />
                 </div>
                 <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white shadow-lg"
+                  type=submit
+                  className=w-full bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white shadow-lg
                   disabled={loading}
                 >
-                  {loading ? "Entrando..." : "Entrar"}
+                  {loading ? Entrando... : Entrar}
                 </Button>
               </form>
 
-              <div className="mt-4 pt-4 border-t border-purple-100 space-y-2">
+              <div className=mt-4 pt-4 border-t border-purple-100 space-y-2>
                 <Button
-                  variant="outline"
-                  className="w-full border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700"
+                  variant=outline
+                  className=w-full border-purple-300 text-purple-600 hover:bg-purple-50 hover:text-purple-700
                   onClick={() => setShowFirstAccess(true)}
                 >
-                  <UserPlus className="h-4 w-4 mr-2" />
+                  <UserPlus className=h-4 w-4 mr-2 />
                   Primeiro Acesso
                 </Button>
 
                 <Button
-                  variant="ghost"
-                  className="w-full text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                  variant=ghost
+                  className=w-full text-sm text-orange-600 hover:text-orange-700 hover:bg-orange-50
                   onClick={() => setShowResetPassword(true)}
                 >
                   Esqueci minha senha
@@ -1202,66 +1202,66 @@ const Login = () => {
               </div>
             </>
           ) : showResetPassword ? (
-            <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold">Resetar Senha</h3>
-                <p className="text-sm text-gray-600">
-                  Digite seu email para receber uma nova senha temporí¡ria
+            <form onSubmit={handleResetPasswordSubmit} className=space-y-4>
+              <div className=text-center mb-4>
+                <h3 className=text-lg font-semibold>Resetar Senha</h3>
+                <p className=text-sm text-gray-600>
+                  Digite seu email para receber uma nova senha temporá¡ria
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="reset-email">Email</Label>
+              <div className=space-y-2>
+                <Label htmlFor=reset-email>Email</Label>
                 <Input
-                  id="reset-email"
-                  type="email"
+                  id=reset-email
+                  type=email
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
-                  placeholder="seu.nome@ios.org.br"
+                  placeholder=seu.nome@ios.org.br
                   required
                 />
               </div>
 
-              <div className="flex space-x-2">
+              <div className=flex space-x-2>
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 border-purple-300 text-purple-600 hover:bg-purple-50"
+                  type=button
+                  variant=outline
+                  className=flex-1 border-purple-300 text-purple-600 hover:bg-purple-50
                   onClick={() => setShowResetPassword(false)}
                 >
                   Voltar
                 </Button>
                 <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
+                  type=submit
+                  className=flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white
                   disabled={resetLoading}
                 >
-                  {resetLoading ? "Resetando..." : "Resetar Senha"}
+                  {resetLoading ? Resetando... : Resetar Senha}
                 </Button>
               </div>
             </form>
           ) : (
-            <form onSubmit={handleFirstAccessSubmit} className="space-y-4">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold">
+            <form onSubmit={handleFirstAccessSubmit} className=space-y-4>
+              <div className=text-center mb-4>
+                <h3 className=text-lg font-semibold>
                   Solicitar Primeiro Acesso
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className=text-sm text-gray-600>
                   Preencha os dados para solicitar acesso ao sistema
                 </p>
               </div>
 
               {/* Debug info */}
               {DEBUG_MODE && (
-                <div className="p-2 bg-gray-100 rounded text-xs">
+                <div className=p-2 bg-gray-100 rounded text-xs>
                   <strong>Debug:</strong> {JSON.stringify(firstAccessData)}
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="nome">Nome Completo</Label>
+              <div className=space-y-2>
+                <Label htmlFor=nome>Nome Completo</Label>
                 <Input
-                  id="nome"
+                  id=nome
                   value={firstAccessData.nome}
                   onChange={(e) =>
                     setFirstAccessData({
@@ -1273,11 +1273,11 @@ const Login = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+              <div className=space-y-2>
+                <Label htmlFor=email>Email</Label>
                 <Input
-                  id="email"
-                  type="email"
+                  id=email
+                  type=email
                   value={firstAccessData.email}
                   onChange={(e) =>
                     setFirstAccessData({
@@ -1285,61 +1285,61 @@ const Login = () => {
                       email: e.target.value,
                     })
                   }
-                  placeholder="seu.nome@ios.org.br"
+                  placeholder=seu.nome@ios.org.br
                   required
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Tipo de Usuí¡rio</Label>
+              <div className=space-y-2>
+                <Label>Tipo de Usuá¡rio</Label>
                 <Select
                   value={firstAccessData.tipo}
                   onValueChange={(value) => {
-                    console.log("”„ Selecionando tipo de usuí¡rio:", value);
+                    console.log(”„ Selecionando tipo de usuá¡rio:, value);
                     try {
                       setFirstAccessData((prevData) => {
-                        console.log("“ Estado anterior:", prevData);
+                        console.log(“ Estado anterior:, prevData);
                         const newData = { ...prevData, tipo: value };
-                        console.log("“ Novo estado:", newData);
+                        console.log(“ Novo estado:, newData);
                         return newData;
                       });
                     } catch (error) {
                       console.error(
-                        "âŒ Erro ao selecionar tipo de usuí¡rio:",
+                        âŒ Erro ao selecionar tipo de usuá¡rio:,
                         error
                       );
                       toast({
-                        title: "Erro",
+                        title: Erro,
                         description:
-                          "Erro ao selecionar tipo de usuí¡rio. Tente novamente.",
-                        variant: "destructive",
+                          Erro ao selecionar tipo de usuá¡rio. Tente novamente.,
+                        variant: destructive,
                       });
                     }
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o tipo" />
+                    <SelectValue placeholder=Selecione o tipo />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="instrutor">Professor(a)</SelectItem>
-                    <SelectItem value="pedagogo">Coord. Pedagógico</SelectItem>
-                    <SelectItem value="monitor">Assistente</SelectItem>
+                    <SelectItem value=instrutor>Professor(a)</SelectItem>
+                    <SelectItem value=pedagogo>Coord. Pedagógico</SelectItem>
+                    <SelectItem value=monitor>Assistente</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="flex space-x-2">
+              <div className=flex space-x-2>
                 <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 border-purple-300 text-purple-600 hover:bg-purple-50"
+                  type=button
+                  variant=outline
+                  className=flex-1 border-purple-300 text-purple-600 hover:bg-purple-50
                   onClick={() => setShowFirstAccess(false)}
                 >
                   Voltar
                 </Button>
                 <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white"
+                  type=submit
+                  className=flex-1 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white
                 >
                   Solicitar Acesso
                 </Button>
@@ -1349,20 +1349,20 @@ const Login = () => {
         </CardContent>
       </Card>
 
-      {/* Card temporí¡rio da marca */}
+      {/* Card temporá¡rio da marca */}
       <div
         className={`fixed bottom-5 right-5 flex items-center bg-black bg-opacity-75 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-800 z-50 ${
           showBrandCard
-            ? "opacity-100 transform translate-y-0"
-            : "opacity-0 transform translate-y-3 pointer-events-none"
+            ? opacity-100 transform translate-y-0
+            : opacity-0 transform translate-y-3 pointer-events-none
         }`}
       >
         <img
-          src="/logo-amaros.svg"
-          alt="Amaro's Developer Logo"
-          className="h-7 mr-3"
+          src=/logo-amaros.svg
+          alt=Amaro's Developer Logo
+          className=h-7 mr-3
         />
-        <span className="text-sm font-normal tracking-wide">
+        <span className=text-sm font-normal tracking-wide>
           Sistema de Controle de Presença
         </span>
       </div>
@@ -1386,30 +1386,30 @@ const NotificationButton = () => {
     // Para outros: verificar a cada 5 minutos
     const interval = setInterval(
       fetchNotifications,
-      user?.tipo === "admin" ? 2 * 60 * 1000 : 5 * 60 * 1000
+      user?.tipo === admin ? 2 * 60 * 1000 : 5 * 60 * 1000
     );
     return () => clearInterval(interval);
   }, [user]);
 
   const fetchNotifications = async () => {
-    // âœ… CORREí‡íƒO: Verificar se usuí¡rio pode ver notificAções
+    // âœ… CORREá‡áƒO: Verificar se usuá¡rio pode ver notificAções
     if (
       !user ||
-      !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
+      ![admin, instrutor, pedagogo, monitor].includes(user.tipo)
     ) {
       setNotifications([]);
       return;
     }
 
     try {
-      setLoading(false); // nío mostrar loading no sininho sempre
+      setLoading(false); // náo mostrar loading no sininho sempre
       // Ž¯ USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
       const response = await axios.get(
         `${API}/instructor/me/pending-attendances`
       );
       setNotifications(response.data.pending || []);
     } catch (error) {
-      console.error("Erro ao buscar notificAções:", error);
+      console.error(Erro ao buscar notificAções:, error);
       setNotifications([]); // âœ… Garantir array vazio em caso de erro
     }
   };
@@ -1420,37 +1420,37 @@ const NotificationButton = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case "alta":
-        return "text-red-600";
-      case "media":
-        return "text-orange-600";
+      case alta:
+        return text-red-600;
+      case media:
+        return text-orange-600;
       default:
-        return "text-yellow-600";
+        return text-yellow-600;
     }
   };
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
-      case "alta":
-        return "bg-red-100 text-red-800";
-      case "media":
-        return "bg-orange-100 text-orange-800";
+      case alta:
+        return bg-red-100 text-red-800;
+      case media:
+        return bg-orange-100 text-orange-800;
       default:
-        return "bg-yellow-100 text-yellow-800";
+        return bg-yellow-100 text-yellow-800;
     }
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR");
+    return date.toLocaleDateString(pt-BR);
   };
 
-  // Funí§í£o para navegar para chamada
+  // Funá§á£o para navegar para chamada
   const handleGoToAttendance = (turmaId) => {
-    // Implementar navegaí§í£o para fazer chamada
+    // Implementar navegaá§á£o para fazer chamada
     toast({
-      title: "Redirecionando...",
-      description: "Indo para a pí¡gina de chamada desta turma",
+      title: Redirecionando...,
+      description: Indo para a pá¡gina de chamada desta turma,
     });
   };
 
@@ -1458,22 +1458,22 @@ const NotificationButton = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          size="sm"
-          className="relative text-gray-500 hover:text-gray-700"
+          variant=ghost
+          size=sm
+          className=relative text-gray-500 hover:text-gray-700
           title={
-            user?.tipo === "admin"
-              ? "NotificAções do sistema (Admin)"
-              : "Suas chamadas pendentes"
+            user?.tipo === admin
+              ? NotificAções do sistema (Admin)
+              : Suas chamadas pendentes
           }
         >
           {getNotificationCount() > 0 ? (
-            <BellRing className="h-5 w-5" />
+            <BellRing className=h-5 w-5 />
           ) : (
-            <Bell className="h-5 w-5" />
+            <Bell className=h-5 w-5 />
           )}
           {getNotificationCount() > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            <span className=absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center>
               {getNotificationCount()}
             </span>
           )}
@@ -1481,89 +1481,89 @@ const NotificationButton = () => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-96 max-h-96 overflow-y-auto"
-        align="end"
+        className=w-96 max-h-96 overflow-y-auto
+        align=end
       >
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-orange-600" />
-          {user?.tipo === "admin"
-            ? "Chamadas Pendentes (Sistema)"
-            : "Suas Chamadas Pendentes"}
+        <DropdownMenuLabel className=flex items-center gap-2>
+          <AlertTriangle className=h-4 w-4 text-orange-600 />
+          {user?.tipo === admin
+            ? Chamadas Pendentes (Sistema)
+            : Suas Chamadas Pendentes}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
         {loading ? (
-          <div className="flex items-center justify-center py-6">
-            <RefreshCw className="h-4 w-4 animate-spin text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">Carregando...</span>
+          <div className=flex items-center justify-center py-6>
+            <RefreshCw className=h-4 w-4 animate-spin text-gray-400 mr-2 />
+            <span className=text-sm text-gray-600>Carregando...</span>
           </div>
         ) : getNotificationCount() === 0 ? (
-          <div className="p-4 text-center">
-            <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-            <p className="text-sm font-medium text-green-700 mb-1">
-              {user?.tipo === "admin" ? "Sistema em dia! Ž¯" : "Parabí©ns! Ž‰"}
+          <div className=p-4 text-center>
+            <CheckCircle className=h-8 w-8 text-green-500 mx-auto mb-2 />
+            <p className=text-sm font-medium text-green-700 mb-1>
+              {user?.tipo === admin ? Sistema em dia! Ž¯ : Parabá©ns! Ž‰}
             </p>
-            <p className="text-xs text-gray-500">
-              {user?.tipo === "admin"
-                ? "Todas as chamadas foram realizadas"
-                : "Suas chamadas estí£o atualizadas"}
+            <p className=text-xs text-gray-500>
+              {user?.tipo === admin
+                ? Todas as chamadas foram realizadas
+                : Suas chamadas está£o atualizadas}
             </p>
           </div>
         ) : (
           <>
             {/* Header com resumo */}
-            <div className="px-3 py-2 bg-orange-50 border-b">
-              <p className="text-xs text-orange-700 font-medium">
-                {getNotificationCount()}{" "}
+            <div className=px-3 py-2 bg-orange-50 border-b>
+              <p className=text-xs text-orange-700 font-medium>
+                {getNotificationCount()}{ }
                 {getNotificationCount() === 1
-                  ? "chamada pendente"
-                  : "chamadas pendentes"}
+                  ? chamada pendente
+                  : chamadas pendentes}
               </p>
-              <p className="text-xs text-orange-600">
-                {user?.tipo === "admin"
-                  ? "Monitoramento geral"
-                  : "Aí§í£o necessí¡ria"}
+              <p className=text-xs text-orange-600>
+                {user?.tipo === admin
+                  ? Monitoramento geral
+                  : Aá§á£o necessá¡ria}
               </p>
             </div>
 
             {/* Lista de notificAções */}
-            <div className="max-h-64 overflow-y-auto">
+            <div className=max-h-64 overflow-y-auto>
               {notifications.slice(0, 5).map((notification, index) => (
                 <DropdownMenuItem
                   key={index}
-                  className="p-3 border-b cursor-pointer hover:bg-orange-50 flex-col items-start"
+                  className=p-3 border-b cursor-pointer hover:bg-orange-50 flex-col items-start
                   onClick={() => handleGoToAttendance(notification.turma_id)}
                 >
-                  <div className="w-full">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-gray-900 text-sm">
+                  <div className=w-full>
+                    <div className=flex items-center justify-between mb-1>
+                      <span className=font-medium text-gray-900 text-sm>
                         {notification.turma_nome}
                       </span>
                       <Badge
-                        variant="outline"
+                        variant=outline
                         className={getPriorityBadge(notification.prioridade)}
-                        size="sm"
+                        size=sm
                       >
-                        {notification.prioridade === "alta"
-                          ? "Urgente"
-                          : notification.prioridade === "media"
-                          ? "Importante"
-                          : "Pendente"}
+                        {notification.prioridade === alta
+                          ? Urgente
+                          : notification.prioridade === media
+                          ? Importante
+                          : Pendente}
                       </Badge>
                     </div>
 
-                    <div className="space-y-1 text-xs text-gray-600">
+                    <div className=space-y-1 text-xs text-gray-600>
                       <p>
-                        <strong>Instrutor:</strong>{" "}
+                        <strong>Instrutor:</strong>{ }
                         {notification.instrutor_nome}
                       </p>
-                      {user?.tipo === "admin" && (
+                      {user?.tipo === admin && (
                         <p>
                           <strong>Unidade:</strong> {notification.unidade_nome}
                         </p>
                       )}
-                      <p className="text-orange-700 font-medium">
-                        <Clock className="h-3 w-3 inline mr-1" />
+                      <p className=text-orange-700 font-medium>
+                        <Clock className=h-3 w-3 inline mr-1 />
                         Pendente desde: {formatDate(notification.data_faltante)}
                       </p>
                     </div>
@@ -1571,21 +1571,21 @@ const NotificationButton = () => {
                 </DropdownMenuItem>
               ))}
 
-              {/* Se hí¡ mais de 5 notificAções */}
+              {/* Se há¡ mais de 5 notificAções */}
               {notifications.length > 5 && (
-                <div className="p-2 text-center border-t bg-gray-50">
-                  <p className="text-xs text-gray-600">
+                <div className=p-2 text-center border-t bg-gray-50>
+                  <p className=text-xs text-gray-600>
                     +{notifications.length - 5} chamadas pendentes
                   </p>
                   <Button
-                    variant="link"
-                    size="sm"
-                    className="text-xs p-0 h-auto"
+                    variant=link
+                    size=sm
+                    className=text-xs p-0 h-auto
                     onClick={() =>
                       toast({
-                        title: "Ver todas",
+                        title: Ver todas,
                         description:
-                          "Expandir para ver todas as chamadas pendentes",
+                          Expandir para ver todas as chamadas pendentes,
                       })
                     }
                   >
@@ -1597,14 +1597,14 @@ const NotificationButton = () => {
 
             {/* Footer com Ações */}
             <DropdownMenuSeparator />
-            <div className="p-2">
+            <div className=p-2>
               <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs"
+                variant=outline
+                size=sm
+                className=w-full text-xs
                 onClick={fetchNotifications}
               >
-                <RefreshCw className="h-3 w-3 mr-1" />
+                <RefreshCw className=h-3 w-3 mr-1 />
                 Atualizar
               </Button>
             </div>
@@ -1640,7 +1640,7 @@ const Dashboard = () => {
       const response = await axios.get(`${API}/dashboard/stats`);
       setStats(response.data);
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error(Error fetching stats:, error);
     } finally {
       setLoading(false);
     }
@@ -1649,35 +1649,35 @@ const Dashboard = () => {
   const handleLogout = () => {
     logout();
     toast({
-      title: "Logout realizado",
-      description: "Atí© logo!",
+      title: Logout realizado,
+      description: Atá© logo!,
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=min-h-screen bg-gray-50>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">IOS</h1>
+      <header className=bg-white shadow-sm border-b>
+        <div className=max-w-7xl mx-auto px-4 sm:px-6 lg:px-8>
+          <div className=flex justify-between items-center h-16>
+            <div className=flex items-center>
+              <GraduationCap className=h-8 w-8 text-blue-600 mr-3 />
+              <h1 className=text-xl font-bold text-gray-900>IOS</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className=flex items-center space-x-4>
               {/* Componente de NotificAções */}
               <NotificationButton />
 
-              <Badge variant="outline">{getUserTypeLabel(user?.tipo)}</Badge>
-              <span className="text-sm text-gray-700">{user?.nome}</span>
+              <Badge variant=outline>{getUserTypeLabel(user?.tipo)}</Badge>
+              <span className=text-sm text-gray-700>{user?.nome}</span>
               <Button
-                variant="ghost"
-                size="sm"
+                variant=ghost
+                size=sm
                 onClick={handleLogout}
-                className="text-gray-500 hover:text-gray-700"
-                title="Sair do sistema"
+                className=text-gray-500 hover:text-gray-700
+                title=Sair do sistema
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className=h-4 w-4 />
               </Button>
             </div>
           </div>
@@ -1685,25 +1685,25 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* “Š Dashboard Personalizado por Usuí¡rio */}
-        {user?.tipo !== "admin" && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-3">
-              <Shield className="h-6 w-6 text-blue-600" />
+      <main className=max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8>
+        {/* “Š Dashboard Personalizado por Usuá¡rio */}
+        {user?.tipo !== admin && (
+          <div className=mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg>
+            <div className=flex items-center gap-3>
+              <Shield className=h-6 w-6 text-blue-600 />
               <div>
-                <h3 className="font-semibold text-gray-900">
+                <h3 className=font-semibold text-gray-900>
                   {stats.tipo_usuario ||
                     user?.tipo?.charAt(0).toUpperCase() + user?.tipo?.slice(1)}
                 </h3>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className=flex items-center gap-4 text-sm text-gray-600>
                   <span>
-                    <Building2 className="h-4 w-4 inline mr-1" />
-                    {stats.unidade_nome || "Sua unidade"}
+                    <Building2 className=h-4 w-4 inline mr-1 />
+                    {stats.unidade_nome || Sua unidade}
                   </span>
                   <span>
-                    <BookOpen className="h-4 w-4 inline mr-1" />
-                    {stats.curso_nome || "Seu curso"}
+                    <BookOpen className=h-4 w-4 inline mr-1 />
+                    {stats.curso_nome || Seu curso}
                   </span>
                 </div>
               </div>
@@ -1712,89 +1712,89 @@ const Dashboard = () => {
         )}
 
         {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="stats-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+        <div className=grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8>
+          <Card className=stats-card>
+            <CardContent className=p-6>
+              <div className=flex items-center justify-between>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin" ? "Unidades" : "Sua Unidade"}
+                  <p className=text-sm font-medium text-gray-600>
+                    {user?.tipo === admin ? Unidades : Sua Unidade}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className=text-2xl font-bold text-gray-900>
                     {stats.total_unidades || 0}
                   </p>
                 </div>
-                <Building2 className="h-8 w-8 text-blue-600" />
+                <Building2 className=h-8 w-8 text-blue-600 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="stats-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className=stats-card>
+            <CardContent className=p-6>
+              <div className=flex items-center justify-between>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin" ? "Cursos" : "Seu Curso"}
+                  <p className=text-sm font-medium text-gray-600>
+                    {user?.tipo === admin ? Cursos : Seu Curso}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className=text-2xl font-bold text-gray-900>
                     {stats.total_cursos || 0}
                   </p>
                 </div>
-                <BookOpen className="h-8 w-8 text-green-600" />
+                <BookOpen className=h-8 w-8 text-green-600 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="stats-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className=stats-card>
+            <CardContent className=p-6>
+              <div className=flex items-center justify-between>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin"
-                      ? "Turmas"
-                      : user?.tipo === "instrutor"
-                      ? "Minhas Turmas"
-                      : "Turmas do Curso"}
+                  <p className=text-sm font-medium text-gray-600>
+                    {user?.tipo === admin
+                      ? Turmas
+                      : user?.tipo === instrutor
+                      ? Minhas Turmas
+                      : Turmas do Curso}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className=text-2xl font-bold text-gray-900>
                     {stats.total_turmas || 0}
                   </p>
                 </div>
-                <Users className="h-8 w-8 text-purple-600" />
+                <Users className=h-8 w-8 text-purple-600 />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="stats-card">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
+          <Card className=stats-card>
+            <CardContent className=p-6>
+              <div className=flex items-center justify-between>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    {user?.tipo === "admin"
-                      ? "Alunos"
-                      : user?.tipo === "instrutor"
-                      ? "Meus Alunos"
-                      : "Alunos do Curso"}
+                  <p className=text-sm font-medium text-gray-600>
+                    {user?.tipo === admin
+                      ? Alunos
+                      : user?.tipo === instrutor
+                      ? Meus Alunos
+                      : Alunos do Curso}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className=text-2xl font-bold text-gray-900>
                     {stats.total_alunos || 0}
                   </p>
                 </div>
-                <UserCheck className="h-8 w-8 text-orange-600" />
+                <UserCheck className=h-8 w-8 text-orange-600 />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Additional Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className=grid grid-cols-1 md:grid-cols-4 gap-6 mb-8>
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
+            <CardContent className=p-4>
+              <div className=flex items-center space-x-2>
+                <CheckCircle className=h-5 w-5 text-green-500 />
                 <div>
-                  <p className="text-sm text-gray-600">Alunos Ativos</p>
-                  <p className="text-lg font-semibold">
+                  <p className=text-sm text-gray-600>Alunos Ativos</p>
+                  <p className=text-lg font-semibold>
                     {stats.alunos_ativos || 0}
                   </p>
                 </div>
@@ -1803,12 +1803,12 @@ const Dashboard = () => {
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <UserX className="h-5 w-5 text-red-500" />
+            <CardContent className=p-4>
+              <div className=flex items-center space-x-2>
+                <UserX className=h-5 w-5 text-red-500 />
                 <div>
-                  <p className="text-sm text-gray-600">Desistentes</p>
-                  <p className="text-lg font-semibold">
+                  <p className=text-sm text-gray-600>Desistentes</p>
+                  <p className=text-lg font-semibold>
                     {stats.alunos_desistentes || 0}
                   </p>
                 </div>
@@ -1817,12 +1817,12 @@ const Dashboard = () => {
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-blue-500" />
+            <CardContent className=p-4>
+              <div className=flex items-center space-x-2>
+                <TrendingUp className=h-5 w-5 text-blue-500 />
                 <div>
-                  <p className="text-sm text-gray-600">Taxa Presença</p>
-                  <p className="text-lg font-semibold">
+                  <p className=text-sm text-gray-600>Taxa Presença</p>
+                  <p className=text-lg font-semibold>
                     {stats.taxa_presenca_mes || 0}%
                   </p>
                 </div>
@@ -1831,12 +1831,12 @@ const Dashboard = () => {
           </Card>
 
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-5 w-5 text-purple-500" />
+            <CardContent className=p-4>
+              <div className=flex items-center space-x-2>
+                <Calendar className=h-5 w-5 text-purple-500 />
                 <div>
-                  <p className="text-sm text-gray-600">Chamadas Hoje</p>
-                  <p className="text-lg font-semibold">
+                  <p className=text-sm text-gray-600>Chamadas Hoje</p>
+                  <p className=text-lg font-semibold>
                     {stats.chamadas_hoje || 0}
                   </p>
                 </div>
@@ -1845,78 +1845,78 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* € PAINEL CHAMADAS PENDENTES - APENAS PARA USUíRIOS NíƒO-ADMIN (Admin víª no sininho) */}
-        {user && ["instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
-          <Card className="mb-6 border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-orange-800">
-                <TriangleAlert className="h-5 w-5 text-orange-600" />
-                <span className="text-lg">Suas Chamadas Pendentes</span>
+        {/* € PAINEL CHAMADAS PENDENTES - APENAS PARA USUáRIOS NáƒO-ADMIN (Admin váª no sininho) */}
+        {user && [instrutor, pedagogo, monitor].includes(user.tipo) && (
+          <Card className=mb-6 border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50>
+            <CardHeader className=pb-3>
+              <CardTitle className=flex items-center gap-2 text-orange-800>
+                <TriangleAlert className=h-5 w-5 text-orange-600 />
+                <span className=text-lg>Suas Chamadas Pendentes</span>
               </CardTitle>
-              <CardDescription className="text-orange-700">
+              <CardDescription className=text-orange-700>
                 {pendingLoading
-                  ? "Carregando suas chamadas pendentes..."
+                  ? Carregando suas chamadas pendentes...
                   : pending.length === 0
-                  ? "Ž‰ Parabí©ns! Todas as suas chamadas estí£o em dia!"
-                  : `âš ¸ Vocíª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
+                  ? Ž‰ Parabá©ns! Todas as suas chamadas está£o em dia!
+                  : `âš ¸ Vocáª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
               </CardDescription>
             </CardHeader>
 
             <CardContent>
               {pendingLoading ? (
-                <div className="flex items-center justify-center py-6 bg-white rounded-lg border border-orange-200">
-                  <RefreshCw className="h-6 w-6 animate-spin text-orange-500 mr-3" />
-                  <span className="text-orange-700 font-medium">
+                <div className=flex items-center justify-center py-6 bg-white rounded-lg border border-orange-200>
+                  <RefreshCw className=h-6 w-6 animate-spin text-orange-500 mr-3 />
+                  <span className=text-orange-700 font-medium>
                     Carregando suas chamadas...
                   </span>
                 </div>
               ) : pendingError ? (
-                <div className="text-center py-6 bg-red-50 rounded-lg border border-red-200">
-                  <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-3" />
-                  <p className="text-red-700 font-medium mb-2">
+                <div className=text-center py-6 bg-red-50 rounded-lg border border-red-200>
+                  <AlertCircle className=h-8 w-8 text-red-500 mx-auto mb-3 />
+                  <p className=text-red-700 font-medium mb-2>
                     Erro ao carregar chamadas
                   </p>
-                  <p className="text-red-600 text-sm mb-4">{pendingError}</p>
+                  <p className=text-red-600 text-sm mb-4>{pendingError}</p>
                   <Button
                     onClick={refetchPending}
-                    variant="outline"
-                    className="border-red-300 text-red-700 hover:bg-red-50"
+                    variant=outline
+                    className=border-red-300 text-red-700 hover:bg-red-50
                   >
-                    <RefreshCw className="h-4 w-4 mr-2" />
+                    <RefreshCw className=h-4 w-4 mr-2 />
                     Tentar novamente
                   </Button>
                 </div>
               ) : pending.length === 0 ? (
-                <div className="text-center py-8 bg-green-50 rounded-lg border border-green-200">
-                  <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                  <p className="font-semibold text-green-800 text-lg mb-2">
+                <div className=text-center py-8 bg-green-50 rounded-lg border border-green-200>
+                  <CheckCircle className=h-16 w-16 text-green-500 mx-auto mb-4 />
+                  <p className=font-semibold text-green-800 text-lg mb-2>
                     Excelente trabalho! Ž¯
                   </p>
-                  <p className="text-green-700 mb-1">
+                  <p className=text-green-700 mb-1>
                     Todas as chamadas do dia foram realizadas!
                   </p>
-                  <p className="text-sm text-green-600">
+                  <p className=text-sm text-green-600>
                     Continue assim e mantenha o controle atualizado.
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {/* Cabeí§alho informativo */}
-                  <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4 text-orange-600" />
-                      <span className="text-sm font-medium text-orange-800">
-                        Aí§í£o Necessí¡ria
+                <div className=space-y-3>
+                  {/* Cabeá§alho informativo */}
+                  <div className=bg-orange-100 border border-orange-200 rounded-lg p-3>
+                    <div className=flex items-center gap-2 mb-1>
+                      <Clock className=h-4 w-4 text-orange-600 />
+                      <span className=text-sm font-medium text-orange-800>
+                        Aá§á£o Necessá¡ria
                       </span>
                     </div>
-                    <p className="text-xs text-orange-700">
-                      Clique em "Fazer Chamada" para registrar a Presença dos
+                    <p className=text-xs text-orange-700>
+                      Clique em Fazer Chamada para registrar a Presença dos
                       alunos nas turmas abaixo.
                     </p>
                   </div>
 
                   {/* Grid de turmas pendentes - mais compacto e visual */}
-                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                  <div className=grid gap-3 md:grid-cols-2 lg:grid-cols-3>
                     {pending.map((turma) => (
                       <PendingAttendanceCard
                         key={turma.turma_id}
@@ -1932,108 +1932,108 @@ const Dashboard = () => {
         )}
 
         {/* Management Tabs */}
-        <Tabs defaultValue="turmas" className="w-full">
-          <TabsList className="flex flex-wrap w-full justify-center gap-1 h-auto p-1">
+        <Tabs defaultValue=turmas className=w-full>
+          <TabsList className=flex flex-wrap w-full justify-center gap-1 h-auto p-1>
             <TabsTrigger
-              value="turmas"
-              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+              value=turmas
+              className=flex-1 min-w-0 text-sm whitespace-nowrap
             >
               Turmas
             </TabsTrigger>
             <TabsTrigger
-              value="chamada"
-              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+              value=chamada
+              className=flex-1 min-w-0 text-sm whitespace-nowrap
             >
               Chamada
             </TabsTrigger>
 
-            {/* Ž¯ ALUNOS: Disponí­vel para instrutores, pedagogos, monitores e admin */}
-            {["admin", "instrutor", "pedagogo", "monitor"].includes(
+            {/* Ž¯ ALUNOS: Disponá­vel para instrutores, pedagogos, monitores e admin */}
+            {[admin, instrutor, pedagogo, monitor].includes(
               user?.tipo
             ) && (
               <TabsTrigger
-                value="alunos"
-                className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                value=alunos
+                className=flex-1 min-w-0 text-sm whitespace-nowrap
               >
                 Alunos
               </TabsTrigger>
             )}
 
-            {user?.tipo === "admin" && (
+            {user?.tipo === admin && (
               <>
                 <TabsTrigger
-                  value="unidades"
-                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                  value=unidades
+                  className=flex-1 min-w-0 text-sm whitespace-nowrap
                 >
                   Unidades
                 </TabsTrigger>
                 <TabsTrigger
-                  value="cursos"
-                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                  value=cursos
+                  className=flex-1 min-w-0 text-sm whitespace-nowrap
                 >
                   Cursos
                 </TabsTrigger>
                 <TabsTrigger
-                  value="usuarios"
-                  className="flex-1 min-w-0 text-sm whitespace-nowrap"
+                  value=usuarios
+                  className=flex-1 min-w-0 text-sm whitespace-nowrap
                 >
-                  Usuí¡rios
+                  Usuários
                 </TabsTrigger>
               </>
             )}
             <TabsTrigger
-              value="relatorios"
-              className="flex-1 min-w-0 text-sm whitespace-nowrap"
+              value=relatorios
+              className=flex-1 min-w-0 text-sm whitespace-nowrap
             >
               Relatórios
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="turmas">
+          <TabsContent value=turmas>
             <TurmasManager />
           </TabsContent>
 
-          <TabsContent value="chamada">
+          <TabsContent value=chamada>
             <ChamadaManager />
           </TabsContent>
 
           {/* Ž¯ ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
-          {["admin", "instrutor", "pedagogo", "monitor"].includes(
+          {[admin, instrutor, pedagogo, monitor].includes(
             user?.tipo
           ) && (
-            <TabsContent value="alunos">
+            <TabsContent value=alunos>
               <AlunosManager />
             </TabsContent>
           )}
 
-          {user?.tipo === "admin" && (
+          {user?.tipo === admin && (
             <>
-              <TabsContent value="unidades">
+              <TabsContent value=unidades>
                 <UnidadesManager />
               </TabsContent>
 
-              <TabsContent value="cursos">
+              <TabsContent value=cursos>
                 <CursosManager />
               </TabsContent>
 
-              <TabsContent value="usuarios">
+              <TabsContent value=usuarios>
                 <UsuariosManager />
               </TabsContent>
             </>
           )}
 
-          <TabsContent value="relatorios">
+          <TabsContent value=relatorios>
             <RelatoriosManager />
           </TabsContent>
         </Tabs>
       </main>
 
       {/* Footer discreto */}
-      <footer className="mt-auto py-4 border-t bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-xs text-gray-400">
-            Desenvolvido por{" "}
-            <span className="font-medium text-gray-600">Amaro's Developer</span>
+      <footer className=mt-auto py-4 border-t bg-white>
+        <div className=max-w-7xl mx-auto px-4 sm:px-6 lg:px-8>
+          <div className=text-center text-xs text-gray-400>
+            Desenvolvido por{ }
+            <span className=font-medium text-gray-600>Amaro's Developer</span>
           </div>
         </div>
       </footer>
@@ -2044,26 +2044,26 @@ const Dashboard = () => {
 // Sistema de Chamada Component CORRIGIDO
 const ChamadaManager = () => {
   const [turmas, setTurmas] = useState([]);
-  const [selectedTurma, setSelectedTurma] = useState("");
+  const [selectedTurma, setSelectedTurma] = useState();
   const [alunos, setAlunos] = useState([]);
   const [presencas, setPresencas] = useState({});
-  const [observacoes, setObservacoes] = useState("");
+  const [observacoes, setObservacoes] = useState();
   const [loading, setLoading] = useState(false);
   const [loadingAlunos, setLoadingAlunos] = useState(false);
   const [isAtestadoChamadaDialogOpen, setIsAtestadoChamadaDialogOpen] =
     useState(false);
   const [selectedAlunoAtestado, setSelectedAlunoAtestado] = useState(null);
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
-  const [observacaoAtestado, setObservacaoAtestado] = useState("");
+  const [observacaoAtestado, setObservacaoAtestado] = useState();
 
-  // ¥ Estados para sistema de atestados avaní§ado
+  // ¥ Estados para sistema de atestados avaná§ado
   const [alunoDetalheDialog, setAlunoDetalheDialog] = useState(false);
   const [selectedAlunoDetalhes, setSelectedAlunoDetalhes] = useState(null);
   const [atestadosAluno, setAtestadosAluno] = useState([]);
   const [isUploadAtestadoAlunoDialogOpen, setIsUploadAtestadoAlunoDialogOpen] =
     useState(false);
   const [fileAtestadoAluno, setFileAtestadoAluno] = useState(null);
-  const [observacaoAtestadoAluno, setObservacaoAtestadoAluno] = useState("");
+  const [observacaoAtestadoAluno, setObservacaoAtestadoAluno] = useState();
 
   // Estados para modal de justificativa
   const [isJustificativaDialogOpen, setIsJustificativaDialogOpen] =
@@ -2072,8 +2072,8 @@ const ChamadaManager = () => {
     useState(null);
   const [justificationReasons, setJustificationReasons] = useState([]);
   const [justificationForm, setJustificationForm] = useState({
-    reason_text: "", // Campo de texto livre para motivo
-    observations: "",
+    reason_text: , // Campo de texto livre para motivo
+    observations: ,
     file: null,
   });
   const { toast } = useToast();
@@ -2090,27 +2090,27 @@ const ChamadaManager = () => {
       const reasons = Array.isArray(response.data) ? response.data : [];
       setJustificationReasons(reasons);
     } catch (error) {
-      console.error("Erro ao carregar motivos de justificativa:", error);
-      // âœ… Fallback com motivos padrí£o se API falhar
+      console.error(Erro ao carregar motivos de justificativa:, error);
+      // âœ… Fallback com motivos padrá£o se API falhar
       setJustificationReasons([
-        { code: "doenca", label: "Doení§a" },
-        { code: "medico", label: "Consulta mí©dica" },
-        { code: "familiar", label: "Problema familiar" },
-        { code: "transporte", label: "Problema de transporte" },
-        { code: "trabalho", label: "Compromisso de trabalho" },
-        { code: "outros", label: "Outros motivos" },
+        { code: doenca, label: Doená§a },
+        { code: medico, label: Consulta má©dica },
+        { code: familiar, label: Problema familiar },
+        { code: transporte, label: Problema de transporte },
+        { code: trabalho, label: Compromisso de trabalho },
+        { code: outros, label: Outros motivos },
       ]);
     }
   };
 
-  // ¥ FUNí‡í•ES PARA GESTíƒO DE ATESTADOS
+  // ¥ FUNá‡á•ES PARA GESTáƒO DE ATESTADOS
   const handleVisualizarAlunoDetalhes = async (aluno) => {
     setSelectedAlunoDetalhes(aluno);
     try {
       const response = await axios.get(`${API}/alunos/${aluno.id}/atestados`);
       setAtestadosAluno(response.data.atestados || []);
     } catch (error) {
-      console.error("Erro ao carregar atestados do aluno:", error);
+      console.error(Erro ao carregar atestados do aluno:, error);
       setAtestadosAluno([]);
     }
     setAlunoDetalheDialog(true);
@@ -2119,51 +2119,51 @@ const ChamadaManager = () => {
   const handleUploadAtestadoAluno = (aluno) => {
     setSelectedAlunoDetalhes(aluno);
     setFileAtestadoAluno(null);
-    setObservacaoAtestadoAluno("");
+    setObservacaoAtestadoAluno();
     setIsUploadAtestadoAlunoDialogOpen(true);
   };
 
   const submitAtestadoAluno = async () => {
     if (!fileAtestadoAluno) {
       toast({
-        title: "Arquivo obrigatí³rio",
-        description: "Por favor, selecione um arquivo de atestado.",
-        variant: "destructive",
+        title: Arquivo obrigatá³rio,
+        description: Por favor, selecione um arquivo de atestado.,
+        variant: destructive,
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("file", fileAtestadoAluno);
-      formData.append("aluno_id", selectedAlunoDetalhes.id);
-      formData.append("observacao", observacaoAtestadoAluno || "");
+      formData.append(file, fileAtestadoAluno);
+      formData.append(aluno_id, selectedAlunoDetalhes.id);
+      formData.append(observacao, observacaoAtestadoAluno || );
 
       const response = await axios.post(`${API}/upload/atestado`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { Content-Type: multipart/form-data },
       });
 
       toast({
-        title: "âœ… Atestado anexado",
+        title: âœ… Atestado anexado,
         description: `Atestado de ${selectedAlunoDetalhes.nome} salvo com sucesso.`,
       });
 
       setIsUploadAtestadoAlunoDialogOpen(false);
       setFileAtestadoAluno(null);
-      setObservacaoAtestadoAluno("");
+      setObservacaoAtestadoAluno();
 
       // Recarregar atestados se tela de detalhes estiver aberta
       if (alunoDetalheDialog) {
         handleVisualizarAlunoDetalhes(selectedAlunoDetalhes);
       }
     } catch (error) {
-      console.error("Error uploading atestado:", error);
+      console.error(Error uploading atestado:, error);
       toast({
-        title: "Erro ao anexar atestado",
+        title: Erro ao anexar atestado,
         description:
           error.response?.data?.detail ||
-          "Verifique o arquivo e tente novamente",
-        variant: "destructive",
+          Verifique o arquivo e tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -2173,13 +2173,13 @@ const ChamadaManager = () => {
       const response = await axios.get(
         `${API}/atestados/${atestadoId}/download`,
         {
-          responseType: "blob",
+          responseType: blob,
         }
       );
 
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement(a);
       link.href = url;
       link.download = filename;
       document.body.appendChild(link);
@@ -2188,15 +2188,15 @@ const ChamadaManager = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "âœ… Download realizado",
+        title: âœ… Download realizado,
         description: `Arquivo ${filename} baixado com sucesso.`,
       });
     } catch (error) {
-      console.error("Error downloading atestado:", error);
+      console.error(Error downloading atestado:, error);
       toast({
-        title: "Erro ao baixar arquivo",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
+        title: Erro ao baixar arquivo,
+        description: Tente novamente em alguns instantes.,
+        variant: destructive,
       });
     }
   };
@@ -2204,8 +2204,8 @@ const ChamadaManager = () => {
   const handleJustificarFalta = (aluno) => {
     setSelectedAlunoJustificativa(aluno);
     setJustificationForm({
-      reason_text: "",
-      observations: "",
+      reason_text: ,
+      observations: ,
       file: null,
     });
     setIsJustificativaDialogOpen(true);
@@ -2214,22 +2214,22 @@ const ChamadaManager = () => {
   const submitJustificativa = async () => {
     if (!justificationForm.reason_text?.trim()) {
       toast({
-        title: "Erro",
-        description: "Digite o motivo da falta",
-        variant: "destructive",
+        title: Erro,
+        description: Digite o motivo da falta,
+        variant: destructive,
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatí³rio adicionado
-      formData.append("reason_text", justificationForm.reason_text.trim());
+      formData.append(reason_code, CUSTOM); // âœ… Campo obrigatá³rio adicionado
+      formData.append(reason_text, justificationForm.reason_text.trim());
       if (justificationForm.observations) {
-        formData.append("observations", justificationForm.observations);
+        formData.append(observations, justificationForm.observations);
       }
       if (justificationForm.file) {
-        formData.append("file", justificationForm.file);
+        formData.append(file, justificationForm.file);
       }
 
       await axios.post(
@@ -2237,7 +2237,7 @@ const ChamadaManager = () => {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            Content-Type: multipart/form-data,
           },
         }
       );
@@ -2254,17 +2254,17 @@ const ChamadaManager = () => {
       setPresencas(updatedPresencas);
 
       toast({
-        title: "Sucesso",
-        description: "Justificativa registrada com sucesso!",
+        title: Sucesso,
+        description: Justificativa registrada com sucesso!,
       });
 
       setIsJustificativaDialogOpen(false);
     } catch (error) {
-      console.error("Erro ao registrar justificativa:", error);
+      console.error(Erro ao registrar justificativa:, error);
       toast({
-        title: "Erro",
-        description: "Erro ao registrar justificativa",
-        variant: "destructive",
+        title: Erro,
+        description: Erro ao registrar justificativa,
+        variant: destructive,
       });
     }
   };
@@ -2275,7 +2275,7 @@ const ChamadaManager = () => {
       const response = await axios.get(`${API}/classes`);
       setTurmas(response.data);
     } catch (error) {
-      console.error("Error fetching turmas:", error);
+      console.error(Error fetching turmas:, error);
     } finally {
       setLoading(false);
     }
@@ -2284,9 +2284,9 @@ const ChamadaManager = () => {
   const fetchAlunos = async (turmaId) => {
     try {
       setLoadingAlunos(true);
-      console.log("Fetching alunos for turma:", turmaId);
+      console.log(Fetching alunos for turma:, turmaId);
       const response = await axios.get(`${API}/classes/${turmaId}/students`);
-      console.log("Alunos response:", response.data);
+      console.log(Alunos response:, response.data);
       setAlunos(response.data);
 
       // Initialize presencas with all students present by default
@@ -2294,17 +2294,17 @@ const ChamadaManager = () => {
       response.data.forEach((aluno) => {
         initialPresencas[aluno.id] = {
           presente: true,
-          justificativa: "",
-          atestado_id: "",
+          justificativa: ,
+          atestado_id: ,
         };
       });
       setPresencas(initialPresencas);
     } catch (error) {
-      console.error("Error fetching alunos:", error);
+      console.error(Error fetching alunos:, error);
       toast({
-        title: "Erro ao carregar alunos",
-        description: "nío foi possí­vel carregar a lista de alunos da turma",
-        variant: "destructive",
+        title: Erro ao carregar alunos,
+        description: náo foi possá­vel carregar a lista de alunos da turma,
+        variant: destructive,
       });
     } finally {
       setLoadingAlunos(false);
@@ -2312,7 +2312,7 @@ const ChamadaManager = () => {
   };
 
   const handleTurmaChange = (turmaId) => {
-    debugLog("ChamadaManager: Turma selected", {
+    debugLog(ChamadaManager: Turma selected, {
       turmaId,
       previousTurma: selectedTurma,
     });
@@ -2325,11 +2325,11 @@ const ChamadaManager = () => {
         fetchAlunos(turmaId);
       }
     } catch (error) {
-      debugLog("ChamadaManager: ERROR in handleTurmaChange", {
+      debugLog(ChamadaManager: ERROR in handleTurmaChange, {
         error: error.message,
         turmaId,
       });
-      console.error("Erro em handleTurmaChange:", error);
+      console.error(Erro em handleTurmaChange:, error);
     }
   };
 
@@ -2362,22 +2362,22 @@ const ChamadaManager = () => {
   const submitAtestadoChamada = async () => {
     if (!selectedFileAtestado) {
       toast({
-        title: "Arquivo obrigatí³rio",
-        description: "Por favor, selecione um arquivo de atestado.",
-        variant: "destructive",
+        title: Arquivo obrigatá³rio,
+        description: Por favor, selecione um arquivo de atestado.,
+        variant: destructive,
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("file", selectedFileAtestado);
-      formData.append("aluno_id", selectedAlunoAtestado.id);
-      formData.append("observacao", observacaoAtestado || "");
+      formData.append(file, selectedFileAtestado);
+      formData.append(aluno_id, selectedAlunoAtestado.id);
+      formData.append(observacao, observacaoAtestado || );
 
       const response = await axios.post(`${API}/upload/atestado`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          Content-Type: multipart/form-data,
         },
       });
 
@@ -2388,68 +2388,68 @@ const ChamadaManager = () => {
           ...prev[selectedAlunoAtestado.id],
           presente: false,
           atestado_id: response.data.id,
-          justificativa: "Falta justificada com atestado mí©dico",
+          justificativa: Falta justificada com atestado má©dico,
         },
       }));
 
       toast({
-        title: "âœ… Atestado anexado com sucesso",
+        title: âœ… Atestado anexado com sucesso,
         description: `Atestado de ${selectedAlunoAtestado.nome} registrado e falta justificada.`,
       });
 
       setIsAtestadoChamadaDialogOpen(false);
       setSelectedAlunoAtestado(null);
       setSelectedFileAtestado(null);
-      setObservacaoAtestado("");
+      setObservacaoAtestado();
     } catch (error) {
-      console.error("Error uploading atestado:", error);
+      console.error(Error uploading atestado:, error);
       toast({
-        title: "Erro ao anexar atestado",
+        title: Erro ao anexar atestado,
         description:
           error.response?.data?.detail ||
-          "Verifique o arquivo e tente novamente",
-        variant: "destructive",
+          Verifique o arquivo e tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const handleSalvarChamada = async () => {
-    debugLog("ChamadaManager: Iniciando salvamento de chamada", {
+    debugLog(ChamadaManager: Iniciando salvamento de chamada, {
       selectedTurma,
       totalAlunos: alunos.length,
       totalPresencas: Object.keys(presencas).length,
     });
 
     if (!selectedTurma) {
-      debugLog("ChamadaManager: ERROR - Nenhuma turma selecionada");
+      debugLog(ChamadaManager: ERROR - Nenhuma turma selecionada);
       toast({
-        title: "Erro",
-        description: "Selecione uma turma primeiro",
-        variant: "destructive",
+        title: Erro,
+        description: Selecione uma turma primeiro,
+        variant: destructive,
       });
       return;
     }
 
-    // ”’ VALIDAí‡íƒO: Sí³ permite chamada do dia atual
-    const hoje = new Date().toISOString().split("T")[0];
-    const agora = new Date().toTimeString().split(" ")[0].substring(0, 5);
+    // ”’ VALIDAá‡áƒO: Sá³ permite chamada do dia atual
+    const hoje = new Date().toISOString().split(T)[0];
+    const agora = new Date().toTimeString().split( )[0].substring(0, 5);
 
-    // Verificar se í© realmente hoje
+    // Verificar se á© realmente hoje
     const dataAtual = new Date();
-    const dataHoje = dataAtual.toISOString().split("T")[0];
+    const dataHoje = dataAtual.toISOString().split(T)[0];
 
     if (hoje !== dataHoje) {
-      debugLog("ChamadaManager: ERROR - Data inví¡lida", { hoje, dataHoje });
+      debugLog(ChamadaManager: ERROR - Data invá¡lida, { hoje, dataHoje });
       toast({
-        title: "Data inví¡lida",
-        description: "Sí³ í© possí­vel fazer chamada da data atual",
-        variant: "destructive",
+        title: Data invá¡lida,
+        description: Sá³ á© possá­vel fazer chamada da data atual,
+        variant: destructive,
       });
       return;
     }
 
     try {
-      debugLog("ChamadaManager: Enviando dados para API", {
+      debugLog(ChamadaManager: Enviando dados para API, {
         endpoint: `${API}/attendance`,
         data: { turma_id: selectedTurma, data: hoje, horario: agora },
       });
@@ -2463,50 +2463,50 @@ const ChamadaManager = () => {
       });
 
       debugLog(
-        "ChamadaManager: Chamada salva com sucesso - iniciando limpeza de estados"
+        ChamadaManager: Chamada salva com sucesso - iniciando limpeza de estados
       );
 
       toast({
-        title: "Chamada salva com sucesso!",
+        title: Chamada salva com sucesso!,
         description: `Os dados de Presença foram registrados para ${new Date().toLocaleDateString(
-          "pt-BR"
+          pt-BR
         )}`,
       });
 
-      // Ž¯ CORREí‡íƒO CRíTICA: Salvar ID da turma antes de limpar estados
+      // Ž¯ CORREá‡áƒO CRáTICA: Salvar ID da turma antes de limpar estados
       const turmaIdParaRemover = selectedTurma;
-      debugLog("ChamadaManager: Turma ID salvo para remoí§í£o", {
+      debugLog(ChamadaManager: Turma ID salvo para remoá§á£o, {
         turmaIdParaRemover,
       });
 
-      // âš¡ PROTEí‡íƒO REACT DOM: Limpeza sequencial com delays maiores
+      // âš¡ PROTEá‡áƒO REACT DOM: Limpeza sequencial com delays maiores
       const clearStatesSequentially = () => {
         debugLog(
-          "ChamadaManager: Iniciando limpeza sequencial (VERSíƒO CORRIGIDA)"
+          ChamadaManager: Iniciando limpeza sequencial (VERSáƒO CORRIGIDA)
         );
 
-        // 1. Limpar seleí§í£o primeiro
-        setSelectedTurma("");
+        // 1. Limpar seleá§á£o primeiro
+        setSelectedTurma();
 
-        // 2. Aguardar renderizaí§í£o antes de limpar outros estados (delay aumentado)
+        // 2. Aguardar renderizaá§á£o antes de limpar outros estados (delay aumentado)
         setTimeout(() => {
-          debugLog("ChamadaManager: Limpando demais estados", {
+          debugLog(ChamadaManager: Limpando demais estados, {
             alunosCount: alunos.length,
             presencasCount: Object.keys(presencas).length,
           });
 
           setAlunos([]);
           setPresencas({});
-          setObservacoes("");
+          setObservacoes();
 
           // 3. Aguardar mais tempo antes de modificar lista de turmas
           setTimeout(() => {
-            debugLog("ChamadaManager: Removendo turma da lista", {
+            debugLog(ChamadaManager: Removendo turma da lista, {
               turmaIdParaRemover,
             });
             setTurmas((prev) => {
               const novaLista = prev.filter((t) => t.id !== turmaIdParaRemover);
-              debugLog("ChamadaManager: Turma removida da lista", {
+              debugLog(ChamadaManager: Turma removida da lista, {
                 antes: prev.length,
                 depois: novaLista.length,
               });
@@ -2516,46 +2516,46 @@ const ChamadaManager = () => {
         }, 20);
       };
 
-      // Executar limpeza com proteí§í£o adicional
+      // Executar limpeza com proteá§á£o adicional
       try {
         clearStatesSequentially();
       } catch (domError) {
-        debugLog("ChamadaManager: ERRO DOM CAPTURADO durante limpeza", {
+        debugLog(ChamadaManager: ERRO DOM CAPTURADO durante limpeza, {
           error: domError.message,
           stack: domError.stack,
         });
 
-        // Fallback: tentar novamente apí³s delay maior
+        // Fallback: tentar novamente apá³s delay maior
         setTimeout(() => {
-          debugLog("ChamadaManager: Tentativa de limpeza apí³s erro DOM");
+          debugLog(ChamadaManager: Tentativa de limpeza apá³s erro DOM);
           try {
-            setSelectedTurma("");
+            setSelectedTurma();
             setAlunos([]);
             setPresencas({});
-            setObservacoes("");
+            setObservacoes();
             setTurmas((prev) =>
               prev.filter((t) => t.id !== turmaIdParaRemover)
             );
           } catch (secondError) {
-            debugLog("ChamadaManager: SEGUNDO ERRO DOM - fallback falhou", {
+            debugLog(ChamadaManager: SEGUNDO ERRO DOM - fallback falhou, {
               error: secondError.message,
             });
           }
         }, 100);
       }
     } catch (error) {
-      debugLog("ChamadaManager: ERROR ao salvar chamada", {
+      debugLog(ChamadaManager: ERROR ao salvar chamada, {
         error: error.message,
         status: error.response?.status,
         detail: error.response?.data?.detail,
       });
 
       toast({
-        title: "Erro ao salvar chamada",
+        title: Erro ao salvar chamada,
         description:
           error.response?.data?.detail ||
-          "Jí¡ foi feita chamada hoje para esta turma",
-        variant: "destructive",
+          Já¡ foi feita chamada hoje para esta turma,
+        variant: destructive,
       });
     }
   };
@@ -2570,20 +2570,20 @@ const ChamadaManager = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <UserCheck className="h-5 w-5 mr-2 text-blue-600" />
+        <CardTitle className=flex items-center>
+          <UserCheck className=h-5 w-5 mr-2 text-blue-600 />
           Sistema de Chamada
         </CardTitle>
         <CardDescription>
-          Registre a Presença dos alunos de forma rí¡pida e eficiente
+          Registre a Presença dos alunos de forma rápida e eficiente
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
+      <CardContent className=space-y-6>
+        <div className=space-y-2>
           <Label>Selecionar Turma</Label>
           <Select value={selectedTurma} onValueChange={handleTurmaChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione uma turma" />
+              <SelectValue placeholder=Selecione uma turma />
             </SelectTrigger>
             <SelectContent>
               {turmas.map((turma) => (
@@ -2596,26 +2596,26 @@ const ChamadaManager = () => {
         </div>
 
         {selectedTurma && turmas.find((t) => t.id === selectedTurma) && (
-          <div className="grid grid-cols-3 gap-4">
+          <div className=grid grid-cols-3 gap-4>
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-5 w-5 text-blue-500" />
+              <CardContent className=p-4>
+                <div className=flex items-center space-x-2>
+                  <Users className=h-5 w-5 text-blue-500 />
                   <div>
-                    <p className="text-sm text-gray-600">Total de Alunos</p>
-                    <p className="text-lg font-semibold">{alunos.length}</p>
+                    <p className=text-sm text-gray-600>Total de Alunos</p>
+                    <p className=text-lg font-semibold>{alunos.length}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-500" />
+              <CardContent className=p-4>
+                <div className=flex items-center space-x-2>
+                  <CheckCircle className=h-5 w-5 text-green-500 />
                   <div>
-                    <p className="text-sm text-gray-600">Presentes</p>
-                    <p className="text-lg font-semibold text-green-600">
+                    <p className=text-sm text-gray-600>Presentes</p>
+                    <p className=text-lg font-semibold text-green-600>
                       {totalPresentes}
                     </p>
                   </div>
@@ -2624,12 +2624,12 @@ const ChamadaManager = () => {
             </Card>
 
             <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-5 w-5 text-red-500" />
+              <CardContent className=p-4>
+                <div className=flex items-center space-x-2>
+                  <AlertCircle className=h-5 w-5 text-red-500 />
                   <div>
-                    <p className="text-sm text-gray-600">Faltas</p>
-                    <p className="text-lg font-semibold text-red-600">
+                    <p className=text-sm text-gray-600>Faltas</p>
+                    <p className=text-lg font-semibold text-red-600>
                       {totalFaltas}
                     </p>
                   </div>
@@ -2640,84 +2640,84 @@ const ChamadaManager = () => {
         )}
 
         {loadingAlunos && (
-          <div className="text-center py-8">
-            <div className="loading-spinner mx-auto mb-4"></div>
+          <div className=text-center py-8>
+            <div className=loading-spinner mx-auto mb-4></div>
             <p>Carregando lista de alunos...</p>
           </div>
         )}
 
         {alunos.length > 0 && !loadingAlunos && (
           <>
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center">
-                <Users className="h-5 w-5 mr-2" />
+            <div className=space-y-4>
+              <h3 className=text-lg font-semibold flex items-center>
+                <Users className=h-5 w-5 mr-2 />
                 Lista de Presença - {new Date().toLocaleDateString()}
               </h3>
 
-              <div className="space-y-3">
+              <div className=space-y-3>
                 {alunos.map((aluno, index) => (
                   <Card
                     key={aluno.id}
                     className={`p-4 transition-all ${
                       presencas[aluno.id]?.presente
-                        ? "border-green-200 bg-green-50"
-                        : "border-red-200 bg-red-50"
+                        ? border-green-200 bg-green-50
+                        : border-red-200 bg-red-50
                     }`}
                   >
-                    <div className="flex items-start space-x-4">
-                      <div className="flex items-center space-x-3">
-                        <span className="font-mono text-sm text-gray-500 w-8">
-                          {String(index + 1).padStart(2, "0")}
+                    <div className=flex items-start space-x-4>
+                      <div className=flex items-center space-x-3>
+                        <span className=font-mono text-sm text-gray-500 w-8>
+                          {String(index + 1).padStart(2, 0)}
                         </span>
-                        <div className="flex items-center space-x-2">
+                        <div className=flex items-center space-x-2>
                           <Checkbox
                             checked={presencas[aluno.id]?.presente || false}
                             onCheckedChange={(checked) =>
                               handlePresencaChange(aluno.id, checked)
                             }
-                            className="w-5 h-5"
+                            className=w-5 h-5
                           />
-                          <label className="text-sm font-medium cursor-pointer">
+                          <label className=text-sm font-medium cursor-pointer>
                             {presencas[aluno.id]?.presente
-                              ? "Presente"
-                              : "Falta"}
+                              ? Presente
+                              : Falta}
                           </label>
                         </div>
                       </div>
 
-                      <div className="flex-1">
-                        <p className="font-medium">{aluno.nome}</p>
-                        <p className="text-sm text-gray-500">
+                      <div className=flex-1>
+                        <p className=font-medium>{aluno.nome}</p>
+                        <p className=text-sm text-gray-500>
                           CPF: {aluno.cpf}
                         </p>
                       </div>
 
                       {!presencas[aluno.id]?.presente && (
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-sm">
+                        <div className=flex-1 space-y-2>
+                          <div className=flex items-center justify-between>
+                            <Label className=text-sm>
                               Justificativa da Falta
                             </Label>
                             <Button
                               onClick={() => handleJustificarFalta(aluno)}
-                              variant="outline"
-                              size="sm"
-                              className="h-8"
+                              variant=outline
+                              size=sm
+                              className=h-8
                             >
-                              <FileText className="h-4 w-4 mr-1" />
+                              <FileText className=h-4 w-4 mr-1 />
                               Justificar com Documento
                             </Button>
                           </div>
                           <Textarea
-                            placeholder="Digite o motivo da falta..."
-                            value={presencas[aluno.id]?.justificativa || ""}
+                            placeholder=Digite o motivo da falta...
+                            value={presencas[aluno.id]?.justificativa || }
                             onChange={(e) =>
                               handleJustificativaChange(
                                 aluno.id,
                                 e.target.value
                               )
                             }
-                            className="min-h-16"
+                            className=min-h-16
                           />
                         </div>
                       )}
@@ -2727,11 +2727,11 @@ const ChamadaManager = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="observacoes">ObservAções da Aula</Label>
+            <div className=space-y-2>
+              <Label htmlFor=observacoes>ObservAções da Aula</Label>
               <Textarea
-                id="observacoes"
-                placeholder="Digite ObservAções sobre a aula, conteúdo ministrado, ocorríªncias..."
+                id=observacoes
+                placeholder=Digite ObservAções sobre a aula, conteúdo ministrado, ocorráªncias...
                 value={observacoes}
                 onChange={(e) => setObservacoes(e.target.value)}
               />
@@ -2739,17 +2739,17 @@ const ChamadaManager = () => {
 
             <Button
               onClick={handleSalvarChamada}
-              className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg"
+              className=w-full bg-green-600 hover:bg-green-700 h-12 text-lg
             >
-              <Save className="h-5 w-5 mr-2" />
+              <Save className=h-5 w-5 mr-2 />
               Salvar Chamada - {totalPresentes} Presentes, {totalFaltas} Faltas
             </Button>
           </>
         )}
 
         {selectedTurma && alunos.length === 0 && !loadingAlunos && (
-          <div className="text-center py-8 text-gray-500">
-            <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <div className=text-center py-8 text-gray-500>
+            <Users className=h-12 w-12 mx-auto mb-4 text-gray-300 />
             <p>Nenhum aluno encontrado nesta turma</p>
           </div>
         )}
@@ -2762,35 +2762,35 @@ const ChamadaManager = () => {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Atestado Mí©dico</DialogTitle>
+            <DialogTitle>Upload Atestado Má©dico</DialogTitle>
             <DialogDescription>
-              Anexar atestado mí©dico para {selectedAlunoAtestado?.nome}
+              Anexar atestado má©dico para {selectedAlunoAtestado?.nome}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=space-y-4>
             <div>
               <Label>Arquivo do atestado *</Label>
               <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                type=file
+                accept=.pdf,.jpg,.jpeg,.png
                 onChange={(e) => setSelectedFileAtestado(e.target.files[0])}
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (mí¡x. 5MB)
+              <p className=text-sm text-gray-500 mt-1>
+                Formatos aceitos: PDF, JPG, PNG (má¡x. 5MB)
               </p>
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className=flex justify-end space-x-2>
               <Button
-                variant="outline"
+                variant=outline
                 onClick={() => setIsAtestadoChamadaDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={submitAtestadoChamada}
-                className="bg-green-600 hover:bg-green-700"
+                className=bg-green-600 hover:bg-green-700
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className=h-4 w-4 mr-2 />
                 Anexar Atestado
               </Button>
             </div>
@@ -2803,10 +2803,10 @@ const ChamadaManager = () => {
         open={isJustificativaDialogOpen}
         onOpenChange={setIsJustificativaDialogOpen}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent className=max-w-md>
           <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
+            <DialogTitle className=flex items-center>
+              <FileText className=h-5 w-5 mr-2 />
               Justificar Falta
             </DialogTitle>
             <DialogDescription>
@@ -2814,35 +2814,35 @@ const ChamadaManager = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className=space-y-4>
             {/* “ Motivo da falta - CAMPO DE TEXTO LIVRE */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium flex items-center">
-                <AlertCircle className="h-4 w-4 mr-1" />
+            <div className=space-y-2>
+              <Label className=text-sm font-medium flex items-center>
+                <AlertCircle className=h-4 w-4 mr-1 />
                 Motivo da falta *
               </Label>
               <Textarea
-                value={justificationForm.reason_text || ""}
+                value={justificationForm.reason_text || }
                 onChange={(e) =>
                   setJustificationForm((prev) => ({
                     ...prev,
                     reason_text: e.target.value,
                   }))
                 }
-                placeholder="Digite o motivo da falta (ex: Consulta mí©dica, Problema familiar, etc.)"
+                placeholder=Digite o motivo da falta (ex: Consulta má©dica, Problema familiar, etc.)
                 rows={3}
-                className="resize-none"
+                className=resize-none
               />
-              <p className="text-xs text-muted-foreground">
-                ’¡ Seja especí­fico para facilitar o controle de frequíªncia
+              <p className=text-xs text-muted-foreground>
+                ’¡ Seja especá­fico para facilitar o controle de frequáªncia
               </p>
             </div>
 
             {/* ObservAções */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">ObservAções</Label>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>ObservAções</Label>
               <Textarea
-                placeholder="ObservAções adicionais sobre a falta..."
+                placeholder=ObservAções adicionais sobre a falta...
                 value={justificationForm.observations}
                 onChange={(e) =>
                   setJustificationForm((prev) => ({
@@ -2850,18 +2850,18 @@ const ChamadaManager = () => {
                     observations: e.target.value,
                   }))
                 }
-                className="min-h-20"
+                className=min-h-20
               />
             </div>
 
             {/* Upload de arquivo */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>
                 Documento (opcional)
               </Label>
               <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                type=file
+                accept=.pdf,.jpg,.jpeg,.png
                 onChange={(e) =>
                   setJustificationForm((prev) => ({
                     ...prev,
@@ -2869,24 +2869,24 @@ const ChamadaManager = () => {
                   }))
                 }
               />
-              <p className="text-xs text-gray-500">
-                Formatos aceitos: PDF, JPG, PNG (mí¡x. 5MB)
+              <p className=text-xs text-gray-500>
+                Formatos aceitos: PDF, JPG, PNG (má¡x. 5MB)
               </p>
             </div>
 
             {/* Botões */}
-            <div className="flex justify-end space-x-2 pt-4">
+            <div className=flex justify-end space-x-2 pt-4>
               <Button
-                variant="outline"
+                variant=outline
                 onClick={() => setIsJustificativaDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={submitJustificativa}
-                className="bg-blue-600 hover:bg-blue-700"
+                className=bg-blue-600 hover:bg-blue-700
               >
-                <FileText className="h-4 w-4 mr-2" />
+                <FileText className=h-4 w-4 mr-2 />
                 Registrar Justificativa
               </Button>
             </div>
@@ -2907,12 +2907,12 @@ const UsuariosManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
-    nome: "",
-    email: "",
-    tipo: "",
-    telefone: "",
-    unidade_id: "",
-    curso_id: "",
+    nome: ,
+    email: ,
+    tipo: ,
+    telefone: ,
+    unidade_id: ,
+    curso_id: ,
   });
   const { toast } = useToast();
 
@@ -2920,15 +2920,15 @@ const UsuariosManager = () => {
     fetchData();
   }, []);
 
-  // € FUNí‡íƒO PING PARA ACORDAR RENDER
+  // € FUNá‡áƒO PING PARA ACORDAR RENDER
   const wakeUpBackend = async () => {
-    console.log("”” Acordando backend Render...");
+    console.log(”” Acordando backend Render...);
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("âœ… Backend acordado:", pingResponse.data);
+      console.log(âœ… Backend acordado:, pingResponse.data);
       return true;
     } catch (error) {
-      console.error("âŒ Erro ao acordar backend:", error);
+      console.error(âŒ Erro ao acordar backend:, error);
       return false;
     }
   };
@@ -2939,7 +2939,7 @@ const UsuariosManager = () => {
       const backendAwake = await wakeUpBackend();
       if (!backendAwake) {
         console.warn(
-          "âš ¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
+          âš ¸ Backend pode estar dormindo, tentando requisiá§áµes diretas...
         );
       }
 
@@ -2958,10 +2958,10 @@ const UsuariosManager = () => {
         const pendingRes = await axios.get(`${API}/users/pending`);
         setPendingUsers(pendingRes.data);
       } catch (error) {
-        console.error("Error fetching pending users:", error);
+        console.error(Error fetching pending users:, error);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error(Error fetching data:, error);
     } finally {
       setLoading(false);
     }
@@ -2973,16 +2973,16 @@ const UsuariosManager = () => {
       if (editingUser) {
         await axios.put(`${API}/users/${editingUser.id}`, formData);
         toast({
-          title: "Usuí¡rio atualizado com sucesso!",
-          description: "As informAções do usuí¡rio foram atualizadas.",
+          title: Usuá¡rio atualizado com sucesso!,
+          description: As informAções do usuá¡rio foram atualizadas.,
         });
       } else {
         // When creating user, a temporary password will be generated
         await axios.post(`${API}/users`, formData);
         toast({
-          title: "Usuí¡rio criado com sucesso!",
+          title: Usuá¡rio criado com sucesso!,
           description:
-            "Uma senha temporí¡ria foi gerada. O usuí¡rio deve fazer login e alterí¡-la.",
+            Uma senha temporá¡ria foi gerada. O usuá¡rio deve fazer login e alterá¡-la.,
         });
       }
 
@@ -2993,15 +2993,15 @@ const UsuariosManager = () => {
     } catch (error) {
       toast({
         title: editingUser
-          ? "Erro ao atualizar usuí¡rio"
-          : "Erro ao criar usuí¡rio",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+          ? Erro ao atualizar usuá¡rio
+          : Erro ao criar usuá¡rio,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
-  // ” NOVA FUNí‡íƒO: Reset de senha administrativo
+  // ” NOVA FUNá‡áƒO: Reset de senha administrativo
   const handleResetPassword = async (userId, userName) => {
     try {
       const response = await axios.post(
@@ -3009,20 +3009,20 @@ const UsuariosManager = () => {
       );
 
       toast({
-        title: "Senha resetada com sucesso!",
-        description: `Nova senha temporí¡ria para ${response.data.user_name}: ${response.data.temp_password}`,
-        variant: "default",
+        title: Senha resetada com sucesso!,
+        description: `Nova senha temporá¡ria para ${response.data.user_name}: ${response.data.temp_password}`,
+        variant: default,
       });
 
       // Mostra alert adicional para garantir que admin veja a senha
       alert(
-        `” SENHA TEMPORíRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuí¡rio. Ele deverí¡ alterí¡-la no primeiro acesso.`
+        `” SENHA TEMPORáRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuá¡rio. Ele deverá¡ alterá¡-la no primeiro acesso.`
       );
     } catch (error) {
       toast({
-        title: "Erro ao resetar senha",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao resetar senha,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -3031,27 +3031,27 @@ const UsuariosManager = () => {
     try {
       await axios.put(`${API}/users/${userId}/approve`);
       toast({
-        title: "Usuí¡rio aprovado!",
-        description: "O usuí¡rio pode agora acessar o sistema.",
+        title: Usuá¡rio aprovado!,
+        description: O usuá¡rio pode agora acessar o sistema.,
       });
       fetchData();
     } catch (error) {
       toast({
-        title: "Erro ao aprovar usuí¡rio",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao aprovar usuá¡rio,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: "",
-      email: "",
-      tipo: "",
-      telefone: "",
-      unidade_id: "",
-      curso_id: "",
+      nome: ,
+      email: ,
+      tipo: ,
+      telefone: ,
+      unidade_id: ,
+      curso_id: ,
     });
   };
 
@@ -3061,27 +3061,27 @@ const UsuariosManager = () => {
       nome: usuario.nome,
       email: usuario.email,
       tipo: usuario.tipo,
-      telefone: usuario.telefone || "",
-      unidade_id: usuario.unidade_id || "",
-      curso_id: usuario.curso_id || "",
+      telefone: usuario.telefone || ,
+      unidade_id: usuario.unidade_id || ,
+      curso_id: usuario.curso_id || ,
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (userId) => {
-    if (window.confirm("Tem certeza que deseja desativar este usuí¡rio?")) {
+    if (window.confirm(Tem certeza que deseja desativar este usuá¡rio?)) {
       try {
         await axios.delete(`${API}/users/${userId}`);
         toast({
-          title: "Usuí¡rio desativado com sucesso!",
-          description: "O usuí¡rio foi desativado do sistema.",
+          title: Usuá¡rio desativado com sucesso!,
+          description: O usuá¡rio foi desativado do sistema.,
         });
         fetchData();
       } catch (error) {
         toast({
-          title: "Erro ao desativar usuí¡rio",
-          description: error.response?.data?.detail || "Tente novamente",
-          variant: "destructive",
+          title: Erro ao desativar usuá¡rio,
+          description: error.response?.data?.detail || Tente novamente,
+          variant: destructive,
         });
       }
     }
@@ -3093,42 +3093,42 @@ const UsuariosManager = () => {
     setIsDialogOpen(true);
   };
 
-  // Funí§í£o removida - usando getUserTypeLabel global com nomenclatura unissex
+  // Funá§á£o removida - usando getUserTypeLabel global com nomenclatura unissex
 
   if (loading) return <div>Carregando...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className=space-y-6>
       {/* Pending Users Section */}
       {pendingUsers.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="h-5 w-5 mr-2 text-orange-500" />
-              Usuí¡rios Pendentes de Aprovação
+            <CardTitle className=flex items-center>
+              <Shield className=h-5 w-5 mr-2 text-orange-500 />
+              Usuá¡rios Pendentes de Aprovação
             </CardTitle>
             <CardDescription>
-              Usuí¡rios que solicitaram primeiro acesso e aguardam Aprovação
+              Usuá¡rios que solicitaram primeiro acesso e aguardam Aprovação
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className=space-y-3>
               {pendingUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className=flex items-center justify-between p-4 border rounded-lg
                 >
                   <div>
-                    <p className="font-medium">{user.nome}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className=font-medium>{user.nome}</p>
+                    <p className=text-sm text-gray-500>
                       {user.email} - {getUserTypeLabel(user.tipo)}
                     </p>
                   </div>
                   <Button
                     onClick={() => handleApproveUser(user.id)}
-                    className="bg-green-600 hover:bg-green-700"
+                    className=bg-green-600 hover:bg-green-700
                   >
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className=h-4 w-4 mr-2 />
                     Aprovar
                   </Button>
                 </div>
@@ -3141,11 +3141,11 @@ const UsuariosManager = () => {
       {/* Users Management */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className=flex justify-between items-center>
             <div>
-              <CardTitle>Gerenciamento de Usuí¡rios</CardTitle>
+              <CardTitle>Gerenciamento de Usuá¡rios</CardTitle>
               <CardDescription>
-                Gerencie usuí¡rios do sistema (Administrador(a), Professor(a),
+                Gerencie usuá¡rios do sistema (Administrador(a), Professor(a),
                 Coord. Pedagógico, Assistente)
               </CardDescription>
             </div>
@@ -3153,32 +3153,32 @@ const UsuariosManager = () => {
               <DialogTrigger asChild>
                 <Button
                   onClick={handleOpenDialog}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className=bg-blue-600 hover:bg-blue-700
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Novo Usuí¡rio
+                  <Plus className=h-4 w-4 mr-2 />
+                  Novo Usuá¡rio
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-                <DialogHeader className="flex-shrink-0">
+              <DialogContent className=max-w-md max-h-[90vh] flex flex-col>
+                <DialogHeader className=flex-shrink-0>
                   <DialogTitle>
-                    {editingUser ? "Editar Usuí¡rio" : "Criar Novo Usuí¡rio"}
+                    {editingUser ? Editar Usuá¡rio : Criar Novo Usuá¡rio}
                   </DialogTitle>
                   <DialogDescription>
                     {editingUser
-                      ? "Atualize os dados do usuí¡rio"
-                      : "Preencha os dados para criar um novo usuí¡rio. Uma senha temporí¡ria será¡ gerada."}
+                      ? Atualize os dados do usuá¡rio
+                      : Preencha os dados para criar um novo usuá¡rio. Uma senha temporá¡ria será¡ gerada.}
                   </DialogDescription>
                 </DialogHeader>
                 <form
                   onSubmit={handleSubmit}
-                  className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-                  style={{ scrollbarWidth: "thin" }}
+                  className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+                  style={{ scrollbarWidth: thin }}
                 >
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome Completo</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=nome>Nome Completo</Label>
                     <Input
-                      id="nome"
+                      id=nome
                       value={formData.nome}
                       onChange={(e) =>
                         setFormData({ ...formData, nome: e.target.value })
@@ -3187,11 +3187,11 @@ const UsuariosManager = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=email>Email</Label>
                     <Input
-                      id="email"
-                      type="email"
+                      id=email
+                      type=email
                       value={formData.email}
                       onChange={(e) =>
                         setFormData({ ...formData, email: e.target.value })
@@ -3200,8 +3200,8 @@ const UsuariosManager = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Tipo de Usuí¡rio</Label>
+                  <div className=space-y-2>
+                    <Label>Tipo de Usuá¡rio</Label>
                     <Select
                       value={formData.tipo}
                       onValueChange={(value) =>
@@ -3209,40 +3209,40 @@ const UsuariosManager = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o tipo de usuí¡rio" />
+                        <SelectValue placeholder=Selecione o tipo de usuá¡rio />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">
-                          {getUserTypeLabel("admin")}
+                        <SelectItem value=admin>
+                          {getUserTypeLabel(admin)}
                         </SelectItem>
-                        <SelectItem value="instrutor">
-                          {getUserTypeLabel("instrutor")}
+                        <SelectItem value=instrutor>
+                          {getUserTypeLabel(instrutor)}
                         </SelectItem>
-                        <SelectItem value="pedagogo">
-                          {getUserTypeLabel("pedagogo")}
+                        <SelectItem value=pedagogo>
+                          {getUserTypeLabel(pedagogo)}
                         </SelectItem>
-                        <SelectItem value="monitor">
-                          {getUserTypeLabel("monitor")}
+                        <SelectItem value=monitor>
+                          {getUserTypeLabel(monitor)}
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="telefone">Telefone</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=telefone>Telefone</Label>
                     <Input
-                      id="telefone"
+                      id=telefone
                       value={formData.telefone}
                       onChange={(e) =>
                         setFormData({ ...formData, telefone: e.target.value })
                       }
-                      placeholder="(11) 99999-9999"
+                      placeholder=(11) 99999-9999
                     />
                   </div>
 
-                  {formData.tipo !== "admin" && (
+                  {formData.tipo !== admin && (
                     <>
-                      <div className="space-y-2">
+                      <div className=space-y-2>
                         <Label>Unidade</Label>
                         <Select
                           value={formData.unidade_id}
@@ -3251,7 +3251,7 @@ const UsuariosManager = () => {
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione a unidade" />
+                            <SelectValue placeholder=Selecione a unidade />
                           </SelectTrigger>
                           <SelectContent>
                             {unidades.map((unidade) => (
@@ -3263,10 +3263,10 @@ const UsuariosManager = () => {
                         </Select>
                       </div>
 
-                      {["instrutor", "pedagogo", "monitor"].includes(
+                      {[instrutor, pedagogo, monitor].includes(
                         formData.tipo
                       ) && (
-                        <div className="space-y-2">
+                        <div className=space-y-2>
                           <Label>Curso *</Label>
                           <Select
                             value={formData.curso_id}
@@ -3275,7 +3275,7 @@ const UsuariosManager = () => {
                             }
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione o curso" />
+                              <SelectValue placeholder=Selecione o curso />
                             </SelectTrigger>
                             <SelectContent>
                               {cursos.map((curso) => (
@@ -3291,11 +3291,11 @@ const UsuariosManager = () => {
                   )}
 
                   <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    type=submit
+                    className=w-full bg-blue-600 hover:bg-blue-700
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {editingUser ? "Atualizar Usuí¡rio" : "Criar Usuí¡rio"}
+                    <Save className=h-4 w-4 mr-2 />
+                    {editingUser ? Atualizar Usuá¡rio : Criar Usuá¡rio}
                   </Button>
                 </form>
               </DialogContent>
@@ -3303,7 +3303,7 @@ const UsuariosManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="table-container">
+          <div className=table-container>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -3318,48 +3318,48 @@ const UsuariosManager = () => {
               <TableBody>
                 {usuarios.map((usuario) => (
                   <TableRow key={usuario.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className=font-medium>
                       {usuario.nome}
                     </TableCell>
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">
+                      <Badge variant=outline>
                         {getUserTypeLabel(usuario.tipo)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{usuario.telefone || "-"}</TableCell>
+                    <TableCell>{usuario.telefone || -}</TableCell>
                     <TableCell>
-                      <Badge variant={usuario.ativo ? "default" : "secondary"}>
-                        {usuario.ativo ? "Ativo" : "Inativo"}
+                      <Badge variant={usuario.ativo ? default : secondary}>
+                        {usuario.ativo ? Ativo : Inativo}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
+                      <div className=flex space-x-2>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() => handleEdit(usuario)}
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className=h-4 w-4 />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() =>
                             handleResetPassword(usuario.id, usuario.nome)
                           }
-                          className="text-blue-600 hover:text-blue-700"
-                          title="Resetar Senha"
+                          className=text-blue-600 hover:text-blue-700
+                          title=Resetar Senha
                         >
-                          <Key className="h-4 w-4" />
+                          <Key className=h-4 w-4 />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() => handleDelete(usuario.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className=text-red-600 hover:text-red-700
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className=h-4 w-4 />
                         </Button>
                       </div>
                     </TableCell>
@@ -3376,7 +3376,7 @@ const UsuariosManager = () => {
 
 // Turmas Manager Component CORRIGIDO
 const TurmasManager = () => {
-  const { user } = useAuth(); // âœ… CORREí‡íƒO: Adicionar useAuth para acessar user
+  const { user } = useAuth(); // âœ… CORREá‡áƒO: Adicionar useAuth para acessar user
   const [turmas, setTurmas] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
@@ -3388,18 +3388,18 @@ const TurmasManager = () => {
   const [editingTurma, setEditingTurma] = useState(null);
   const [selectedTurmaForAlunos, setSelectedTurmaForAlunos] = useState(null);
   const [formData, setFormData] = useState({
-    nome: "",
-    unidade_id: "",
-    curso_id: "",
-    instrutor_id: "",
-    data_inicio: "",
-    data_fim: "",
-    horario_inicio: "",
-    horario_fim: "",
+    nome: ,
+    unidade_id: ,
+    curso_id: ,
+    instrutor_id: ,
+    data_inicio: ,
+    data_fim: ,
+    horario_inicio: ,
+    horario_fim: ,
     dias_semana: [],
     vagas_total: 30,
-    ciclo: "01/2025",
-    tipo_turma: "regular",
+    ciclo: 01/2025,
+    tipo_turma: regular,
   });
   const { toast } = useToast();
 
@@ -3409,7 +3409,7 @@ const TurmasManager = () => {
 
   const fetchData = async () => {
     try {
-      console.log("Fetching turmas data...");
+      console.log(Fetching turmas data...);
       const [
         turmasRes,
         unidadesRes,
@@ -3426,19 +3426,19 @@ const TurmasManager = () => {
         axios.get(`${API}/students`),
       ]);
 
-      // âœ… COMBINAR INSTRUTORES E PEDAGOGOS para seleí§í£o de responsí¡vel
+      // âœ… COMBINAR INSTRUTORES E PEDAGOGOS para seleá§á£o de responsá¡vel
       const todosUsuarios = [
-        ...instrutoresRes.data.map((u) => ({ ...u, tipo_label: "Instrutor" })),
-        ...pedagogosRes.data.map((u) => ({ ...u, tipo_label: "Pedagogo" })),
+        ...instrutoresRes.data.map((u) => ({ ...u, tipo_label: Instrutor })),
+        ...pedagogosRes.data.map((u) => ({ ...u, tipo_label: Pedagogo })),
       ];
 
-      console.log("Turmas:", turmasRes.data);
-      console.log("Unidades:", unidadesRes.data);
-      console.log("Cursos:", cursosRes.data);
-      console.log("Instrutores:", instrutoresRes.data);
-      console.log("Pedagogos:", pedagogosRes.data);
-      console.log("Todos Usuí¡rios:", todosUsuarios);
-      console.log("Alunos:", alunosRes.data);
+      console.log(Turmas:, turmasRes.data);
+      console.log(Unidades:, unidadesRes.data);
+      console.log(Cursos:, cursosRes.data);
+      console.log(Instrutores:, instrutoresRes.data);
+      console.log(Pedagogos:, pedagogosRes.data);
+      console.log(Todos Usuá¡rios:, todosUsuarios);
+      console.log(Alunos:, alunosRes.data);
 
       setTurmas(turmasRes.data);
       setUnidades(unidadesRes.data);
@@ -3446,11 +3446,11 @@ const TurmasManager = () => {
       setUsuarios(todosUsuarios); // âœ… Usar lista combinada
       setAlunos(alunosRes.data);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error(Error fetching data:, error);
       toast({
-        title: "Erro ao carregar dados",
-        description: "nío foi possí­vel carregar os dados necessí¡rios",
-        variant: "destructive",
+        title: Erro ao carregar dados,
+        description: náo foi possá­vel carregar os dados necessá¡rios,
+        variant: destructive,
       });
     } finally {
       setLoading(false);
@@ -3463,14 +3463,14 @@ const TurmasManager = () => {
       if (editingTurma) {
         await axios.put(`${API}/classes/${editingTurma.id}`, formData);
         toast({
-          title: "Turma atualizada com sucesso!",
-          description: "As informAções da turma foram atualizadas.",
+          title: Turma atualizada com sucesso!,
+          description: As informAções da turma foram atualizadas.,
         });
       } else {
         await axios.post(`${API}/classes`, formData);
         toast({
-          title: "Turma criada com sucesso!",
-          description: "A nova turma foi adicionada ao sistema.",
+          title: Turma criada com sucesso!,
+          description: A nova turma foi adicionada ao sistema.,
         });
       }
 
@@ -3480,43 +3480,43 @@ const TurmasManager = () => {
       fetchData();
     } catch (error) {
       toast({
-        title: editingTurma ? "Erro ao atualizar turma" : "Erro ao criar turma",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: editingTurma ? Erro ao atualizar turma : Erro ao criar turma,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const resetForm = () => {
-    // âœ… AUTO-PREENCHIMENTO: Para não-Admin, prí©-preencher unidade e instrutor
+    // âœ… AUTO-PREENCHIMENTO: Para não-Admin, prá©-preencher unidade e instrutor
     const defaultUnidadeId =
-      user?.tipo !== "admin" ? user?.unidade_id || "" : "";
-    const defaultInstrutorId = user?.tipo !== "admin" ? user?.id || "" : "";
-    const defaultCursoId = user?.tipo !== "admin" ? user?.curso_id || "" : "";
+      user?.tipo !== admin ? user?.unidade_id ||  : ;
+    const defaultInstrutorId = user?.tipo !== admin ? user?.id ||  : ;
+    const defaultCursoId = user?.tipo !== admin ? user?.curso_id ||  : ;
 
     setFormData({
-      nome: "",
+      nome: ,
       unidade_id: defaultUnidadeId,
       curso_id: defaultCursoId,
       instrutor_id: defaultInstrutorId,
-      data_inicio: "",
-      data_fim: "",
-      horario_inicio: "",
-      horario_fim: "",
+      data_inicio: ,
+      data_fim: ,
+      horario_inicio: ,
+      horario_fim: ,
       dias_semana: [],
       vagas_total: 30,
-      ciclo: "01/2025",
-      tipo_turma: user?.tipo === "pedagogo" ? "extensao" : "regular",
+      ciclo: 01/2025,
+      tipo_turma: user?.tipo === pedagogo ? extensao : regular,
     });
   };
 
   const handleViewTurma = (turma) => {
     const unidadeNome =
-      unidades.find((u) => u.id === turma.unidade_id)?.nome || "N/A";
+      unidades.find((u) => u.id === turma.unidade_id)?.nome || N/A;
     const cursoNome =
-      cursos.find((c) => c.id === turma.curso_id)?.nome || "N/A";
+      cursos.find((c) => c.id === turma.curso_id)?.nome || N/A;
     const instrutorNome =
-      usuarios.find((u) => u.id === turma.instrutor_id)?.nome || "N/A";
+      usuarios.find((u) => u.id === turma.instrutor_id)?.nome || N/A;
 
     alert(
       `“‹ DETALHES DA TURMA\n\n` +
@@ -3524,11 +3524,11 @@ const TurmasManager = () => {
         `Unidade: ${unidadeNome}\n` +
         `Curso: ${cursoNome}\n` +
         `Instrutor: ${instrutorNome}\n` +
-        `Perí­odo: ${turma.data_inicio} a ${turma.data_fim}\n` +
-        `Horí¡rio: ${turma.horario_inicio} í s ${turma.horario_fim}\n` +
+        `Perá­odo: ${turma.data_inicio} a ${turma.data_fim}\n` +
+        `Horá¡rio: ${turma.horario_inicio} á s ${turma.horario_fim}\n` +
         `Vagas: ${turma.vagas_ocupadas || 0}/${turma.vagas_total}\n` +
         `Ciclo: ${turma.ciclo}\n` +
-        `Status: ${turma.ativo ? "Ativa" : "Inativa"}`
+        `Status: ${turma.ativo ? Ativa : Inativa}`
     );
   };
 
@@ -3546,7 +3546,7 @@ const TurmasManager = () => {
       dias_semana: turma.dias_semana || [],
       vagas_total: turma.vagas_total,
       ciclo: turma.ciclo,
-      tipo_turma: turma.tipo_turma || "regular",
+      tipo_turma: turma.tipo_turma || regular,
     });
     setIsDialogOpen(true);
   };
@@ -3563,24 +3563,24 @@ const TurmasManager = () => {
   };
 
   const handleDeleteTurma = async (turma) => {
-    // ”’ VERIFICAí‡íƒO: Apenas admin pode deletar
-    if (user?.tipo !== "admin") {
+    // ”’ VERIFICAá‡áƒO: Apenas admin pode deletar
+    if (user?.tipo !== admin) {
       toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem deletar turmas",
-        variant: "destructive",
+        title: Acesso negado,
+        description: Apenas administradores podem deletar turmas,
+        variant: destructive,
       });
       return;
     }
 
-    // âš ¸ CONFIRMAí‡íƒO: Pedir confirmaí§í£o antes de deletar
+    // âš ¸ CONFIRMAá‡áƒO: Pedir confirmaá§á£o antes de deletar
     const confirmar = window.confirm(
-      `âš ¸ ATENí‡íƒO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
-        `Esta aí§í£o í© IRREVERSíVEL e:\n` +
-        `â€¢ Removerí¡ permanentemente a turma do sistema\n` +
-        `â€¢ nío afetarí¡ os alunos (eles continuarí£o cadastrados)\n` +
-        `â€¢ nío poderí¡ ser desfeita\n\n` +
-        `Digite "SIM" para confirmar:`
+      `âš ¸ ATENá‡áƒO: Tem certeza que deseja DELETAR a turma ${turma.nome}?\n\n` +
+        `Esta aá§á£o á© IRREVERSáVEL e:\n` +
+        `â€¢ Removerá¡ permanentemente a turma do sistema\n` +
+        `â€¢ náo afetará¡ os alunos (eles continuará£o cadastrados)\n` +
+        `â€¢ náo poderá¡ ser desfeita\n\n` +
+        `Digite SIM para confirmar:`
     );
 
     if (!confirmar) {
@@ -3591,37 +3591,37 @@ const TurmasManager = () => {
       const response = await axios.delete(`${API}/classes/${turma.id}`);
 
       toast({
-        title: "Turma deletada com sucesso!",
-        description: `A turma "${turma.nome}" foi removida permanentemente`,
-        className: "bg-green-50 border-green-200",
+        title: Turma deletada com sucesso!,
+        description: `A turma ${turma.nome} foi removida permanentemente`,
+        className: bg-green-50 border-green-200,
       });
 
       // Atualizar lista de turmas
       fetchData();
 
-      console.log("—‘¸ Turma deletada:", response.data);
+      console.log(—‘¸ Turma deletada:, response.data);
     } catch (error) {
-      console.error("âŒ Erro ao deletar turma:", error);
+      console.error(âŒ Erro ao deletar turma:, error);
 
-      // Tratar erros especí­ficos do backend
+      // Tratar erros especá­ficos do backend
       if (error.response?.status === 400) {
         toast({
-          title: "nío í© possí­vel deletar",
+          title: náo á© possá­vel deletar,
           description:
-            error.response.data.detail || "Turma possui dependíªncias",
-          variant: "destructive",
+            error.response.data.detail || Turma possui dependáªncias,
+          variant: destructive,
         });
       } else if (error.response?.status === 403) {
         toast({
-          title: "Acesso negado",
-          description: "Apenas administradores podem deletar turmas",
-          variant: "destructive",
+          title: Acesso negado,
+          description: Apenas administradores podem deletar turmas,
+          variant: destructive,
         });
       } else {
         toast({
-          title: "Erro ao deletar turma",
-          description: "Ocorreu um erro interno. Tente novamente.",
-          variant: "destructive",
+          title: Erro ao deletar turma,
+          description: Ocorreu um erro interno. Tente novamente.,
+          variant: destructive,
         });
       }
     }
@@ -3633,15 +3633,15 @@ const TurmasManager = () => {
         `${API}/classes/${selectedTurmaForAlunos.id}/students/${alunoId}`
       );
       toast({
-        title: "Aluno adicionado com sucesso!",
-        description: "O aluno foi adicionado í  turma.",
+        title: Aluno adicionado com sucesso!,
+        description: O aluno foi adicionado á  turma.,
       });
       fetchData(); // Atualizar dados
     } catch (error) {
       toast({
-        title: "Erro ao adicionar aluno",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao adicionar aluno,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -3652,15 +3652,15 @@ const TurmasManager = () => {
         `${API}/classes/${selectedTurmaForAlunos.id}/students/${alunoId}`
       );
       toast({
-        title: "Aluno removido com sucesso!",
-        description: "O aluno foi removido da turma.",
+        title: Aluno removido com sucesso!,
+        description: O aluno foi removido da turma.,
       });
       fetchData(); // Atualizar dados
     } catch (error) {
       toast({
-        title: "Erro ao remover aluno",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao remover aluno,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -3670,7 +3670,7 @@ const TurmasManager = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className=flex justify-between items-center>
           <div>
             <CardTitle>Gerenciamento de Turmas</CardTitle>
             <CardDescription>
@@ -3681,33 +3681,33 @@ const TurmasManager = () => {
             <DialogTrigger asChild>
               <Button
                 onClick={handleOpenDialog}
-                className="bg-blue-600 hover:bg-blue-700"
+                className=bg-blue-600 hover:bg-blue-700
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className=h-4 w-4 mr-2 />
                 Nova Turma
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-              <DialogHeader className="flex-shrink-0">
+            <DialogContent className=max-w-2xl max-h-[90vh] flex flex-col>
+              <DialogHeader className=flex-shrink-0>
                 <DialogTitle>
-                  {editingTurma ? "Editar Turma" : "Criar Nova Turma"}
+                  {editingTurma ? Editar Turma : Criar Nova Turma}
                 </DialogTitle>
                 <DialogDescription>
                   {editingTurma
-                    ? "Atualize os dados da turma"
-                    : "Preencha os dados para criar uma nova turma"}
+                    ? Atualize os dados da turma
+                    : Preencha os dados para criar uma nova turma}
                 </DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={handleSubmit}
-                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-                style={{ scrollbarWidth: "thin" }}
+                className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+                style={{ scrollbarWidth: thin }}
               >
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nome">Nome da Turma</Label>
+                <div className=grid grid-cols-2 gap-4>
+                  <div className=space-y-2>
+                    <Label htmlFor=nome>Nome da Turma</Label>
                     <Input
-                      id="nome"
+                      id=nome
                       value={formData.nome}
                       onChange={(e) =>
                         setFormData({ ...formData, nome: e.target.value })
@@ -3715,29 +3715,29 @@ const TurmasManager = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="ciclo">Ciclo</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=ciclo>Ciclo</Label>
                     <Input
-                      id="ciclo"
+                      id=ciclo
                       value={formData.ciclo}
                       onChange={(e) =>
                         setFormData({ ...formData, ciclo: e.target.value })
                       }
-                      placeholder="01/2025"
+                      placeholder=01/2025
                       required
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className=grid grid-cols-2 gap-4>
+                  <div className=space-y-2>
                     <Label>
-                      Unidade{" "}
-                      {user?.tipo === "admin"
-                        ? `(${unidades.length} disponí­veis)`
-                        : "(Sua unidade)"}
+                      Unidade{ }
+                      {user?.tipo === admin
+                        ? `(${unidades.length} disponá­veis)`
+                        : (Sua unidade)}
                     </Label>
-                    {user?.tipo === "admin" ? (
+                    {user?.tipo === admin ? (
                       <Select
                         value={formData.unidade_id}
                         onValueChange={(value) =>
@@ -3745,7 +3745,7 @@ const TurmasManager = () => {
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a unidade" />
+                          <SelectValue placeholder=Selecione a unidade />
                         </SelectTrigger>
                         <SelectContent>
                           {unidades.map((unidade) => (
@@ -3761,22 +3761,22 @@ const TurmasManager = () => {
                           unidades.find((u) => u.id === formData.unidade_id)
                             ?.nome ||
                           user?.unidade_nome ||
-                          "Sua unidade"
+                          Sua unidade
                         }
                         readOnly
-                        className="bg-gray-50 cursor-not-allowed"
+                        className=bg-gray-50 cursor-not-allowed
                       />
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className=space-y-2>
                     <Label>
-                      Curso{" "}
-                      {user?.tipo === "admin"
-                        ? `(${cursos.length} disponí­veis)`
-                        : "(Seu curso)"}
+                      Curso{ }
+                      {user?.tipo === admin
+                        ? `(${cursos.length} disponá­veis)`
+                        : (Seu curso)}
                     </Label>
-                    {user?.tipo === "admin" ? (
+                    {user?.tipo === admin ? (
                       <Select
                         value={formData.curso_id}
                         onValueChange={(value) =>
@@ -3784,7 +3784,7 @@ const TurmasManager = () => {
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o curso" />
+                          <SelectValue placeholder=Selecione o curso />
                         </SelectTrigger>
                         <SelectContent>
                           {cursos.map((curso) => (
@@ -3800,23 +3800,23 @@ const TurmasManager = () => {
                           cursos.find((c) => c.id === formData.curso_id)
                             ?.nome ||
                           user?.curso_nome ||
-                          "Seu curso"
+                          Seu curso
                         }
                         readOnly
-                        className="bg-gray-50 cursor-not-allowed"
+                        className=bg-gray-50 cursor-not-allowed
                       />
                     )}
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className=space-y-2>
                   <Label>
-                    Responsí¡vel{" "}
-                    {user?.tipo === "admin"
-                      ? `(${usuarios.length} instrutores/pedagogos disponí­veis)`
-                      : "(Vocíª)"}
+                    Responsá¡vel{ }
+                    {user?.tipo === admin
+                      ? `(${usuarios.length} instrutores/pedagogos disponá­veis)`
+                      : (Vocáª)}
                   </Label>
-                  {user?.tipo === "admin" ? (
+                  {user?.tipo === admin ? (
                     <Select
                       value={formData.instrutor_id}
                       onValueChange={(value) =>
@@ -3824,7 +3824,7 @@ const TurmasManager = () => {
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o responsí¡vel" />
+                        <SelectValue placeholder=Selecione o responsá¡vel />
                       </SelectTrigger>
                       <SelectContent>
                         {usuarios.map((usuario) => (
@@ -3836,19 +3836,19 @@ const TurmasManager = () => {
                     </Select>
                   ) : (
                     <Input
-                      value={user?.nome || "Vocíª"}
+                      value={user?.nome || Vocáª}
                       readOnly
-                      className="bg-gray-50 cursor-not-allowed"
+                      className=bg-gray-50 cursor-not-allowed
                     />
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="data_inicio">Data Iní­cio</Label>
+                <div className=grid grid-cols-2 gap-4>
+                  <div className=space-y-2>
+                    <Label htmlFor=data_inicio>Data Iná­cio</Label>
                     <Input
-                      id="data_inicio"
-                      type="date"
+                      id=data_inicio
+                      type=date
                       value={formData.data_inicio}
                       onChange={(e) =>
                         setFormData({
@@ -3859,11 +3859,11 @@ const TurmasManager = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="data_fim">Data Fim</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=data_fim>Data Fim</Label>
                     <Input
-                      id="data_fim"
-                      type="date"
+                      id=data_fim
+                      type=date
                       value={formData.data_fim}
                       onChange={(e) =>
                         setFormData({ ...formData, data_fim: e.target.value })
@@ -3873,12 +3873,12 @@ const TurmasManager = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="horario_inicio">Horí¡rio Iní­cio</Label>
+                <div className=grid grid-cols-2 gap-4>
+                  <div className=space-y-2>
+                    <Label htmlFor=horario_inicio>Horá¡rio Iná­cio</Label>
                     <Input
-                      id="horario_inicio"
-                      type="time"
+                      id=horario_inicio
+                      type=time
                       value={formData.horario_inicio}
                       onChange={(e) =>
                         setFormData({
@@ -3889,11 +3889,11 @@ const TurmasManager = () => {
                       required
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="horario_fim">Horí¡rio Fim</Label>
+                  <div className=space-y-2>
+                    <Label htmlFor=horario_fim>Horá¡rio Fim</Label>
                     <Input
-                      id="horario_fim"
-                      type="time"
+                      id=horario_fim
+                      type=time
                       value={formData.horario_fim}
                       onChange={(e) =>
                         setFormData({
@@ -3907,7 +3907,7 @@ const TurmasManager = () => {
                 </div>
 
                 {/* Campo Tipo de Turma */}
-                <div className="space-y-2">
+                <div className=space-y-2>
                   <Label>Tipo de Turma</Label>
                   <Select
                     value={formData.tipo_turma}
@@ -3916,24 +3916,24 @@ const TurmasManager = () => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo" />
+                      <SelectValue placeholder=Selecione o tipo />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="regular">
-                        Regular (Curso Tí©cnico)
+                      <SelectItem value=regular>
+                        Regular (Curso Tá©cnico)
                       </SelectItem>
-                      <SelectItem value="extensao">
+                      <SelectItem value=extensao>
                         Extensão (Curso Livre)
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="vagas_total">Vagas Total</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=vagas_total>Vagas Total</Label>
                   <Input
-                    id="vagas_total"
-                    type="number"
+                    id=vagas_total
+                    type=number
                     value={formData.vagas_total}
                     onChange={(e) =>
                       setFormData({
@@ -3941,17 +3941,17 @@ const TurmasManager = () => {
                         vagas_total: parseInt(e.target.value),
                       })
                     }
-                    min="1"
+                    min=1
                     required
                   />
                 </div>
 
                 <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  type=submit
+                  className=w-full bg-blue-600 hover:bg-blue-700
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingTurma ? "Atualizar Turma" : "Criar Turma"}
+                  <Save className=h-4 w-4 mr-2 />
+                  {editingTurma ? Atualizar Turma : Criar Turma}
                 </Button>
               </form>
             </DialogContent>
@@ -3959,15 +3959,15 @@ const TurmasManager = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="table-container">
+        <div className=table-container>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Ciclo</TableHead>
-                <TableHead>Perí­odo</TableHead>
-                <TableHead>Horí¡rio</TableHead>
+                <TableHead>Perá­odo</TableHead>
+                <TableHead>Horá¡rio</TableHead>
                 <TableHead>Vagas</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
@@ -3976,21 +3976,21 @@ const TurmasManager = () => {
             <TableBody>
               {turmas.map((turma) => (
                 <TableRow key={turma.id}>
-                  <TableCell className="font-medium">{turma.nome}</TableCell>
+                  <TableCell className=font-medium>{turma.nome}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        turma.tipo_turma === "extensao"
-                          ? "destructive"
-                          : "default"
+                        turma.tipo_turma === extensao
+                          ? destructive
+                          : default
                       }
                     >
-                      {turma.tipo_turma === "extensao" ? "Extensão" : "Regular"}
+                      {turma.tipo_turma === extensao ? Extensão : Regular}
                     </Badge>
                   </TableCell>
                   <TableCell>{turma.ciclo}</TableCell>
                   <TableCell>
-                    {new Date(turma.data_inicio).toLocaleDateString()} -{" "}
+                    {new Date(turma.data_inicio).toLocaleDateString()} -{ }
                     {new Date(turma.data_fim).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
@@ -4000,47 +4000,47 @@ const TurmasManager = () => {
                     {turma.vagas_ocupadas}/{turma.vagas_total}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={turma.ativo ? "default" : "secondary"}>
-                      {turma.ativo ? "Ativa" : "Inativa"}
+                    <Badge variant={turma.ativo ? default : secondary}>
+                      {turma.ativo ? Ativa : Inativa}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
+                    <div className=flex space-x-2>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleViewTurma(turma)}
-                        title="Visualizar detalhes"
+                        title=Visualizar detalhes
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className=h-4 w-4 />
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleManageAlunos(turma)}
-                        title="Gerenciar alunos"
-                        className="text-green-600 hover:text-green-700"
+                        title=Gerenciar alunos
+                        className=text-green-600 hover:text-green-700
                       >
-                        <UserPlus className="h-4 w-4" />
+                        <UserPlus className=h-4 w-4 />
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleEdit(turma)}
-                        title="Editar turma"
+                        title=Editar turma
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className=h-4 w-4 />
                       </Button>
-                      {/* —‘¸ BOTíƒO DELETAR TURMA - Apenas para Admin */}
-                      {user?.tipo === "admin" && (
+                      {/* —‘¸ BOTáƒO DELETAR TURMA - Apenas para Admin */}
+                      {user?.tipo === admin && (
                         <Button
-                          variant="destructive"
-                          size="sm"
+                          variant=destructive
+                          size=sm
                           onClick={() => handleDeleteTurma(turma)}
-                          title="Deletar turma"
-                          className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50"
+                          title=Deletar turma
+                          className=text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className=h-4 w-4 />
                         </Button>
                       )}
                     </div>
@@ -4054,7 +4054,7 @@ const TurmasManager = () => {
 
       {/* Dialog para gerenciar alunos da turma */}
       <Dialog open={isAlunoDialogOpen} onOpenChange={setIsAlunoDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className=max-w-4xl>
           <DialogHeader>
             <DialogTitle>
               Gerenciar Alunos - {selectedTurmaForAlunos?.nome}
@@ -4064,34 +4064,36 @@ const TurmasManager = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className=space-y-4>
             <div>
-              <h3 className="text-lg font-semibold mb-2">Alunos Disponí­veis</h3>
-              <div className="max-h-40 overflow-y-auto border rounded p-2">
+              <h3 className=text-lg font-semibold mb-2>
+                Alunos Disponá­veis
+              </h3>
+              <div className=max-h-40 overflow-y-auto border rounded p-2>
                 {alunos
                   .filter(
                     (aluno) =>
                       !selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id) &&
-                      aluno.status === "ativo"
+                      aluno.status === ativo
                   )
                   .map((aluno) => (
                     <div
                       key={aluno.id}
-                      className="flex justify-between items-center p-2 hover:bg-gray-50 rounded"
+                      className=flex justify-between items-center p-2 hover:bg-gray-50 rounded
                     >
                       <div>
-                        <span className="font-medium">{aluno.nome}</span>
-                        <span className="text-sm text-gray-500 ml-2">
+                        <span className=font-medium>{aluno.nome}</span>
+                        <span className=text-sm text-gray-500 ml-2>
                           {aluno.cpf}
                         </span>
                       </div>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleAddAlunoToTurma(aluno.id)}
-                        className="text-green-600 hover:text-green-700"
+                        className=text-green-600 hover:text-green-700
                       >
-                        <Plus className="h-4 w-4 mr-1" />
+                        <Plus className=h-4 w-4 mr-1 />
                         Adicionar
                       </Button>
                     </div>
@@ -4100,18 +4102,18 @@ const TurmasManager = () => {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">
+              <h3 className=text-lg font-semibold mb-2>
                 Alunos na Turma (
                 {
                   alunos.filter(
                     (aluno) =>
                       selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id) &&
-                      aluno.status === "ativo"
+                      aluno.status === ativo
                   ).length
                 }
                 /{selectedTurmaForAlunos?.vagas_total || 0})
               </h3>
-              <div className="max-h-40 overflow-y-auto border rounded p-2">
+              <div className=max-h-40 overflow-y-auto border rounded p-2>
                 {alunos
                   .filter((aluno) =>
                     selectedTurmaForAlunos?.alunos_ids?.includes(aluno.id)
@@ -4120,38 +4122,38 @@ const TurmasManager = () => {
                     <div
                       key={aluno.id}
                       className={`flex justify-between items-center p-2 hover:bg-gray-50 rounded ${
-                        aluno.status === "desistente"
-                          ? "opacity-60 bg-red-50"
-                          : ""
+                        aluno.status === desistente
+                          ? opacity-60 bg-red-50
+                          : 
                       }`}
                     >
                       <div>
                         <span
                           className={`font-medium ${
-                            aluno.status === "desistente"
-                              ? "line-through text-red-600"
-                              : ""
+                            aluno.status === desistente
+                              ? line-through text-red-600
+                              : 
                           }`}
                         >
                           {aluno.nome}
                         </span>
-                        <span className="text-sm text-gray-500 ml-2">
+                        <span className=text-sm text-gray-500 ml-2>
                           {aluno.cpf}
                         </span>
-                        {aluno.status === "desistente" && (
-                          <span className="text-xs text-red-600 ml-2 font-semibold">
+                        {aluno.status === desistente && (
+                          <span className=text-xs text-red-600 ml-2 font-semibold>
                             (DESISTENTE)
                           </span>
                         )}
                       </div>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleRemoveAlunoFromTurma(aluno.id)}
-                        className="text-red-600 hover:text-red-700"
-                        disabled={aluno.status === "desistente"}
+                        className=text-red-600 hover:text-red-700
+                        disabled={aluno.status === desistente}
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
+                        <Trash2 className=h-4 w-4 mr-1 />
                         Remover
                       </Button>
                     </div>
@@ -4165,17 +4167,17 @@ const TurmasManager = () => {
   );
 };
 
-// “Š RELATí“RIOS DINí‚MICOS - Atualizados Automaticamente
+// “Š RELATá“RIOS DINá‚MICOS - Atualizados Automaticamente
 const RelatoriosManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ¿½ DADOS ESSENCIAIS PARA CíLCULOS FASE 3
+  // ¿½ DADOS ESSENCIAIS PARA CáLCULOS FASE 3
   const [alunos, setAlunos] = useState(() => {
     try {
-      const cached = localStorage.getItem("ios_alunos_cache");
+      const cached = localStorage.getItem(ios_alunos_cache);
       return cached ? JSON.parse(cached) : [];
     } catch {
       return [];
@@ -4184,30 +4186,30 @@ const RelatoriosManager = () => {
 
   const [chamadas, setChamadas] = useState(() => {
     try {
-      const cached = localStorage.getItem("ios_chamadas_cache");
+      const cached = localStorage.getItem(ios_chamadas_cache);
       return cached ? JSON.parse(cached) : [];
     } catch {
       return [];
     }
   });
 
-  // “Š STATUS DE CONEXíƒO COM MONGODB
+  // “Š STATUS DE CONEXáƒO COM MONGODB
   const [dadosCarregando, setDadosCarregando] = useState(true);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(() => {
-    return localStorage.getItem("ios_ultima_atualizacao") || null;
+    return localStorage.getItem(ios_ultima_atualizacao) || null;
   });
 
   // ¿½”§ HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
   const [showHealthCheck, setShowHealthCheck] = useState(false);
 
-  // ” FILTROS AVANí‡ADOS PARA ADMIN
+  // ” FILTROS AVANá‡ADOS PARA ADMIN
   const [filtros, setFiltros] = useState({
-    data_inicio: "",
-    data_fim: "",
-    unidade_id: "all",
-    curso_id: "all",
-    turma_id: "all",
+    data_inicio: ,
+    data_fim: ,
+    unidade_id: all,
+    curso_id: all,
+    turma_id: all,
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -4225,7 +4227,7 @@ const RelatoriosManager = () => {
     fetchDynamicStats();
 
     // Carregar dados para os filtros se for admin
-    if (user?.tipo === "admin") {
+    if (user?.tipo === admin) {
       fetchFilterData();
     }
 
@@ -4235,22 +4237,22 @@ const RelatoriosManager = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // ¿½ FUNí‡íƒO PING PARA ACORDAR RENDER (DASHBOARD)
+  // ¿½ FUNá‡áƒO PING PARA ACORDAR RENDER (DASHBOARD)
   const wakeUpBackendDashboard = async () => {
-    console.log("”” Acordando backend Render para dashboard...");
+    console.log(”” Acordando backend Render para dashboard...);
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("âœ… Backend acordado para dashboard:", pingResponse.data);
+      console.log(âœ… Backend acordado para dashboard:, pingResponse.data);
       return true;
     } catch (error) {
-      console.error("âŒ Erro ao acordar backend:", error);
+      console.error(âŒ Erro ao acordar backend:, error);
       return false;
     }
   };
 
-  // ¿½“Š CONEXíƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
+  // ¿½“Š CONEXáƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
-    console.log("” Iniciando carregamento direto MongoDB via Render Backend");
+    console.log(” Iniciando carregamento direto MongoDB via Render Backend);
     setDadosCarregando(true);
 
     try {
@@ -4258,25 +4260,25 @@ const RelatoriosManager = () => {
       const backendAwake = await wakeUpBackendDashboard();
       if (!backendAwake) {
         console.warn(
-          "âš ¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
+          âš ¸ Backend pode estar dormindo, tentando requisiá§áµes diretas...
         );
       }
 
-      // Ž¯ REQUISIí‡í•ES DIRETAS PARA ENDPOINTS CORRETOS
+      // Ž¯ REQUISIá‡á•ES DIRETAS PARA ENDPOINTS CORRETOS
       const [alunosResponse, chamadasResponse] = await Promise.all([
         axios.get(`${API}/students`, {
           timeout: 60000,
           headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Accept: application/json,
+            Authorization: `Bearer ${localStorage.getItem(token)}`,
           },
         }),
-        // âœ… ENDPOINT CORRETO: reports/attendance (nío apenas /attendance)
+        // âœ… ENDPOINT CORRETO: reports/attendance (náo apenas /attendance)
         axios.get(`${API}/reports/attendance`, {
           timeout: 60000,
           headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Accept: application/json,
+            Authorization: `Bearer ${localStorage.getItem(token)}`,
           },
         }),
       ]);
@@ -4297,24 +4299,24 @@ const RelatoriosManager = () => {
       );
 
       toast({
-        title: "âœ… Dados MongoDB Carregados",
+        title: âœ… Dados MongoDB Carregados,
         description: `${alunosData.length} alunos e ${chamadasData.length} chamadas carregados`,
-        variant: "default",
+        variant: default,
       });
     } catch (error) {
-      console.error("âŒ Erro ao carregar dados MongoDB:", error);
+      console.error(âŒ Erro ao carregar dados MongoDB:, error);
 
-      // Ž¯ DIAGNí“STICO DETALHADO
+      // Ž¯ DIAGNá“STICO DETALHADO
       if (error.response?.status === 405) {
         console.error(
-          "¨ Erro 405: Mí©todo HTTP incorreto ou endpoint nío existe"
+          ¨ Erro 405: Má©todo HTTP incorreto ou endpoint náo existe
         );
       } else if (error.response?.status === 401) {
         console.error(
-          "¨ Erro 401: Token inví¡lido ou expirado - faí§a login novamente"
+          ¨ Erro 401: Token invá¡lido ou expirado - faá§a login novamente
         );
-      } else if (error.code === "ECONNABORTED") {
-        console.error("¨ Timeout: Backend Render demorou mais que 60s");
+      } else if (error.code === ECONNABORTED) {
+        console.error(¨ Timeout: Backend Render demorou mais que 60s);
       }
 
       // âš ¸ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
@@ -4322,10 +4324,10 @@ const RelatoriosManager = () => {
       setChamadas([]);
 
       toast({
-        title: "âŒ Erro ao Carregar Dados",
+        title: âŒ Erro ao Carregar Dados,
         description:
-          "Falha na conexí£o com MongoDB. Verifique se o backend estí¡ online.",
-        variant: "destructive",
+          Falha na conexá£o com MongoDB. Verifique se o backend está¡ online.,
+        variant: destructive,
       });
     } finally {
       setDadosCarregando(false);
@@ -4345,7 +4347,7 @@ const RelatoriosManager = () => {
       setCursos(cursosRes.data);
       setTurmas(turmasRes.data);
     } catch (error) {
-      console.error("Erro ao carregar dados dos filtros:", error);
+      console.error(Erro ao carregar dados dos filtros:, error);
     }
   };
 
@@ -4356,44 +4358,44 @@ const RelatoriosManager = () => {
       const filtersToUse = customFilters || filtros;
 
       if (
-        user?.tipo === "admin" &&
+        user?.tipo === admin &&
         (filtersToUse.data_inicio ||
           filtersToUse.data_fim ||
-          (filtersToUse.unidade_id && filtersToUse.unidade_id !== "all") ||
-          (filtersToUse.curso_id && filtersToUse.curso_id !== "all") ||
-          (filtersToUse.turma_id && filtersToUse.turma_id !== "all"))
+          (filtersToUse.unidade_id && filtersToUse.unidade_id !== all) ||
+          (filtersToUse.curso_id && filtersToUse.curso_id !== all) ||
+          (filtersToUse.turma_id && filtersToUse.turma_id !== all))
       ) {
         const params = new URLSearchParams();
         if (filtersToUse.data_inicio)
-          params.append("data_inicio", filtersToUse.data_inicio);
+          params.append(data_inicio, filtersToUse.data_inicio);
         if (filtersToUse.data_fim)
-          params.append("data_fim", filtersToUse.data_fim);
-        if (filtersToUse.unidade_id && filtersToUse.unidade_id !== "all")
-          params.append("unidade_id", filtersToUse.unidade_id);
-        if (filtersToUse.curso_id && filtersToUse.curso_id !== "all")
-          params.append("curso_id", filtersToUse.curso_id);
-        if (filtersToUse.turma_id && filtersToUse.turma_id !== "all")
-          params.append("turma_id", filtersToUse.turma_id);
+          params.append(data_fim, filtersToUse.data_fim);
+        if (filtersToUse.unidade_id && filtersToUse.unidade_id !== all)
+          params.append(unidade_id, filtersToUse.unidade_id);
+        if (filtersToUse.curso_id && filtersToUse.curso_id !== all)
+          params.append(curso_id, filtersToUse.curso_id);
+        if (filtersToUse.turma_id && filtersToUse.turma_id !== all)
+          params.append(turma_id, filtersToUse.turma_id);
         url += `?${params.toString()}`;
       }
 
       const response = await axios.get(url);
 
-      // “Š FASE 3: Aplicar regras de negí³cio precisas
+      // “Š FASE 3: Aplicar regras de negá³cio precisas
       if (alunos && alunos.length > 0) {
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
         );
 
-        // Ž¯ USAR APENAS DADOS DO BACKEND para consistíªncia
+        // Ž¯ USAR APENAS DADOS DO BACKEND para consistáªncia
         const statsComPrecisao = {
           ...response.data,
-          // Manter alguns cí¡lculos locais apenas para detalhes especí­ficos
+          // Manter alguns cá¡lculos locais apenas para detalhes especá­ficos
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           calculo_preciso: true,
-          // Usar contagens do backend (fonte íºnica de verdade)
+          // Usar contagens do backend (fonte áºnica de verdade)
           total_alunos:
             response.data.total_alunos ||
             response.data.alunos_ativos + response.data.alunos_desistentes,
@@ -4402,7 +4404,7 @@ const RelatoriosManager = () => {
         };
 
         setStats(statsComPrecisao);
-        console.log("âœ… Estatí­sticas Fase 3 aplicadas:", {
+        console.log(âœ… Estatá­sticas Fase 3 aplicadas:, {
           taxa: estatisticasLocais.taxaMediaPresenca,
           risco: estatisticasLocais.alunosEmRisco,
           total: estatisticasLocais.totalAlunos,
@@ -4411,11 +4413,11 @@ const RelatoriosManager = () => {
         setStats(response.data);
       }
     } catch (error) {
-      console.error("Error fetching dynamic stats:", error);
+      console.error(Error fetching dynamic stats:, error);
 
-      // ”„ Fallback com cí¡lculos locais precisos
+      // ”„ Fallback com cá¡lculos locais precisos
       if (alunos && alunos.length > 0) {
-        console.log("Ž¯ Aplicando Fase 3 offline - cí¡lculos precisos locais");
+        console.log(Ž¯ Aplicando Fase 3 offline - cá¡lculos precisos locais);
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
@@ -4424,22 +4426,22 @@ const RelatoriosManager = () => {
         setStats({
           taxa_media_presenca: estatisticasLocais.taxaMediaPresenca,
           total_alunos: alunos.length, // Total de todos os alunos
-          alunos_ativos: alunos.filter((a) => a.status === "ativo").length,
-          alunos_desistentes: alunos.filter((a) => a.status === "desistente")
+          alunos_ativos: alunos.filter((a) => a.status === ativo).length,
+          alunos_desistentes: alunos.filter((a) => a.status === desistente)
             .length,
           alunos_em_risco: estatisticasLocais.alunosEmRisco,
-          desistentes: alunos.filter((a) => a.status === "desistente").length, // Consistíªncia
+          desistentes: alunos.filter((a) => a.status === desistente).length, // Consistáªncia
           detalhes_por_aluno: estatisticasLocais.estatisticasPorAluno,
           regras_aplicadas: REGRAS_PRESENCA,
           modo_offline: true,
           calculo_preciso: true,
         });
-      } else if (user?.tipo === "instrutor") {
+      } else if (user?.tipo === instrutor) {
         try {
           const fallbackResponse = await axios.get(`${API}/teacher/stats`);
           setStats(fallbackResponse.data);
         } catch (fallbackError) {
-          console.error("Fallback also failed:", fallbackError);
+          console.error(Fallback also failed:, fallbackError);
         }
       }
     } finally {
@@ -4451,8 +4453,8 @@ const RelatoriosManager = () => {
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "¿½ CSV Simples - STREAMING",
-      description: "Nova tecnologia anti-timeout! Download em tempo real...",
+      title: ¿½ CSV Simples - STREAMING,
+      description: Nova tecnologia anti-timeout! Download em tempo real...,
     });
 
     try {
@@ -4461,27 +4463,27 @@ const RelatoriosManager = () => {
         `${API}/reports/attendance?export_csv=true&format=simple`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(token)}`,
           },
-          responseType: "blob", // CRITICAL: receive as streaming blob
+          responseType: blob, // CRITICAL: receive as streaming blob
           timeout: 120000, // 2 minutes (much higher since streaming)
         }
       );
 
       // Handle streaming response directly as blob
       const blob = new Blob([response.data], {
-        type: "text/csv;charset=utf-8;",
+        type: text/csv;charset=utf-8;,
       });
-      const link = document.createElement("a");
+      const link = document.createElement(a);
       link.href = URL.createObjectURL(blob);
 
       // Extract filename from Content-Disposition header if available
-      const contentDisposition = response.headers["content-disposition"];
+      const contentDisposition = response.headers[content-disposition];
       let filename = `relatorio_simples_${
-        new Date().toISOString().split("T")[0]
+        new Date().toISOString().split(T)[0]
       }.csv`;
       if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        const filenameMatch = contentDisposition.match(/filename=?(.+)?/);
         if (filenameMatch) filename = filenameMatch[1];
       }
 
@@ -4492,33 +4494,33 @@ const RelatoriosManager = () => {
       URL.revokeObjectURL(link.href);
 
       toast({
-        title: "€ CSV Simples - STREAMING OK!",
-        description: "Arquivo baixado com nova tecnologia anti-timeout! âš¡",
+        title: € CSV Simples - STREAMING OK!,
+        description: Arquivo baixado com nova tecnologia anti-timeout! âš¡,
       });
     } catch (error) {
-      console.error("Erro no download CSV simples:", error);
+      console.error(Erro no download CSV simples:, error);
 
       // ¨ ENHANCED ERROR HANDLING with streaming context
-      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      if (error.code === ECONNABORTED || error.message.includes(timeout)) {
         toast({
-          title: "â° Timeout Raro com Streaming",
+          title: â° Timeout Raro com Streaming,
           description:
-            "Evento raro! Sistema streaming falhou. Contate suporte tí©cnico.",
-          variant: "destructive",
+            Evento raro! Sistema streaming falhou. Contate suporte tá©cnico.,
+          variant: destructive,
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "¨ Gateway Timeout",
+          title: ¨ Gateway Timeout,
           description:
-            "Servidor sobrecarregado mesmo com streaming. Aguarde e tente.",
-          variant: "destructive",
+            Servidor sobrecarregado mesmo com streaming. Aguarde e tente.,
+          variant: destructive,
         });
       } else {
         toast({
-          title: "âŒ Erro no Download Streaming",
+          title: âŒ Erro no Download Streaming,
           description:
-            "Falha inesperada no sistema streaming. Tente novamente.",
-          variant: "destructive",
+            Falha inesperada no sistema streaming. Tente novamente.,
+          variant: destructive,
         });
       }
     } finally {
@@ -4529,18 +4531,19 @@ const RelatoriosManager = () => {
   const downloadCompleteCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "¿½ CSV Completo - STREAMING",
-      description: "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ”¥",
+      title: ¿½ CSV Completo - STREAMING,
+      description:
+        Aná¡lise pedagá³gica avançada com streaming anti-timeout! ”¥,
     });
 
     try {
       // € JOB SYSTEM - Create CSV generation job first
       const jobResponse = await axios.post(
         `${API}/reports/csv-job`,
-        { format: "complete" },
+        { format: complete },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem(token)}`,
           },
           timeout: 30000, // 30s just for job creation
         }
@@ -4561,7 +4564,7 @@ const RelatoriosManager = () => {
           `${API}/reports/csv-job/${jobId}`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${localStorage.getItem(token)}`,
             },
             timeout: 10000,
           }
@@ -4569,55 +4572,55 @@ const RelatoriosManager = () => {
 
         const { status, csv_url } = statusResponse.data;
 
-        if (status === "completed" && csv_url) {
+        if (status === completed && csv_url) {
           jobCompleted = true;
 
           // Download via data URL
-          const link = document.createElement("a");
+          const link = document.createElement(a);
           link.href = csv_url;
           link.download = `relatorio_completo_${
-            new Date().toISOString().split("T")[0]
+            new Date().toISOString().split(T)[0]
           }.csv`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           break;
-        } else if (status === "failed") {
-          throw new Error("Job failed");
+        } else if (status === failed) {
+          throw new Error(Job failed);
         }
       }
 
       if (!jobCompleted) {
-        throw new Error("Timeout: Job nío completou");
+        throw new Error(Timeout: Job náo completou);
       }
 
       toast({
-        title: "âœ… CSV Completo Baixado!",
-        description: "Relatí³rio Pedagógico avaní§ado via job system! Ž¯",
+        title: âœ… CSV Completo Baixado!,
+        description: Relatá³rio Pedagógico avaná§ado via job system! Ž¯,
       });
     } catch (error) {
-      console.error("Erro no download CSV completo:", error);
+      console.error(Erro no download CSV completo:, error);
 
       // ¨ ENHANCED ERROR HANDLING for complex streaming
-      if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      if (error.code === ECONNABORTED || error.message.includes(timeout)) {
         toast({
-          title: "â° Timeout Extremo",
+          title: â° Timeout Extremo,
           description:
-            "Dataset muito complexo mesmo para streaming. Contate administrador.",
-          variant: "destructive",
+            Dataset muito complexo mesmo para streaming. Contate administrador.,
+          variant: destructive,
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "¨ Gateway Timeout",
+          title: ¨ Gateway Timeout,
           description:
-            "Infraestrutura sobrecarregada. Sistema streaming nío ajudou.",
-          variant: "destructive",
+            Infraestrutura sobrecarregada. Sistema streaming náo ajudou.,
+          variant: destructive,
         });
       } else {
         toast({
-          title: "âŒ Erro Streaming Completo",
-          description: "Falha no download streaming da aní¡lise pedagí³gica.",
-          variant: "destructive",
+          title: âŒ Erro Streaming Completo,
+          description: Falha no download streaming da aná¡lise pedagá³gica.,
+          variant: destructive,
         });
       }
     } finally {
@@ -4629,50 +4632,50 @@ const RelatoriosManager = () => {
   const downloadFrequencyReport = async () => {
     setCsvLoading(true);
 
-    // Toast de iní­cio do processo
+    // Toast de iná­cio do processo
     toast({
-      title: "“Š Gerando Relatí³rio CSV",
-      description: "Processando dados de frequíªncia... aguarde",
+      title: “Š Gerando Relatá³rio CSV,
+      description: Processando dados de frequáªncia... aguarde,
     });
 
     try {
-      console.log("€ Iniciando download CSV com Fase 4 - Dados Precisos");
+      console.log(€ Iniciando download CSV com Fase 4 - Dados Precisos);
 
-      // Ž¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUíŠNCIA)
+      // Ž¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUáŠNCIA)
       let backendResponse = null;
       try {
         let url = `${API}/reports/student-frequency?export_csv=true`;
 
         if (
-          user?.tipo === "admin" &&
+          user?.tipo === admin &&
           (filtros.data_inicio ||
             filtros.data_fim ||
-            (filtros.unidade_id && filtros.unidade_id !== "all") ||
-            (filtros.curso_id && filtros.curso_id !== "all") ||
-            (filtros.turma_id && filtros.turma_id !== "all"))
+            (filtros.unidade_id && filtros.unidade_id !== all) ||
+            (filtros.curso_id && filtros.curso_id !== all) ||
+            (filtros.turma_id && filtros.turma_id !== all))
         ) {
           const params = new URLSearchParams();
-          params.append("export_csv", "true");
+          params.append(export_csv, true);
           if (filtros.data_inicio)
-            params.append("data_inicio", filtros.data_inicio);
-          if (filtros.data_fim) params.append("data_fim", filtros.data_fim);
-          if (filtros.unidade_id && filtros.unidade_id !== "all")
-            params.append("unidade_id", filtros.unidade_id);
-          if (filtros.curso_id && filtros.curso_id !== "all")
-            params.append("curso_id", filtros.curso_id);
-          if (filtros.turma_id && filtros.turma_id !== "all")
-            params.append("turma_id", filtros.turma_id);
+            params.append(data_inicio, filtros.data_inicio);
+          if (filtros.data_fim) params.append(data_fim, filtros.data_fim);
+          if (filtros.unidade_id && filtros.unidade_id !== all)
+            params.append(unidade_id, filtros.unidade_id);
+          if (filtros.curso_id && filtros.curso_id !== all)
+            params.append(curso_id, filtros.curso_id);
+          if (filtros.turma_id && filtros.turma_id !== all)
+            params.append(turma_id, filtros.turma_id);
           url = `${API}/reports/student-frequency?${params.toString()}`;
         }
 
         backendResponse = await axios.get(url);
       } catch (backendError) {
-        console.error("¨ ERRO BACKEND CSV:", backendError.message);
-        console.error("Status:", backendError.response?.status);
-        console.error("URL tentada:", url);
-        console.error("Headers:", backendError.config?.headers);
+        console.error(¨ ERRO BACKEND CSV:, backendError.message);
+        console.error(Status:, backendError.response?.status);
+        console.error(URL tentada:, url);
+        console.error(Headers:, backendError.config?.headers);
         console.log(
-          "âš ¸ Backend CSV falhou, gerando localmente com Fase 4:",
+          âš ¸ Backend CSV falhou, gerando localmente com Fase 4:,
           backendError.message
         );
       }
@@ -4680,30 +4683,30 @@ const RelatoriosManager = () => {
       let csvData;
       let dataSource;
 
-      // Ž¯ USAR DADOS DO BACKEND SE DISPONíVEL
+      // Ž¯ USAR DADOS DO BACKEND SE DISPONáVEL
       if (backendResponse && backendResponse.data?.csv_data) {
         csvData = backendResponse.data.csv_data;
-        dataSource = "backend";
-        console.log("âœ… Usando dados do backend");
+        dataSource = backend;
+        console.log(âœ… Usando dados do backend);
         console.log(
-          "“Š Preview CSV (primeiras 200 chars):",
+          “Š Preview CSV (primeiras 200 chars):,
           csvData.substring(0, 200)
         );
       }
       // Ž¯ FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
       else {
-        console.log("”„ Gerando CSV localmente com cí¡lculos Fase 3");
+        console.log(”„ Gerando CSV localmente com cá¡lculos Fase 3);
 
         if (!alunos || !alunos.length) {
           toast({
-            title: "âš ¸ Dados Indisponí­veis",
-            description: "Aguarde o carregamento dos dados ou tente novamente",
-            variant: "destructive",
+            title: âš ¸ Dados Indisponá­veis,
+            description: Aguarde o carregamento dos dados ou tente novamente,
+            variant: destructive,
           });
           return;
         }
 
-        // Usar sistema de cí¡lculos precisos da Fase 3
+        // Usar sistema de cá¡lculos precisos da Fase 3
         const estatisticasPrecisas = calcularEstatisticasPrecisas(
           alunos,
           chamadas
@@ -4711,42 +4714,42 @@ const RelatoriosManager = () => {
 
         // Gerar CSV com dados precisos
         csvData = gerarCSVComDadosPrecisos(estatisticasPrecisas, filtros);
-        dataSource = "local-fase3";
+        dataSource = local-fase3;
       }
 
       // “ CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
+      const blob = new Blob([csvData], { type: text/csv;charset=utf-8; });
+      const link = document.createElement(a);
 
       if (link.download !== undefined) {
         const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
+        link.setAttribute(href, url);
 
         // “‹ Nome do arquivo com indicadores de qualidade
         let fileName = `relatorio_frequencia_${
-          new Date().toISOString().split("T")[0]
+          new Date().toISOString().split(T)[0]
         }`;
 
         // Adicionar indicador de fonte de dados
-        if (dataSource === "local-fase3") {
-          fileName += "_PRECISAO-FASE3";
+        if (dataSource === local-fase3) {
+          fileName += _PRECISAO-FASE3;
         }
 
         // Adicionar filtros aplicados
         if (filtros.data_inicio && filtros.data_fim) {
           fileName += `_${filtros.data_inicio}_a_${filtros.data_fim}`;
         }
-        if (filtros.curso_id && filtros.curso_id !== "all") {
-          fileName += "_CURSO-FILTRADO";
+        if (filtros.curso_id && filtros.curso_id !== all) {
+          fileName += _CURSO-FILTRADO;
         }
-        if (filtros.unidade_id && filtros.unidade_id !== "all") {
-          fileName += "_UNIDADE-FILTRADA";
+        if (filtros.unidade_id && filtros.unidade_id !== all) {
+          fileName += _UNIDADE-FILTRADA;
         }
 
-        fileName += ".csv";
+        fileName += .csv;
 
-        link.setAttribute("download", fileName);
-        link.style.visibility = "hidden";
+        link.setAttribute(download, fileName);
+        link.style.visibility = hidden;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -4754,28 +4757,28 @@ const RelatoriosManager = () => {
 
       // Ž‰ FEEDBACK COM DETALHES DA FASE 4
       toast({
-        title: "“Š Relatí³rio Fase 4 Exportado!",
+        title: “Š Relatá³rio Fase 4 Exportado!,
         description: `${
-          dataSource === "backend"
-            ? "Dados Backend"
-            : "Cí¡lculos Locais Precisos"
+          dataSource === backend
+            ? Dados Backend
+            : Cá¡lculos Locais Precisos
         } | ${
           stats.detalhes_por_aluno?.length || alunos.length
         } alunos | Arquivo baixado com sucesso`,
       });
     } catch (error) {
-      console.error("Error downloading report:", error);
+      console.error(Error downloading report:, error);
       toast({
-        title: "Erro ao exportar relatí³rio",
-        description: "Tente novamente em alguns instantes.",
-        variant: "destructive",
+        title: Erro ao exportar relatá³rio,
+        description: Tente novamente em alguns instantes.,
+        variant: destructive,
       });
     } finally {
       setCsvLoading(false);
     }
   };
 
-  // ” Funí§í£o para aplicar filtros
+  // ” Funá§á£o para aplicar filtros
   const aplicarFiltros = () => {
     setLoading(true);
     fetchDynamicStats(filtros);
@@ -4786,8 +4789,8 @@ const RelatoriosManager = () => {
     try {
       setLoading(true);
       toast({
-        title: "” Executando Health Check",
-        description: "Verificando status do sistema Fase 5...",
+        title: ” Executando Health Check,
+        description: Verificando status do sistema Fase 5...,
       });
 
       const healthResult = await verificarHealthSistema(alunos, chamadas);
@@ -4795,39 +4798,39 @@ const RelatoriosManager = () => {
       setShowHealthCheck(true);
 
       const statusIcon =
-        healthResult.status_geral === "saudavel"
-          ? "âœ…"
-          : healthResult.status_geral === "alerta"
-          ? "âš ¸"
-          : "âŒ";
+        healthResult.status_geral === saudavel
+          ? âœ…
+          : healthResult.status_geral === alerta
+          ? âš ¸
+          : âŒ;
 
       toast({
-        title: `${statusIcon} Health Check Concluí­do`,
+        title: `${statusIcon} Health Check Concluá­do`,
         description: `Sistema: ${healthResult.status_geral.toUpperCase()} | ${
           healthResult.fases_ativas.length
         } fases ativas`,
         variant:
-          healthResult.status_geral === "erro" ? "destructive" : "default",
+          healthResult.status_geral === erro ? destructive : default,
       });
     } catch (error) {
       toast({
-        title: "âŒ Erro no Health Check",
-        description: "Falha ao verificar status do sistema",
-        variant: "destructive",
+        title: âŒ Erro no Health Check,
+        description: Falha ao verificar status do sistema,
+        variant: destructive,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // §¹ Funí§í£o para limpar filtros
+  // §¹ Funá§á£o para limpar filtros
   const limparFiltros = () => {
     const filtrosVazios = {
-      data_inicio: "",
-      data_fim: "",
-      unidade_id: "all",
-      curso_id: "all",
-      turma_id: "all",
+      data_inicio: ,
+      data_fim: ,
+      unidade_id: all,
+      curso_id: all,
+      turma_id: all,
     };
     setFiltros(filtrosVazios);
     setLoading(true);
@@ -4837,9 +4840,9 @@ const RelatoriosManager = () => {
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+        <CardContent className=p-6>
+          <div className=flex items-center justify-center>
+            <RefreshCw className=h-5 w-5 animate-spin mr-2 />
             <span>Carregando Relatórios dinâmicos...</span>
           </div>
         </CardContent>
@@ -4847,48 +4850,48 @@ const RelatoriosManager = () => {
     );
   }
 
-  // “Š RELATí“RIOS DINí‚MICOS - Interface completamente atualizada
+  // “Š RELATá“RIOS DINá‚MICOS - Interface completamente atualizada
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2" />
-            {user?.tipo === "admin"
-              ? "Relatórios Gerais"
-              : "Estatí­sticas das Minhas Turmas"}
+        <CardTitle className=flex items-center justify-between>
+          <div className=flex items-center>
+            <BarChart3 className=h-5 w-5 mr-2 />
+            {user?.tipo === admin
+              ? Relatórios Gerais
+              : Estatá­sticas das Minhas Turmas}
           </div>
-          <div className="flex items-center gap-2">
-            {user?.tipo === "admin" && (
+          <div className=flex items-center gap-2>
+            {user?.tipo === admin && (
               <Button
                 onClick={() => setShowFilters(!showFilters)}
-                variant="outline"
-                size="sm"
-                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                variant=outline
+                size=sm
+                className=text-orange-600 border-orange-600 hover:bg-orange-50
               >
-                <Filter className="h-4 w-4 mr-1" />
+                <Filter className=h-4 w-4 mr-1 />
                 Filtros
               </Button>
             )}
 
-            {/* “Š BOTí•ES DUAIS DE CSV */}
-            <div className="flex gap-2">
+            {/* “Š BOTá•ES DUAIS DE CSV */}
+            <div className=flex gap-2>
               <Button
                 onClick={downloadSimpleCSV}
-                variant="outline"
-                size="sm"
-                className="text-blue-600 border-blue-600 hover:bg-blue-50"
-                title="CSV com dados bí¡sicos de Presença (15 campos)"
+                variant=outline
+                size=sm
+                className=text-blue-600 border-blue-600 hover:bg-blue-50
+                title=CSV com dados bá¡sicos de Presença (15 campos)
                 disabled={csvLoading}
               >
                 {csvLoading ? (
                   <>
-                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                    <div className=h-4 w-4 mr-1 animate-spin rounded-full border-2 border-blue-600 border-t-transparent></div>
                     Exportando...
                   </>
                 ) : (
                   <>
-                    <Download className="h-4 w-4 mr-1" />
+                    <Download className=h-4 w-4 mr-1 />
                     CSV Simples
                   </>
                 )}
@@ -4896,93 +4899,93 @@ const RelatoriosManager = () => {
 
               <Button
                 onClick={downloadCompleteCSV}
-                variant="outline"
-                size="sm"
-                className="text-green-600 border-green-600 hover:bg-green-50"
-                title="CSV com aní¡lise pedagí³gica completa (27 campos)"
+                variant=outline
+                size=sm
+                className=text-green-600 border-green-600 hover:bg-green-50
+                title=CSV com aná¡lise pedagá³gica completa (27 campos)
                 disabled={csvLoading}
               >
                 {csvLoading ? (
                   <>
-                    <div className="h-4 w-4 mr-1 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+                    <div className=h-4 w-4 mr-1 animate-spin rounded-full border-2 border-green-600 border-t-transparent></div>
                     Exportando...
                   </>
                 ) : (
                   <>
-                    <Download className="h-4 w-4 mr-1" />
+                    <Download className=h-4 w-4 mr-1 />
                     CSV Completo
                   </>
                 )}
               </Button>
             </div>
 
-            {/* ”§ BOTíƒO HEALTH CHECK - FASE 5 */}
+            {/* ”§ BOTáƒO HEALTH CHECK - FASE 5 */}
             <Button
               onClick={executarHealthCheck}
-              variant="outline"
-              size="sm"
-              className="text-green-600 border-green-600 hover:bg-green-50"
-              title="Verificar status completo do sistema"
+              variant=outline
+              size=sm
+              className=text-green-600 border-green-600 hover:bg-green-50
+              title=Verificar status completo do sistema
             >
-              <Shield className="h-4 w-4 mr-1" />
+              <Shield className=h-4 w-4 mr-1 />
               Health Check
             </Button>
 
-            <div className="flex items-center text-sm text-gray-500">
-              <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+            <div className=flex items-center text-sm text-gray-500>
+              <RefreshCw className=h-4 w-4 mr-1 animate-spin />
               Atualizado automaticamente
             </div>
           </div>
         </CardTitle>
         <CardDescription>
-          {user?.tipo === "admin"
-            ? "Visualize Relatórios completos com filtros avançados - Dados em tempo real"
-            : "Visualize í­ndices de Presença e faltas dos seus alunos - Dados em tempo real"}
+          {user?.tipo === admin
+            ? Visualize Relatórios completos com filtros avançados - Dados em tempo real
+            : Visualize á­ndices de Presença e faltas dos seus alunos - Dados em tempo real}
         </CardDescription>
       </CardHeader>
 
-      {/* ” FILTROS AVANí‡ADOS PARA ADMIN */}
-      {user?.tipo === "admin" && showFilters && (
-        <div className="mx-6 mb-4 p-4 bg-gray-50 border rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Data Iní­cio</Label>
+      {/* ” FILTROS AVANá‡ADOS PARA ADMIN */}
+      {user?.tipo === admin && showFilters && (
+        <div className=mx-6 mb-4 p-4 bg-gray-50 border rounded-lg>
+          <div className=grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>Data Iná­cio</Label>
               <Input
-                type="date"
+                type=date
                 value={filtros.data_inicio}
                 onChange={(e) =>
                   setFiltros({ ...filtros, data_inicio: e.target.value })
                 }
-                className="h-8"
+                className=h-8
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Data Fim</Label>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>Data Fim</Label>
               <Input
-                type="date"
+                type=date
                 value={filtros.data_fim}
                 onChange={(e) =>
                   setFiltros({ ...filtros, data_fim: e.target.value })
                 }
-                className="h-8"
+                className=h-8
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Unidade</Label>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>Unidade</Label>
               <Select
-                value={filtros.unidade_id || "all"}
+                value={filtros.unidade_id || all}
                 onValueChange={(value) =>
                   setFiltros({
                     ...filtros,
-                    unidade_id: value === "all" ? "" : value,
+                    unidade_id: value === all ?  : value,
                   })
                 }
               >
-                <SelectTrigger className="h-8">
-                  <SelectValue placeholder="Todas" />
+                <SelectTrigger className=h-8>
+                  <SelectValue placeholder=Todas />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as Unidades</SelectItem>
+                  <SelectItem value=all>Todas as Unidades</SelectItem>
                   {unidades.map((unidade) => (
                     <SelectItem key={unidade.id} value={unidade.id}>
                       {unidade.nome}
@@ -4991,22 +4994,22 @@ const RelatoriosManager = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Curso</Label>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>Curso</Label>
               <Select
-                value={filtros.curso_id || "all"}
+                value={filtros.curso_id || all}
                 onValueChange={(value) =>
                   setFiltros({
                     ...filtros,
-                    curso_id: value === "all" ? "" : value,
+                    curso_id: value === all ?  : value,
                   })
                 }
               >
-                <SelectTrigger className="h-8">
-                  <SelectValue placeholder="Todos" />
+                <SelectTrigger className=h-8>
+                  <SelectValue placeholder=Todos />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os Cursos</SelectItem>
+                  <SelectItem value=all>Todos os Cursos</SelectItem>
                   {cursos.map((curso) => (
                     <SelectItem key={curso.id} value={curso.id}>
                       {curso.nome}
@@ -5015,22 +5018,22 @@ const RelatoriosManager = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Turma</Label>
+            <div className=space-y-2>
+              <Label className=text-sm font-medium>Turma</Label>
               <Select
-                value={filtros.turma_id || "all"}
+                value={filtros.turma_id || all}
                 onValueChange={(value) =>
                   setFiltros({
                     ...filtros,
-                    turma_id: value === "all" ? "" : value,
+                    turma_id: value === all ?  : value,
                   })
                 }
               >
-                <SelectTrigger className="h-8">
-                  <SelectValue placeholder="Todas" />
+                <SelectTrigger className=h-8>
+                  <SelectValue placeholder=Todas />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as Turmas</SelectItem>
+                  <SelectItem value=all>Todas as Turmas</SelectItem>
                   {turmas.map((turma) => (
                     <SelectItem key={turma.id} value={turma.id}>
                       {turma.nome}
@@ -5040,78 +5043,78 @@ const RelatoriosManager = () => {
               </Select>
             </div>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className=flex gap-2 mt-4>
             <Button
               onClick={aplicarFiltros}
-              size="sm"
-              className="bg-orange-600 hover:bg-orange-700"
+              size=sm
+              className=bg-orange-600 hover:bg-orange-700
             >
-              <Search className="h-4 w-4 mr-1" />
+              <Search className=h-4 w-4 mr-1 />
               Aplicar Filtros
             </Button>
-            <Button onClick={limparFiltros} variant="outline" size="sm">
-              <X className="h-4 w-4 mr-1" />
+            <Button onClick={limparFiltros} variant=outline size=sm>
+              <X className=h-4 w-4 mr-1 />
               Limpar
             </Button>
           </div>
         </div>
       )}
       <CardContent>
-        {/* Verificar se hí¡ dados apí³s filtros */}
-        {stats && stats.total_alunos === 0 && user?.tipo === "admin" && (
-          <div className="text-center py-8">
-            <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">
+        {/* Verificar se há¡ dados apá³s filtros */}
+        {stats && stats.total_alunos === 0 && user?.tipo === admin && (
+          <div className=text-center py-8>
+            <AlertCircle className=h-12 w-12 mx-auto mb-4 text-gray-400 />
+            <h3 className=text-lg font-medium text-gray-600 mb-2>
               Nenhum dado encontrado
             </h3>
-            <p className="text-gray-500 mb-4">
-              Os filtros aplicados nío retornaram nenhum resultado. Tente
-              ajustar os crití©rios ou limpar os filtros.
+            <p className=text-gray-500 mb-4>
+              Os filtros aplicados náo retornaram nenhum resultado. Tente
+              ajustar os critá©rios ou limpar os filtros.
             </p>
-            <Button onClick={limparFiltros} variant="outline">
-              <X className="h-4 w-4 mr-2" />
+            <Button onClick={limparFiltros} variant=outline>
+              <X className=h-4 w-4 mr-2 />
               Limpar Filtros
             </Button>
           </div>
         )}
 
         {/* Dados normais */}
-        {(!stats || stats.total_alunos > 0 || user?.tipo !== "admin") && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Ÿ¢ MAIORES PRESENí‡AS - Dados dinâmicos */}
+        {(!stats || stats.total_alunos > 0 || user?.tipo !== admin) && (
+          <div className=grid grid-cols-1 md:grid-cols-2 gap-6>
+            {/* Ÿ¢ MAIORES PRESENá‡AS - Dados dinâmicos */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-green-600">
+                <CardTitle className=text-lg text-green-600>
                   Maiores Presenças
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className=space-y-3>
                   {stats.maiores_presencas &&
                   stats.maiores_presencas.length > 0 ? (
                     stats.maiores_presencas.map((aluno, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
+                        className=flex justify-between items-center p-3 bg-green-50 rounded-lg
                       >
                         <div>
-                          <p className="font-medium">{aluno.nome}</p>
-                          <p className="text-sm text-gray-500">{aluno.turma}</p>
+                          <p className=font-medium>{aluno.nome}</p>
+                          <p className=text-sm text-gray-500>{aluno.turma}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-green-600">
+                        <div className=text-right>
+                          <p className=font-bold text-green-600>
                             {aluno.taxa_presenca}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className=text-xs text-gray-500>
                             {aluno.aulas_presentes}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum dado de Presença disponí­vel ainda</p>
+                    <div className=text-center py-4 text-gray-500>
+                      <Users className=h-8 w-8 mx-auto mb-2 opacity-50 />
+                      <p>Nenhum dado de Presença disponá­vel ainda</p>
                     </div>
                   )}
                 </div>
@@ -5121,36 +5124,36 @@ const RelatoriosManager = () => {
             {/* ”´ MAIORES FALTAS - Dados dinâmicos */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg text-red-600">
+                <CardTitle className=text-lg text-red-600>
                   Maiores Faltas
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className=space-y-3>
                   {stats.maiores_faltas && stats.maiores_faltas.length > 0 ? (
                     stats.maiores_faltas.map((aluno, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-center p-3 bg-red-50 rounded-lg"
+                        className=flex justify-between items-center p-3 bg-red-50 rounded-lg
                       >
                         <div>
-                          <p className="font-medium">{aluno.nome}</p>
-                          <p className="text-sm text-gray-500">{aluno.turma}</p>
+                          <p className=font-medium>{aluno.nome}</p>
+                          <p className=text-sm text-gray-500>{aluno.turma}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-red-600">
+                        <div className=text-right>
+                          <p className=font-bold text-red-600>
                             {aluno.taxa_presenca}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className=text-xs text-gray-500>
                             {aluno.faltas}
                           </p>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>Nenhum dado de falta disponí­vel ainda</p>
+                    <div className=text-center py-4 text-gray-500>
+                      <AlertCircle className=h-8 w-8 mx-auto mb-2 opacity-50 />
+                      <p>Nenhum dado de falta disponá­vel ainda</p>
                     </div>
                   )}
                 </div>
@@ -5158,116 +5161,116 @@ const RelatoriosManager = () => {
             </Card>
 
             {/* “Š RESUMO GERAL - Dados dinâmicos */}
-            <Card className="md:col-span-2">
+            <Card className=md:col-span-2>
               <CardHeader>
-                <CardTitle className="text-lg">
+                <CardTitle className=text-lg>
                   Resumo Geral das Suas Turmas
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg relative">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {typeof stats.taxa_media_presenca === "number"
+                <div className=grid grid-cols-2 md:grid-cols-4 gap-4>
+                  <div className=text-center p-4 bg-blue-50 rounded-lg relative>
+                    <p className=text-2xl font-bold text-blue-600>
+                      {typeof stats.taxa_media_presenca === number
                         ? `${stats.taxa_media_presenca.toFixed(1)}%`
-                        : stats.taxa_media_presenca || "0%"}
+                        : stats.taxa_media_presenca || 0%}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      Taxa Mí©dia de Presença
+                    <p className=text-sm text-gray-600>
+                      Taxa Má©dia de Presença
                     </p>
                     {stats.calculo_preciso && (
-                      <div className="absolute top-1 right-1">
+                      <div className=absolute top-1 right-1>
                         <div
-                          className="w-2 h-2 bg-green-500 rounded-full"
-                          title="Cí¡lculo Preciso Fase 3"
+                          className=w-2 h-2 bg-green-500 rounded-full
+                          title=Cá¡lculo Preciso Fase 3
                         ></div>
                       </div>
                     )}
                   </div>
 
-                  <div className="text-center p-4 bg-green-50 rounded-lg relative">
-                    <p className="text-2xl font-bold text-green-600">
+                  <div className=text-center p-4 bg-green-50 rounded-lg relative>
+                    <p className=text-2xl font-bold text-green-600>
                       {stats.total_alunos || 0}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className=text-sm text-gray-600>
                       {stats.regras_aplicadas?.INCLUIR_DESISTENTES_STATS ===
                       false
-                        ? "Alunos Ativos"
-                        : "Total de Alunos"}
+                        ? Alunos Ativos
+                        : Total de Alunos}
                     </p>
                     {stats.desistentes > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className=text-xs text-gray-500 mt-1>
                         ({stats.desistentes} desistentes)
                       </p>
                     )}
                   </div>
 
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg relative">
-                    <p className="text-2xl font-bold text-yellow-600">
+                  <div className=text-center p-4 bg-yellow-50 rounded-lg relative>
+                    <p className=text-2xl font-bold text-yellow-600>
                       {stats.alunos_em_risco || 0}
                     </p>
-                    <p className="text-sm text-gray-600">Alunos em Risco</p>
+                    <p className=text-sm text-gray-600>Alunos em Risco</p>
                     {stats.regras_aplicadas && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className=text-xs text-gray-500 mt-1>
                         &lt; {stats.regras_aplicadas.MINIMO_APROVACAO}%
                       </p>
                     )}
                   </div>
 
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <p className="text-2xl font-bold text-red-600">
+                  <div className=text-center p-4 bg-red-50 rounded-lg>
+                    <p className=text-2xl font-bold text-red-600>
                       {stats.alunos_desistentes || 0}
                     </p>
-                    <p className="text-sm text-gray-600">Desistentes</p>
+                    <p className=text-sm text-gray-600>Desistentes</p>
                   </div>
                 </div>
 
-                {/* Ž¯ INDICADOR DE PRECISíƒO - FASE 3 */}
+                {/* Ž¯ INDICADOR DE PRECISáƒO - FASE 3 */}
                 {stats.calculo_preciso && (
                   <div
                     className={`mt-4 p-3 border rounded-lg ${
                       stats.modo_offline
-                        ? "bg-orange-50 border-orange-200"
-                        : "bg-green-50 border-green-200"
+                        ? bg-orange-50 border-orange-200
+                        : bg-green-50 border-green-200
                     }`}
                   >
-                    <div className="flex items-center gap-2 text-sm">
+                    <div className=flex items-center gap-2 text-sm>
                       <div
                         className={`w-2 h-2 rounded-full ${
-                          stats.modo_offline ? "bg-orange-500" : "bg-green-500"
+                          stats.modo_offline ? bg-orange-500 : bg-green-500
                         }`}
                       ></div>
                       <span
                         className={`font-medium ${
                           stats.modo_offline
-                            ? "text-orange-800"
-                            : "text-green-800"
+                            ? text-orange-800
+                            : text-green-800
                         }`}
                       >
                         {stats.modo_offline
-                          ? "Cí¡lculo Offline - Fase 3"
-                          : "Sistema Fase 3 - Cí¡lculos Precisos"}
+                          ? Cá¡lculo Offline - Fase 3
+                          : Sistema Fase 3 - Cá¡lculos Precisos}
                       </span>
                     </div>
                     <div
                       className={`mt-1 text-xs ${
                         stats.modo_offline
-                          ? "text-orange-700"
-                          : "text-green-700"
+                          ? text-orange-700
+                          : text-green-700
                       }`}
                     >
-                      <p>â€¢ Taxa de Presença com precisí£o de centí©simos</p>
+                      <p>â€¢ Taxa de Presença com precisá£o de centá©simos</p>
                       <p>
-                        â€¢ Classificaí§í£o de risco: &lt;
+                        â€¢ Classificaá§á£o de risco: &lt;
                         {stats.regras_aplicadas?.EM_RISCO}% (risco) | &lt;
-                        {stats.regras_aplicadas?.MINIMO_APROVACAO}% (crí­tico)
+                        {stats.regras_aplicadas?.MINIMO_APROVACAO}% (crá­tico)
                       </p>
                       <p>
-                        â€¢{" "}
+                        â€¢{ }
                         {stats.regras_aplicadas?.INCLUIR_DESISTENTES_STATS
-                          ? "Incluindo"
-                          : "Excluindo"}{" "}
-                        alunos desistentes das mí©dias
+                          ? Incluindo
+                          : Excluindo}{ }
+                        alunos desistentes das má©dias
                       </p>
                     </div>
                   </div>
@@ -5277,31 +5280,31 @@ const RelatoriosManager = () => {
 
             {/* “‹ RESUMO POR TURMA - NOVO */}
             {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
-              <Card className="md:col-span-2">
+              <Card className=md:col-span-2>
                 <CardHeader>
-                  <CardTitle className="text-lg">Resumo por Turma</CardTitle>
+                  <CardTitle className=text-lg>Resumo por Turma</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className=grid grid-cols-1 md:grid-cols-2 gap-4>
                     {stats.resumo_turmas.map((turma, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-lg mb-2">
+                      <div key={index} className=p-4 border rounded-lg>
+                        <h4 className=font-medium text-lg mb-2>
                           {turma.nome}
                         </h4>
-                        <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div className=grid grid-cols-3 gap-2 text-sm>
                           <div>
-                            <p className="text-gray-600">Alunos</p>
-                            <p className="font-bold">{turma.total_alunos}</p>
+                            <p className=text-gray-600>Alunos</p>
+                            <p className=font-bold>{turma.total_alunos}</p>
                           </div>
                           <div>
-                            <p className="text-gray-600">Taxa Mí©dia</p>
-                            <p className="font-bold text-blue-600">
+                            <p className=text-gray-600>Taxa Má©dia</p>
+                            <p className=font-bold text-blue-600>
                               {turma.taxa_media}%
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-600">Em Risco</p>
-                            <p className="font-bold text-yellow-600">
+                            <p className=text-gray-600>Em Risco</p>
+                            <p className=font-bold text-yellow-600>
                               {turma.alunos_risco}
                             </p>
                           </div>
@@ -5333,26 +5336,26 @@ const AlunosManager = () => {
   const [selectedAluno, setSelectedAluno] = useState(null);
   const [selectedStudentDropout, setSelectedStudentDropout] = useState(null);
   const [dropoutForm, setDropoutForm] = useState({
-    motivo_codigo: "",
-    motivo_personalizado: "",
-    observacoes: "",
+    motivo_codigo: ,
+    motivo_personalizado: ,
+    observacoes: ,
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
 
-  // âœ… Estados para motivos de desistíªncia (MOVIDO DO APP PRINCIPAL)
+  // âœ… Estados para motivos de desistáªncia (MOVIDO DO APP PRINCIPAL)
   const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
   // “‹ Estados para justificativas/atestados fora da chamada
   const [isJustifyDialogOpen, setIsJustifyDialogOpen] = useState(false);
   const [selectedAlunoJustify, setSelectedAlunoJustify] = useState(null);
   const [justifyForm, setJustifyForm] = useState({
-    reason_text: "",
-    observations: "",
+    reason_text: ,
+    observations: ,
     file: null,
   });
 
-  // Estados para visualizaí§í£o detalhada do aluno
+  // Estados para visualizaá§á£o detalhada do aluno
   const [isViewAlunoDialogOpen, setIsViewAlunoDialogOpen] = useState(false);
   const [viewingAluno, setViewingAluno] = useState(null);
   const [studentJustifications, setStudentJustifications] = useState([]);
@@ -5362,138 +5365,138 @@ const AlunosManager = () => {
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkUploadFile, setBulkUploadFile] = useState(null);
   const [updateExisting, setUpdateExisting] = useState(false);
-  const [selectedTurmaForBulk, setSelectedTurmaForBulk] = useState("");
+  const [selectedTurmaForBulk, setSelectedTurmaForBulk] = useState();
   const [bulkUploading, setBulkUploading] = useState(false);
   const [showBulkSummary, setShowBulkSummary] = useState(false);
   const [bulkSummaryData, setBulkSummaryData] = useState(null);
 
   const [formData, setFormData] = useState({
-    nome: "",
-    cpf: "",
-    idade: "",
-    rg: "",
-    data_nascimento: "",
-    genero: "",
-    telefone: "",
-    email: "",
-    endereco: "",
-    nome_responsavel: "",
-    telefone_responsavel: "",
-    observacoes: "",
-    turma_id: "", // âœ… Campo turma adicionado
+    nome: ,
+    cpf: ,
+    idade: ,
+    rg: ,
+    data_nascimento: ,
+    genero: ,
+    telefone: ,
+    email: ,
+    endereco: ,
+    nome_responsavel: ,
+    telefone_responsavel: ,
+    observacoes: ,
+    turma_id: , // âœ… Campo turma adicionado
   });
 
   useEffect(() => {
     fetchAlunos();
     fetchTurmas();
-    fetchMotivosDesistencia(); // âœ… Carregar motivos de desistíªncia
+    fetchMotivosDesistencia(); // âœ… Carregar motivos de desistáªncia
   }, []);
 
   const fetchAlunos = async () => {
     try {
-      console.log("” Buscando alunos...");
+      console.log(” Buscando alunos...);
       const response = await axios.get(`${API}/students`);
-      console.log("âœ… Alunos recebidos:", response.data.length, "alunos");
+      console.log(âœ… Alunos recebidos:, response.data.length, alunos);
       setAlunos(response.data);
     } catch (error) {
-      console.error("âŒ Erro ao buscar alunos:", error);
-      console.error("Status:", error.response?.status);
-      console.error("Mensagem:", error.response?.data);
+      console.error(âŒ Erro ao buscar alunos:, error);
+      console.error(Status:, error.response?.status);
+      console.error(Mensagem:, error.response?.data);
 
-      // Mostrar erro para o usuí¡rio
+      // Mostrar erro para o usuá¡rio
       toast({
-        title: "Erro ao carregar alunos",
-        description: `Erro ${error.response?.status || "desconhecido"}: ${
+        title: Erro ao carregar alunos,
+        description: `Erro ${error.response?.status || desconhecido}: ${
           error.response?.data?.detail ||
-          "nío foi possí­vel carregar a lista de alunos"
+          náo foi possá­vel carregar a lista de alunos
         }`,
-        variant: "destructive",
+        variant: destructive,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // âœ… Funí§í£o para buscar motivos de desistíªncia (ADICIONADA NO ALUNOSMANAGER)
+  // âœ… Funá§á£o para buscar motivos de desistáªncia (ADICIONADA NO ALUNOSMANAGER)
   const fetchMotivosDesistencia = async () => {
     try {
-      console.log("” Buscando motivos de desistíªncia...");
+      console.log(” Buscando motivos de desistáªncia...);
       const response = await axios.get(`${API}/desistencias/motivos`);
       setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
-      console.log("âœ… Motivos carregados:", response.data.length, "motivos");
+      console.log(âœ… Motivos carregados:, response.data.length, motivos);
     } catch (error) {
-      console.error("âŒ Erro ao buscar motivos:", error);
+      console.error(âŒ Erro ao buscar motivos:, error);
       // Fallback com motivos oficiais do IOS
       setMotivosDesistencia([
         {
-          codigo: "conflito_horario_escola",
-          descricao: "CONFLITO ENTRE O HORíRIO DO CURSO E ESCOLA",
+          codigo: conflito_horario_escola,
+          descricao: CONFLITO ENTRE O HORáRIO DO CURSO E ESCOLA,
         },
         {
-          codigo: "conflito_curso_trabalho",
-          descricao: "CONFLITO ENTRE CURSO E TRABALHO",
+          codigo: conflito_curso_trabalho,
+          descricao: CONFLITO ENTRE CURSO E TRABALHO,
         },
         {
-          codigo: "problemas_saude",
-          descricao: "PROBLEMAS DE SAíšDE (ALUNO OU FAMILIAR)",
+          codigo: problemas_saude,
+          descricao: PROBLEMAS DE SAášDE (ALUNO OU FAMILIAR),
         },
         {
-          codigo: "sem_retorno_contato",
-          descricao: "SEM RETORNO DE CONTATO",
+          codigo: sem_retorno_contato,
+          descricao: SEM RETORNO DE CONTATO,
         },
         {
-          codigo: "conseguiu_trabalho",
-          descricao: "CONSEGUIU UM TRABALHO",
+          codigo: conseguiu_trabalho,
+          descricao: CONSEGUIU UM TRABALHO,
         },
         {
-          codigo: "lactantes_gestantes",
-          descricao: "LACTANTES, GESTANTES OU EM INíCIO DE GESTAí‡íƒO",
+          codigo: lactantes_gestantes,
+          descricao: LACTANTES, GESTANTES OU EM INáCIO DE GESTAá‡áƒO,
         },
         {
-          codigo: "nao_identificou_curso",
-          descricao: "NíƒO SE IDENTIFICOU COM O CURSO",
+          codigo: nao_identificou_curso,
+          descricao: NáƒO SE IDENTIFICOU COM O CURSO,
         },
         {
-          codigo: "dificuldades_acompanhamento",
-          descricao: "DIFICULDADES DE ACOMPANHAMENTO DO CURSO",
+          codigo: dificuldades_acompanhamento,
+          descricao: DIFICULDADES DE ACOMPANHAMENTO DO CURSO,
         },
         {
-          codigo: "curso_fora_ios",
-          descricao: "OPTOU POR UM CURSO FORA DO IOS",
+          codigo: curso_fora_ios,
+          descricao: OPTOU POR UM CURSO FORA DO IOS,
         },
         {
-          codigo: "sem_recursos_transporte",
-          descricao: "SEM RECURSOS FINANCEIROS PARA O TRANSPORTE",
+          codigo: sem_recursos_transporte,
+          descricao: SEM RECURSOS FINANCEIROS PARA O TRANSPORTE,
         },
         {
-          codigo: "mudou_endereco",
-          descricao: "MUDOU DE ENDEREí‡O",
+          codigo: mudou_endereco,
+          descricao: MUDOU DE ENDEREá‡O,
         },
         {
-          codigo: "cuidar_familiar",
-          descricao: "PRECISOU CUIDAR DA/O IRMíƒ/íƒO OU DE OUTRO FAMILIAR",
+          codigo: cuidar_familiar,
+          descricao: PRECISOU CUIDAR DA/O IRMáƒ/áƒO OU DE OUTRO FAMILIAR,
         },
         {
-          codigo: "servico_militar",
-          descricao: "CONVOCAí‡íƒO DO SERVIí‡O MILITAR",
+          codigo: servico_militar,
+          descricao: CONVOCAá‡áƒO DO SERVIá‡O MILITAR,
         },
-        { codigo: "outro", descricao: "OUTRO (PREENCHIMENTO PERSONALIZADO)" },
+        { codigo: outro, descricao: OUTRO (PREENCHIMENTO PERSONALIZADO) },
       ]);
     }
   };
 
   const fetchTurmas = async () => {
     try {
-      console.log("” Buscando turmas...");
+      console.log(” Buscando turmas...);
       const response = await axios.get(`${API}/classes`);
-      console.log("âœ… Turmas recebidas:", response.data.length, "turmas");
+      console.log(âœ… Turmas recebidas:, response.data.length, turmas);
       setTurmas(response.data);
     } catch (error) {
-      console.error("âŒ Erro ao buscar turmas:", error);
+      console.error(âŒ Erro ao buscar turmas:, error);
       toast({
-        title: "Erro ao carregar turmas",
-        description: "nío foi possí­vel carregar a lista de turmas",
-        variant: "destructive",
+        title: Erro ao carregar turmas,
+        description: náo foi possá­vel carregar a lista de turmas,
+        variant: destructive,
       });
     }
   };
@@ -5501,30 +5504,30 @@ const AlunosManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // âœ… VALIDAí‡íƒO: Campos obrigatí³rios
+    // âœ… VALIDAá‡áƒO: Campos obrigatá³rios
     if (!formData.nome.trim()) {
       toast({
-        title: "Campo obrigatí³rio",
-        description: "Nome completo í© obrigatí³rio",
-        variant: "destructive",
+        title: Campo obrigatá³rio,
+        description: Nome completo á© obrigatá³rio,
+        variant: destructive,
       });
       return;
     }
 
     if (!formData.cpf.trim()) {
       toast({
-        title: "Campo obrigatí³rio",
-        description: "CPF í© obrigatí³rio",
-        variant: "destructive",
+        title: Campo obrigatá³rio,
+        description: CPF á© obrigatá³rio,
+        variant: destructive,
       });
       return;
     }
 
     if (!formData.data_nascimento) {
       toast({
-        title: "Campo obrigatí³rio",
-        description: "Data de nascimento í© obrigatí³ria",
-        variant: "destructive",
+        title: Campo obrigatá³rio,
+        description: Data de nascimento á© obrigatá³ria,
+        variant: destructive,
       });
       return;
     }
@@ -5533,38 +5536,38 @@ const AlunosManager = () => {
       if (editingAluno) {
         await axios.put(`${API}/students/${editingAluno.id}`, formData);
         toast({
-          title: "Aluno atualizado com sucesso!",
-          description: "As informAções do aluno foram atualizadas.",
+          title: Aluno atualizado com sucesso!,
+          description: As informAções do aluno foram atualizadas.,
         });
       } else {
         const response = await axios.post(`${API}/students`, formData);
         const novoAlunoId = response.data.id;
 
-        // Se turma foi selecionada (e nío í© "sem_turma"), adicionar aluno í  turma
-        if (formData.turma_id && formData.turma_id !== "sem_turma") {
+        // Se turma foi selecionada (e náo á© sem_turma), adicionar aluno á  turma
+        if (formData.turma_id && formData.turma_id !== sem_turma) {
           try {
             await axios.put(
               `${API}/classes/${formData.turma_id}/students/${novoAlunoId}`
             );
             toast({
-              title: "Aluno criado e alocado com sucesso!",
+              title: Aluno criado e alocado com sucesso!,
               description:
-                "O aluno foi adicionado ao sistema e í  turma selecionada.",
+                O aluno foi adicionado ao sistema e á  turma selecionada.,
             });
           } catch (turmaError) {
-            console.error("Erro ao adicionar aluno í  turma:", turmaError);
+            console.error(Erro ao adicionar aluno á  turma:, turmaError);
             toast({
-              title: "Aluno criado, mas erro na alocaí§í£o",
+              title: Aluno criado, mas erro na alocaá§á£o,
               description:
-                "Aluno criado com sucesso, mas nío foi possí­vel adicioní¡-lo í  turma. Faí§a isso manualmente.",
-              variant: "destructive",
+                Aluno criado com sucesso, mas náo foi possá­vel adicioná¡-lo á  turma. Faá§a isso manualmente.,
+              variant: destructive,
             });
           }
         } else {
           toast({
-            title: "Aluno criado com sucesso!",
+            title: Aluno criado com sucesso!,
             description:
-              "O novo aluno foi adicionado ao sistema (sem turma especí­fica).",
+              O novo aluno foi adicionado ao sistema (sem turma especá­fica).,
           });
         }
       }
@@ -5575,28 +5578,28 @@ const AlunosManager = () => {
       fetchAlunos();
     } catch (error) {
       toast({
-        title: editingAluno ? "Erro ao atualizar aluno" : "Erro ao criar aluno",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: editingAluno ? Erro ao atualizar aluno : Erro ao criar aluno,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: "",
-      cpf: "",
-      idade: "",
-      rg: "",
-      data_nascimento: "",
-      genero: "",
-      telefone: "",
-      email: "",
-      endereco: "",
-      nome_responsavel: "",
-      telefone_responsavel: "",
-      observacoes: "",
-      turma_id: "", // âœ… Campo turma resetado
+      nome: ,
+      cpf: ,
+      idade: ,
+      rg: ,
+      data_nascimento: ,
+      genero: ,
+      telefone: ,
+      email: ,
+      endereco: ,
+      nome_responsavel: ,
+      telefone_responsavel: ,
+      observacoes: ,
+      turma_id: , // âœ… Campo turma resetado
     });
   };
 
@@ -5614,7 +5617,7 @@ const AlunosManager = () => {
       );
       setStudentJustifications(response.data);
     } catch (error) {
-      console.error("Erro ao carregar justificativas:", error);
+      console.error(Erro ao carregar justificativas:, error);
       setStudentJustifications([]);
     } finally {
       setLoadingJustifications(false);
@@ -5626,30 +5629,30 @@ const AlunosManager = () => {
       const response = await axios.get(
         `${API}/justifications/${justificationId}/file`,
         {
-          responseType: "blob",
+          responseType: blob,
         }
       );
 
       const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement(a);
       link.href = url;
-      link.download = filename || "documento";
+      link.download = filename || documento;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "Sucesso",
-        description: "Arquivo baixado com sucesso!",
+        title: Sucesso,
+        description: Arquivo baixado com sucesso!,
       });
     } catch (error) {
-      console.error("Erro ao baixar arquivo:", error);
+      console.error(Erro ao baixar arquivo:, error);
       toast({
-        title: "Erro",
-        description: "Erro ao baixar arquivo",
-        variant: "destructive",
+        title: Erro,
+        description: Erro ao baixar arquivo,
+        variant: destructive,
       });
     }
   };
@@ -5659,8 +5662,8 @@ const AlunosManager = () => {
       await axios.delete(`${API}/justifications/${justificationId}`);
 
       toast({
-        title: "Sucesso",
-        description: "Justificativa removida com sucesso!",
+        title: Sucesso,
+        description: Justificativa removida com sucesso!,
       });
 
       // Recarregar justificativas
@@ -5668,11 +5671,11 @@ const AlunosManager = () => {
         fetchStudentJustifications(viewingAluno.id);
       }
     } catch (error) {
-      console.error("Erro ao remover justificativa:", error);
+      console.error(Erro ao remover justificativa:, error);
       toast({
-        title: "Erro",
-        description: "Erro ao remover justificativa",
-        variant: "destructive",
+        title: Erro,
+        description: Erro ao remover justificativa,
+        variant: destructive,
       });
     }
   };
@@ -5682,16 +5685,16 @@ const AlunosManager = () => {
     setFormData({
       nome: aluno.nome,
       cpf: aluno.cpf,
-      idade: aluno.idade || "",
-      rg: aluno.rg || "",
-      data_nascimento: aluno.data_nascimento || "",
-      genero: aluno.genero || "",
-      telefone: aluno.telefone || "",
-      email: aluno.email || "",
-      endereco: aluno.endereco || "",
-      nome_responsavel: aluno.nome_responsavel || "",
-      telefone_responsavel: aluno.telefone_responsavel || "",
-      observacoes: aluno.observacoes || "",
+      idade: aluno.idade || ,
+      rg: aluno.rg || ,
+      data_nascimento: aluno.data_nascimento || ,
+      genero: aluno.genero || ,
+      telefone: aluno.telefone || ,
+      email: aluno.email || ,
+      endereco: aluno.endereco || ,
+      nome_responsavel: aluno.nome_responsavel || ,
+      telefone_responsavel: aluno.telefone_responsavel || ,
+      observacoes: aluno.observacoes || ,
     });
     setIsDialogOpen(true);
   };
@@ -5705,71 +5708,71 @@ const AlunosManager = () => {
   const handleMarkAsDropout = (aluno) => {
     setSelectedStudentDropout(aluno);
     setDropoutForm({
-      motivo_codigo: "",
-      motivo_personalizado: "",
-      observacoes: "",
+      motivo_codigo: ,
+      motivo_personalizado: ,
+      observacoes: ,
     });
     setIsDropoutDialogOpen(true);
   };
 
-  // “‹ Funí§í£o para justificar falta/anexar atestado fora da chamada
+  // “‹ Funá§á£o para justificar falta/anexar atestado fora da chamada
   const handleJustifyStudent = (aluno) => {
     setSelectedAlunoJustify(aluno);
     setJustifyForm({
-      reason_text: "",
-      observations: "",
+      reason_text: ,
+      observations: ,
       file: null,
     });
     setIsJustifyDialogOpen(true);
   };
 
-  // ”„ Funí§í£o para reativar aluno desistente (APENAS ADMIN)
+  // ”„ Funá§á£o para reativar aluno desistente (APENAS ADMIN)
   const handleReactivateStudent = async (aluno) => {
-    if (user?.tipo !== "admin") {
+    if (user?.tipo !== admin) {
       toast({
-        title: "Acesso negado",
-        description: "Apenas administradores podem reativar alunos.",
-        variant: "destructive",
+        title: Acesso negado,
+        description: Apenas administradores podem reativar alunos.,
+        variant: destructive,
       });
       return;
     }
 
-    // Confirmaí§í£o dupla para aí§í£o crí­tica
+    // Confirmaá§á£o dupla para aá§á£o crá­tica
     const confirmReactivation = window.confirm(
-      `”„ REATIVAí‡íƒO DE ALUNO\n\n` +
+      `”„ REATIVAá‡áƒO DE ALUNO\n\n` +
         `Aluno: ${aluno.nome}\n` +
         `Status atual: Desistente\n\n` +
-        `Esta aí§í£o irí¡:\n` +
-        `â€¢ Alterar status para "Ativo"\n` +
-        `â€¢ Remover registros de desistíªncia\n` +
-        `â€¢ Permitir nova matrí­cula em turmas\n\n` +
+        `Esta aá§á£o irá¡:\n` +
+        `â€¢ Alterar status para Ativo\n` +
+        `â€¢ Remover registros de desistáªncia\n` +
+        `â€¢ Permitir nova matrá­cula em turmas\n\n` +
         `Deseja continuar?`
     );
 
     if (!confirmReactivation) return;
 
     try {
-      console.log(`”„ Iniciando reativaí§í£o do aluno: ${aluno.nome}`);
+      console.log(`”„ Iniciando reativaá§á£o do aluno: ${aluno.nome}`);
 
       const response = await axios.post(
         `${API}/students/${aluno.id}/reactivate`
       );
 
       toast({
-        title: "âœ… Aluno reativado com sucesso",
+        title: âœ… Aluno reativado com sucesso,
         description: `${aluno.nome} foi reativado e pode ser matriculado novamente.`,
       });
 
-      console.log("âœ… Resposta da reativaí§í£o:", response.data);
+      console.log(âœ… Resposta da reativaá§á£o:, response.data);
 
       // Atualizar lista de alunos
       fetchAlunos();
     } catch (error) {
-      console.error("âŒ Erro na reativaí§í£o:", error);
+      console.error(âŒ Erro na reativaá§á£o:, error);
       toast({
-        title: "Erro ao reativar aluno",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao reativar aluno,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -5783,22 +5786,22 @@ const AlunosManager = () => {
   const submitDropout = async () => {
     if (!dropoutForm.motivo_codigo) {
       toast({
-        title: "Motivo obrigatí³rio",
-        description: "Por favor, selecione o motivo da desistíªncia.",
-        variant: "destructive",
+        title: Motivo obrigato,
+        description: Por favor, selecione o motivo da desistáªncia.,
+        variant: destructive,
       });
       return;
     }
 
-    // Validar motivo personalizado se for "outro"
+    // Validar motivo personalizado se for outro
     if (
-      dropoutForm.motivo_codigo === "outro" &&
+      dropoutForm.motivo_codigo === outro &&
       !dropoutForm.motivo_personalizado?.trim()
     ) {
       toast({
-        title: "Descrição obrigatí³ria",
-        description: "Para 'Outro motivo', descreva o motivo especí­fico.",
-        variant: "destructive",
+        title: Descrição obrigatá³ria,
+        description: Para 'Outro motivo', descreva o motivo especá­fico.,
+        variant: destructive,
       });
       return;
     }
@@ -5812,23 +5815,23 @@ const AlunosManager = () => {
         aluno_id: selectedStudentDropout.id,
         motivo_codigo: dropoutForm.motivo_codigo,
         motivo_descricao:
-          motivoSelecionado?.descricao || "Motivo nío especificado",
+          motivoSelecionado?.descricao || Motivo náo especificado,
         motivo_personalizado:
-          dropoutForm.motivo_codigo === "outro"
+          dropoutForm.motivo_codigo === outro
             ? dropoutForm.motivo_personalizado
             : null,
         observacoes: dropoutForm.observacoes || null,
-        data_desistencia: new Date().toISOString().split("T")[0],
+        data_desistencia: new Date().toISOString().split(T)[0],
       });
 
       // Atualizar status do aluno para desistente
       await axios.put(`${API}/students/${selectedStudentDropout.id}`, {
         ...selectedStudentDropout,
-        status: "desistente",
+        status: desistente,
       });
 
       toast({
-        title: "âœ… Desistíªncia registrada",
+        title: âœ… Desistáªncia registrada,
         description: `${selectedStudentDropout.nome} foi marcado como desistente.`,
       });
 
@@ -5836,16 +5839,16 @@ const AlunosManager = () => {
       setIsDropoutDialogOpen(false);
       setSelectedStudentDropout(null);
       setDropoutForm({
-        motivo_codigo: "",
-        motivo_personalizado: "",
-        observacoes: "",
+        motivo_codigo: ,
+        motivo_personalizado: ,
+        observacoes: ,
       });
     } catch (error) {
-      console.error("Error marking as dropout:", error);
+      console.error(Error marking as dropout:, error);
       toast({
-        title: "Erro ao registrar desistíªncia",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao registrar desistáªncia,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -5854,22 +5857,22 @@ const AlunosManager = () => {
   const submitJustification = async () => {
     if (!justifyForm.reason_text.trim()) {
       toast({
-        title: "Motivo obrigatí³rio",
-        description: "Por favor, descreva o motivo da justificativa.",
-        variant: "destructive",
+        title: Motivo obrigatá³rio,
+        description: Por favor, descreva o motivo da justificativa.,
+        variant: destructive,
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatí³rio
-      formData.append("reason_text", justifyForm.reason_text.trim());
+      formData.append(reason_code, CUSTOM); // âœ… Campo obrigatá³rio
+      formData.append(reason_text, justifyForm.reason_text.trim());
       if (justifyForm.observations.trim()) {
-        formData.append("observations", justifyForm.observations.trim());
+        formData.append(observations, justifyForm.observations.trim());
       }
       if (justifyForm.file) {
-        formData.append("file", justifyForm.file);
+        formData.append(file, justifyForm.file);
       }
 
       await axios.post(
@@ -5877,29 +5880,29 @@ const AlunosManager = () => {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            Content-Type: multipart/form-data,
           },
         }
       );
 
       toast({
-        title: "âœ… Justificativa registrada",
+        title: âœ… Justificativa registrada,
         description: `Justificativa de ${selectedAlunoJustify.nome} registrada com sucesso.`,
       });
 
       setIsJustifyDialogOpen(false);
       setJustifyForm({
-        reason_text: "",
-        observations: "",
+        reason_text: ,
+        observations: ,
         file: null,
       });
       setSelectedAlunoJustify(null);
     } catch (error) {
-      console.error("âŒ Erro na justificativa:", error);
+      console.error(âŒ Erro na justificativa:, error);
       toast({
-        title: "Erro ao registrar justificativa",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao registrar justificativa,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -5907,39 +5910,39 @@ const AlunosManager = () => {
   const submitAtestado = async () => {
     if (!selectedFile) {
       toast({
-        title: "Arquivo obrigatí³rio",
-        description: "Por favor, selecione um arquivo de atestado.",
-        variant: "destructive",
+        title: Arquivo obrigatá³rio,
+        description: Por favor, selecione um arquivo de atestado.,
+        variant: destructive,
       });
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("aluno_id", selectedAluno.id);
-      formData.append("tipo", "atestado_medico");
+      formData.append(file, selectedFile);
+      formData.append(aluno_id, selectedAluno.id);
+      formData.append(tipo, atestado_medico);
 
       await axios.post(`${API}/upload/atestado`, formData, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          Content-Type: multipart/form-data,
         },
       });
 
       toast({
-        title: "Atestado enviado",
-        description: `Atestado mí©dico de ${selectedAluno.nome} foi registrado.`,
+        title: Atestado enviado,
+        description: `Atestado má©dico de ${selectedAluno.nome} foi registrado.`,
       });
 
       setIsAtestadoDialogOpen(false);
       setSelectedAluno(null);
       setSelectedFile(null);
     } catch (error) {
-      console.error("Error uploading atestado:", error);
+      console.error(Error uploading atestado:, error);
       toast({
-        title: "Erro ao enviar atestado",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: Erro ao enviar atestado,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
@@ -5948,9 +5951,9 @@ const AlunosManager = () => {
   const handleBulkUpload = async () => {
     if (!bulkUploadFile) {
       toast({
-        title: "Arquivo obrigatí³rio",
-        description: "Por favor, selecione um arquivo CSV ou Excel",
-        variant: "destructive",
+        title: Arquivo obrigatá³rio,
+        description: Por favor, selecione um arquivo CSV ou Excel,
+        variant: destructive,
       });
       return;
     }
@@ -5959,31 +5962,31 @@ const AlunosManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("file", bulkUploadFile);
+      formData.append(file, bulkUploadFile);
 
-      // Construir parí¢metros
+      // Construir pará¢metros
       const params = new URLSearchParams();
-      if (updateExisting) params.append("update_existing", "true");
-      if (selectedTurmaForBulk && selectedTurmaForBulk !== "sem_turma_padrao") {
-        params.append("turma_id", selectedTurmaForBulk);
+      if (updateExisting) params.append(update_existing, true);
+      if (selectedTurmaForBulk && selectedTurmaForBulk !== sem_turma_padrao) {
+        params.append(turma_id, selectedTurmaForBulk);
       }
 
-      console.log("€ Iniciando bulk upload...");
-      console.log("“„ Arquivo:", bulkUploadFile.name);
-      console.log("”„ Atualizar existentes:", updateExisting);
-      console.log("Ž¯ Turma selecionada:", selectedTurmaForBulk);
+      console.log(€ Iniciando bulk upload...);
+      console.log(“„ Arquivo:, bulkUploadFile.name);
+      console.log(”„ Atualizar existentes:, updateExisting);
+      console.log(Ž¯ Turma selecionada:, selectedTurmaForBulk);
 
       const response = await axios.post(
         `${API}/students/bulk-upload?${params}`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { Content-Type: multipart/form-data },
           timeout: 300000, // 5 minutos para uploads grandes
         }
       );
 
       const result = response.data;
-      console.log("âœ… Upload concluí­do:", result);
+      console.log(âœ… Upload concluá­do:, result);
 
       // Mostrar resumo
       setBulkSummaryData(result);
@@ -5995,21 +5998,21 @@ const AlunosManager = () => {
       // Limpar campos
       setBulkUploadFile(null);
       setUpdateExisting(false);
-      setSelectedTurmaForBulk("");
+      setSelectedTurmaForBulk();
 
       // Recarregar alunos
       fetchAlunos();
 
       toast({
-        title: "âœ… Upload Concluí­do",
+        title: âœ… Upload Concluá­do,
         description: result.message,
       });
     } catch (error) {
-      console.error("âŒ Erro no bulk upload:", error);
+      console.error(âŒ Erro no bulk upload:, error);
       toast({
-        title: "âŒ Erro no Upload",
+        title: âŒ Erro no Upload,
         description: error.response?.data?.detail || error.message,
-        variant: "destructive",
+        variant: destructive,
       });
     } finally {
       setBulkUploading(false);
@@ -6018,18 +6021,18 @@ const AlunosManager = () => {
 
   const downloadErrorReport = (errors) => {
     const csvContent = [
-      "linha,erro,dados",
+      linha,erro,dados,
       ...errors.map(
         (error) =>
-          `${error.line},"${error.error}","${JSON.stringify(error.data || {})}"`
+          `${error.line},${error.error},${JSON.stringify(error.data || {})}`
       ),
-    ].join("\n");
+    ].join(\n);
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
+    const blob = new Blob([csvContent], { type: text/csv;charset=utf-8; });
+    const link = document.createElement(a);
     link.href = URL.createObjectURL(blob);
     link.download = `erros_bulk_upload_${
-      new Date().toISOString().split("T")[0]
+      new Date().toISOString().split(T)[0]
     }.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
@@ -6037,184 +6040,184 @@ const AlunosManager = () => {
 
   const downloadTemplate = () => {
     const templateContent = `nome_completo,cpf,data_nascimento,email,telefone,rg,genero,endereco
-Joí£o da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
+Joá£o da Silva,123.456.789-09,12/05/1990,joao@email.com,11999999999,12.345.678-9,M,Rua das Flores 123
 Maria Souza,987.654.321-00,22/03/1995,maria@email.com,11888888888,98.765.432-1,F,Av Paulista 456
 Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233-3,M,Rua Augusta 789`;
 
     const blob = new Blob([templateContent], {
-      type: "text/csv;charset=utf-8;",
+      type: text/csv;charset=utf-8;,
     });
-    const link = document.createElement("a");
+    const link = document.createElement(a);
     link.href = URL.createObjectURL(blob);
-    link.download = "modelo_alunos.csv";
+    link.download = modelo_alunos.csv;
     link.click();
     URL.revokeObjectURL(link.href);
   };
 
   const getStatusColor = (status) => {
     const colors = {
-      ativo: "default",
-      desistente: "destructive",
-      concluido: "secondary",
-      suspenso: "outline",
+      ativo: default,
+      desistente: destructive,
+      concluido: secondary,
+      suspenso: outline,
     };
-    return colors[status] || "default";
+    return colors[status] || default;
   };
 
   const getStatusLabel = (status) => {
     const labels = {
-      ativo: "Ativo",
-      desistente: "Desistente",
-      concluido: "Concluí­do",
-      suspenso: "Suspenso",
+      ativo: Ativo,
+      desistente: Desistente,
+      concluido: Concluá­do,
+      suspenso: Suspenso,
     };
     return labels[status] || status;
   };
 
-  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUá‡áƒO: Funá§á£o de debug removida
 
-  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUá‡áƒO: Funá§á£o de debug removida
 
-  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUá‡áƒO: Funá§á£o de debug removida
 
-  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUá‡áƒO: Funá§á£o de debug removida
 
   if (loading) return <div>Carregando...</div>;
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className=flex justify-between items-center>
           <div>
             <CardTitle>Gerenciamento de Alunos</CardTitle>
             <CardDescription>
-              {user?.tipo === "admin"
-                ? "Gerencie todos os alunos cadastrados no sistema"
+              {user?.tipo === admin
+                ? Gerencie todos os alunos cadastrados no sistema
                 : `Gerencie alunos das suas turmas (${
-                    user?.curso_nome || "seu curso"
+                    user?.curso_nome || seu curso
                   })`}
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className=flex gap-2>
             {/* € BULK UPLOAD BUTTON */}
-            {user?.tipo !== "monitor" && (
+            {user?.tipo !== monitor && (
               <Dialog
                 open={isBulkUploadOpen}
                 onOpenChange={setIsBulkUploadOpen}
               >
                 <DialogTrigger asChild>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    <Upload className="h-4 w-4 mr-2" />
+                  <Button className=bg-green-600 hover:bg-green-700>
+                    <Upload className=h-4 w-4 mr-2 />
                     Importar em Massa
                   </Button>
                 </DialogTrigger>
               </Dialog>
             )}
 
-            {/* Ž¯ PRODUí‡íƒO: Botões de teste removidos para usuí¡rios finais */}
+            {/* Ž¯ PRODUá‡áƒO: Botões de teste removidos para usuá¡rios finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
                   onClick={handleOpenDialog}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className=bg-blue-600 hover:bg-blue-700
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className=h-4 w-4 mr-2 />
                   Novo Aluno
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-                <DialogHeader className="flex-shrink-0">
+              <DialogContent className=max-w-2xl max-h-[90vh] flex flex-col>
+                <DialogHeader className=flex-shrink-0>
                   <DialogTitle>
-                    {editingAluno ? "Editar Aluno" : "Cadastrar Novo Aluno"}
+                    {editingAluno ? Editar Aluno : Cadastrar Novo Aluno}
                   </DialogTitle>
                   <DialogDescription>
                     {editingAluno
-                      ? "Atualize os dados do aluno"
-                      : "Preencha os dados para cadastrar um novo aluno"}
+                      ? Atualize os dados do aluno
+                      : Preencha os dados para cadastrar um novo aluno}
                   </DialogDescription>
                 </DialogHeader>
                 <form
                   onSubmit={handleSubmit}
-                  className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-                  style={{ scrollbarWidth: "thin" }}
+                  className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+                  style={{ scrollbarWidth: thin }}
                 >
-                  {/* Campos Obrigatí³rios - Destacados */}
-                  <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-3">
+                  {/* Campos Obrigatá³rios - Destacados */}
+                  <div className=border-2 border-blue-200 rounded-lg p-4 bg-blue-50>
+                    <h3 className=text-lg font-semibold text-blue-800 mb-3>
                       “‹ Cadastro do aluno
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
+                    <div className=grid grid-cols-1 md:grid-cols-3 gap-4>
+                      <div className=space-y-2>
                         <Label
-                          htmlFor="nome"
-                          className="text-blue-700 font-medium"
+                          htmlFor=nome
+                          className=text-blue-700 font-medium
                         >
                           Nome Completo *
                         </Label>
                         <Input
-                          id="nome"
+                          id=nome
                           value={formData.nome}
                           onChange={(e) =>
                             setFormData({ ...formData, nome: e.target.value })
                           }
-                          placeholder="Ex: Joí£o Silva Santos"
-                          className="border-blue-300 focus:border-blue-500"
+                          placeholder=Ex: Joá£o Silva Santos
+                          className=border-blue-300 focus:border-blue-500
                           required
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className=space-y-2>
                         <Label
-                          htmlFor="idade"
-                          className="text-blue-700 font-medium"
+                          htmlFor=idade
+                          className=text-blue-700 font-medium
                         >
                           Idade
                         </Label>
                         <Input
-                          id="idade"
-                          type="number"
+                          id=idade
+                          type=number
                           value={formData.idade}
                           onChange={(e) =>
                             setFormData({ ...formData, idade: e.target.value })
                           }
-                          placeholder="Ex: 25"
-                          min="1"
-                          max="120"
-                          className="border-blue-300 focus:border-blue-500"
+                          placeholder=Ex: 25
+                          min=1
+                          max=120
+                          className=border-blue-300 focus:border-blue-500
                           required
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className=space-y-2>
                         <Label
-                          htmlFor="cpf"
-                          className="text-blue-700 font-medium"
+                          htmlFor=cpf
+                          className=text-blue-700 font-medium
                         >
                           CPF *
                         </Label>
                         <Input
-                          id="cpf"
+                          id=cpf
                           value={formData.cpf}
                           onChange={(e) =>
                             setFormData({ ...formData, cpf: e.target.value })
                           }
-                          placeholder="000.000.000-00"
-                          className="border-blue-300 focus:border-blue-500"
+                          placeholder=000.000.000-00
+                          className=border-blue-300 focus:border-blue-500
                           required
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Campo Turma - Entre Obrigatí³rios e Complementares */}
-                  <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
-                    <h3 className="text-lg font-semibold text-green-800 mb-3">
-                      Ž¯ Alocaí§í£o em Turma
+                  {/* Campo Turma - Entre Obrigatá³rios e Complementares */}
+                  <div className=border-2 border-green-200 rounded-lg p-4 bg-green-50>
+                    <h3 className=text-lg font-semibold text-green-800 mb-3>
+                      Ž¯ Alocaá§á£o em Turma
                     </h3>
-                    <div className="space-y-2">
+                    <div className=space-y-2>
                       <Label
-                        htmlFor="turma_id"
-                        className="text-green-700 font-medium"
+                        htmlFor=turma_id
+                        className=text-green-700 font-medium
                       >
                         Turma (Opcional)
                       </Label>
@@ -6224,54 +6227,54 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           setFormData({ ...formData, turma_id: value })
                         }
                       >
-                        <SelectTrigger className="border-green-300 focus:border-green-500">
-                          <SelectValue placeholder="Selecione uma turma ou deixe em branco" />
+                        <SelectTrigger className=border-green-300 focus:border-green-500>
+                          <SelectValue placeholder=Selecione uma turma ou deixe em branco />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="sem_turma">
-                            Sem turma (nío alocado)
+                          <SelectItem value=sem_turma>
+                            Sem turma (náo alocado)
                           </SelectItem>
                           {turmas.map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
-                              {turma.nome} -{" "}
-                              {turma.curso_nome || "Curso nío informado"}
+                              {turma.nome} -{ }
+                              {turma.curso_nome || Curso náo informado}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <p className="text-xs text-green-600">
-                        ’¡ Vocíª pode deixar sem turma e alocar depois, ou
-                        selecionar uma turma especí­fica
+                      <p className=text-xs text-green-600>
+                        ’¡ Vocáª pode deixar sem turma e alocar depois, ou
+                        selecionar uma turma especá­fica
                       </p>
                     </div>
                   </div>
 
                   {/* Campos Complementares */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-700">
+                  <div className=space-y-4>
+                    <h3 className=text-lg font-semibold text-gray-700>
                       “„ InformAções Complementares
                     </h3>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="rg">RG</Label>
+                    <div className=grid grid-cols-3 gap-4>
+                      <div className=space-y-2>
+                        <Label htmlFor=rg>RG</Label>
                         <Input
-                          id="rg"
+                          id=rg
                           value={formData.rg}
                           onChange={(e) =>
                             setFormData({ ...formData, rg: e.target.value })
                           }
-                          placeholder="00.000.000-0"
+                          placeholder=00.000.000-0
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="data_nascimento">
+                      <div className=space-y-2>
+                        <Label htmlFor=data_nascimento>
                           Data de Nascimento *
                         </Label>
                         <Input
-                          id="data_nascimento"
-                          type="date"
+                          id=data_nascimento
+                          type=date
                           value={formData.data_nascimento}
                           onChange={(e) =>
                             setFormData({
@@ -6282,8 +6285,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>Gíªnero</Label>
+                      <div className=space-y-2>
+                        <Label>Gáªnero</Label>
                         <Select
                           value={formData.genero}
                           onValueChange={(value) =>
@@ -6291,25 +6294,25 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
+                            <SelectValue placeholder=Selecione />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="masculino">Masculino</SelectItem>
-                            <SelectItem value="feminino">Feminino</SelectItem>
-                            <SelectItem value="outro">Outro</SelectItem>
-                            <SelectItem value="nao_informado">
-                              nío informado
+                            <SelectItem value=masculino>Masculino</SelectItem>
+                            <SelectItem value=feminino>Feminino</SelectItem>
+                            <SelectItem value=outro>Outro</SelectItem>
+                            <SelectItem value=nao_informado>
+                              náo informado
                             </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="telefone">Telefone</Label>
+                    <div className=grid grid-cols-2 gap-4>
+                      <div className=space-y-2>
+                        <Label htmlFor=telefone>Telefone</Label>
                         <Input
-                          id="telefone"
+                          id=telefone
                           value={formData.telefone}
                           onChange={(e) =>
                             setFormData({
@@ -6317,43 +6320,43 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                               telefone: e.target.value,
                             })
                           }
-                          placeholder="(11) 99999-9999"
+                          placeholder=(11) 99999-9999
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                      <div className=space-y-2>
+                        <Label htmlFor=email>Email</Label>
                         <Input
-                          id="email"
-                          type="email"
+                          id=email
+                          type=email
                           value={formData.email}
                           onChange={(e) =>
                             setFormData({ ...formData, email: e.target.value })
                           }
-                          placeholder="aluno@email.com"
+                          placeholder=aluno@email.com
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="endereco">Endereço Completo</Label>
+                    <div className=space-y-2>
+                      <Label htmlFor=endereco>Endereço Completo</Label>
                       <Input
-                        id="endereco"
+                        id=endereco
                         value={formData.endereco}
                         onChange={(e) =>
                           setFormData({ ...formData, endereco: e.target.value })
                         }
-                        placeholder="Rua, níºmero, bairro, cidade, CEP"
+                        placeholder=Rua, náºmero, bairro, cidade, CEP
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="nome_responsavel">
-                          Nome do Responsí¡vel
+                    <div className=grid grid-cols-2 gap-4>
+                      <div className=space-y-2>
+                        <Label htmlFor=nome_responsavel>
+                          Nome do Responsá¡vel
                         </Label>
                         <Input
-                          id="nome_responsavel"
+                          id=nome_responsavel
                           value={formData.nome_responsavel}
                           onChange={(e) =>
                             setFormData({
@@ -6361,16 +6364,16 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                               nome_responsavel: e.target.value,
                             })
                           }
-                          placeholder="Para menores de idade"
+                          placeholder=Para menores de idade
                         />
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="telefone_responsavel">
-                          Telefone do Responsí¡vel
+                      <div className=space-y-2>
+                        <Label htmlFor=telefone_responsavel>
+                          Telefone do Responsá¡vel
                         </Label>
                         <Input
-                          id="telefone_responsavel"
+                          id=telefone_responsavel
                           value={formData.telefone_responsavel}
                           onChange={(e) =>
                             setFormData({
@@ -6378,15 +6381,15 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                               telefone_responsavel: e.target.value,
                             })
                           }
-                          placeholder="(11) 99999-9999"
+                          placeholder=(11) 99999-9999
                         />
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="observacoes">ObservAções</Label>
+                    <div className=space-y-2>
+                      <Label htmlFor=observacoes>ObservAções</Label>
                       <Textarea
-                        id="observacoes"
+                        id=observacoes
                         value={formData.observacoes}
                         onChange={(e) =>
                           setFormData({
@@ -6394,17 +6397,17 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                             observacoes: e.target.value,
                           })
                         }
-                        placeholder="ObservAções sobre o aluno..."
+                        placeholder=ObservAções sobre o aluno...
                       />
                     </div>
                   </div>
 
                   <Button
-                    type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    type=submit
+                    className=w-full bg-blue-600 hover:bg-blue-700
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {editingAluno ? "Atualizar Aluno" : "Cadastrar Aluno"}
+                    <Save className=h-4 w-4 mr-2 />
+                    {editingAluno ? Atualizar Aluno : Cadastrar Aluno}
                   </Button>
                 </form>
               </DialogContent>
@@ -6413,48 +6416,49 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardHeader>
 
-      {/* Card de Permissões para Usuí¡rios não-Admin */}
-      {user?.tipo !== "admin" && (
-        <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-center gap-2 text-orange-800">
-            <Info className="h-4 w-4" />
-            <span className="text-sm font-medium">Suas Permissões:</span>
+      {/* Card de Permissões para Usuá¡rios não-Admin */}
+      {user?.tipo !== admin && (
+        <div className=mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg>
+          <div className=flex items-center gap-2 text-orange-800>
+            <Info className=h-4 w-4 />
+            <span className=text-sm font-medium>Suas Permissões:</span>
           </div>
-          <div className="mt-2 text-sm text-orange-700">
+          <div className=mt-2 text-sm text-orange-700>
             <p>
-              â€¢ <strong>Tipo:</strong>{" "}
+              â€¢ <strong>Tipo:</strong>{ }
               {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}
             </p>
             <p>
-              â€¢ <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
+              â€¢ <strong>Unidade:</strong>{ }
+              {user?.unidade_nome || Sua unidade}
             </p>
             <p>
-              â€¢ <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
+              â€¢ <strong>Curso:</strong> {user?.curso_nome || Seu curso}
             </p>
             <p>
-              â€¢ <strong>Escopo:</strong>{" "}
-              {user?.tipo === "instrutor"
-                ? "Alunos do seu curso especí­fico"
-                : user?.tipo === "pedagogo"
-                ? "Todos os alunos da sua unidade"
-                : "Alunos das turmas que vocíª monitora"}
+              â€¢ <strong>Escopo:</strong>{ }
+              {user?.tipo === instrutor
+                ? Alunos do seu curso especá­fico
+                : user?.tipo === pedagogo
+                ? Todos os alunos da sua unidade
+                : Alunos das turmas que vocáª monitora}
             </p>
             <p>
-              â€¢ <strong>CSV:</strong>{" "}
-              {user?.tipo === "instrutor"
-                ? "Pode importar apenas do seu curso"
-                : user?.tipo === "pedagogo"
-                ? "Pode importar de qualquer curso da unidade"
-                : "nío pode importar (apenas visualizar)"}
+              â€¢ <strong>CSV:</strong>{ }
+              {user?.tipo === instrutor
+                ? Pode importar apenas do seu curso
+                : user?.tipo === pedagogo
+                ? Pode importar de qualquer curso da unidade
+                : náo pode importar (apenas visualizar)}
             </p>
-            {user?.tipo === "instrutor" && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                <p className="font-medium">’¡ Dicas para Instrutores:</p>
+            {user?.tipo === instrutor && (
+              <div className=mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700>
+                <p className=font-medium>’¡ Dicas para Instrutores:</p>
                 <p>
                   â€¢ Turmas inexistentes no CSV será£o criadas automaticamente
                 </p>
-                <p>â€¢ Alunos sem turma definida ficarí£o como "nío alocado"</p>
-                <p>â€¢ Vocíª pode gerenciar alunos entre suas turmas</p>
+                <p>â€¢ Alunos sem turma definida ficará£o como náo alocado</p>
+                <p>â€¢ Vocáª pode gerenciar alunos entre suas turmas</p>
               </div>
             )}
           </div>
@@ -6462,7 +6466,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
       )}
 
       <CardContent>
-        <div className="table-container">
+        <div className=table-container>
           <Table>
             <TableHeader>
               <TableRow>
@@ -6477,22 +6481,22 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             <TableBody>
               {alunos.map((aluno) => (
                 <TableRow key={aluno.id}>
-                  <TableCell className="font-medium">{aluno.nome}</TableCell>
+                  <TableCell className=font-medium>{aluno.nome}</TableCell>
                   <TableCell>{aluno.cpf}</TableCell>
-                  <TableCell className="text-center font-medium">
-                    {aluno.idade ? `${aluno.idade} anos` : "N/A"}
+                  <TableCell className=text-center font-medium>
+                    {aluno.idade ? `${aluno.idade} anos` : N/A}
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
+                    <div className=space-y-1>
                       {aluno.telefone && (
-                        <div className="flex items-center text-sm">
-                          <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                        <div className=flex items-center text-sm>
+                          <Phone className=h-3 w-3 mr-1 text-gray-400 />
                           {aluno.telefone}
                         </div>
                       )}
                       {aluno.email && (
-                        <div className="flex items-center text-sm">
-                          <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                        <div className=flex items-center text-sm>
+                          <Mail className=h-3 w-3 mr-1 text-gray-400 />
                           {aluno.email}
                         </div>
                       )}
@@ -6504,58 +6508,58 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
+                    <div className=flex space-x-2>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleViewAluno(aluno)}
-                        title="Visualizar detalhes"
+                        title=Visualizar detalhes
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className=h-4 w-4 />
                       </Button>
-                      {aluno.status !== "desistente" && (
+                      {aluno.status !== desistente && (
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() => handleEdit(aluno)}
-                          title="Editar aluno"
+                          title=Editar aluno
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className=h-4 w-4 />
                         </Button>
                       )}
-                      {aluno.status === "ativo" && (
+                      {aluno.status === ativo && (
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() => handleJustifyStudent(aluno)}
-                          title="Justificar falta / Anexar atestado"
-                          className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                          title=Justificar falta / Anexar atestado
+                          className=text-blue-600 border-blue-600 hover:bg-blue-50
                         >
-                          <FileText className="h-4 w-4" />
+                          <FileText className=h-4 w-4 />
                         </Button>
                       )}
-                      {aluno.status === "ativo" && (
+                      {aluno.status === ativo && (
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant=outline
+                          size=sm
                           onClick={() => handleMarkAsDropout(aluno)}
-                          title="Registrar desistíªncia"
-                          className="text-red-600 border-red-600 hover:bg-red-50"
+                          title=Registrar desistáªncia
+                          className=text-red-600 border-red-600 hover:bg-red-50
                         >
-                          <UserX className="h-4 w-4" />
+                          <UserX className=h-4 w-4 />
                         </Button>
                       )}
-                      {/* ”„ Botí£o de reativaí§í£o - APENAS ADMIN */}
-                      {user?.tipo === "admin" &&
-                        aluno.status === "desistente" && (
+                      {/* ”„ Botá£o de reativaá§á£o - APENAS ADMIN */}
+                      {user?.tipo === admin &&
+                        aluno.status === desistente && (
                           <Button
-                            variant="outline"
-                            size="sm"
+                            variant=outline
+                            size=sm
                             onClick={() => handleReactivateStudent(aluno)}
-                            title="Reativar aluno desistente"
-                            className="text-green-600 border-green-600 hover:bg-green-50"
+                            title=Reativar aluno desistente
+                            className=text-green-600 border-green-600 hover:bg-green-50
                           >
-                            <RefreshCw className="h-4 w-4" />
+                            <RefreshCw className=h-4 w-4 />
                           </Button>
                         )}
                     </div>
@@ -6569,19 +6573,19 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
       {/* ¿½ Dialog para justificar falta/anexar atestado */}
       <Dialog open={isJustifyDialogOpen} onOpenChange={setIsJustifyDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=max-w-md>
           <DialogHeader>
             <DialogTitle>Justificar Falta / Anexar Atestado</DialogTitle>
             <DialogDescription>
               Registrar justificativa para {selectedAlunoJustify?.nome}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=space-y-4>
             {/* Campo de motivo */}
             <div>
               <Label>Motivo da falta *</Label>
               <Textarea
-                placeholder="Descreva o motivo da falta (ex: consulta mí©dica, problema familiar, etc.)"
+                placeholder=Descreva o motivo da falta (ex: consulta má©dica, problema familiar, etc.)
                 value={justifyForm.reason_text}
                 onChange={(e) =>
                   setJustifyForm((prev) => ({
@@ -6589,10 +6593,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     reason_text: e.target.value,
                   }))
                 }
-                className="min-h-[80px]"
+                className=min-h-[80px]
               />
-              <p className="text-xs text-gray-500 mt-1">
-                ’¡ Seja especí­fico para facilitar o controle de frequíªncia
+              <p className=text-xs text-gray-500 mt-1>
+                ’¡ Seja especá­fico para facilitar o controle de frequáªncia
               </p>
             </div>
 
@@ -6600,7 +6604,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             <div>
               <Label>ObservAções</Label>
               <Textarea
-                placeholder="ObservAções adicionais sobre a falta (opcional)"
+                placeholder=ObservAções adicionais sobre a falta (opcional)
                 value={justifyForm.observations}
                 onChange={(e) =>
                   setJustifyForm((prev) => ({
@@ -6608,7 +6612,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     observations: e.target.value,
                   }))
                 }
-                className="min-h-[60px]"
+                className=min-h-[60px]
               />
             </div>
 
@@ -6616,8 +6620,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             <div>
               <Label>Documento (opcional)</Label>
               <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                type=file
+                accept=.pdf,.jpg,.jpeg,.png
                 onChange={(e) =>
                   setJustifyForm((prev) => ({
                     ...prev,
@@ -6625,40 +6629,40 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   }))
                 }
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (mí¡x. 5MB)
+              <p className=text-xs text-gray-500 mt-1>
+                Formatos aceitos: PDF, JPG, PNG (má¡x. 5MB)
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2 mt-6">
+          <div className=flex gap-2 mt-6>
             <Button
-              variant="outline"
+              variant=outline
               onClick={() => setIsJustifyDialogOpen(false)}
-              className="flex-1"
+              className=flex-1
             >
               Cancelar
             </Button>
-            <Button onClick={submitJustification} className="flex-1">
+            <Button onClick={submitJustification} className=flex-1>
               Registrar
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* ¿½ª Dialog para registrar desistíªncia - SISTEMA ESTRUTURADO */}
+      {/* ¿½ª Dialog para registrar desistáªncia - SISTEMA ESTRUTURADO */}
       <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=max-w-md>
           <DialogHeader>
-            <DialogTitle>Registrar Desistíªncia</DialogTitle>
+            <DialogTitle>Registrar Desistáªncia</DialogTitle>
             <DialogDescription>
-              Registrar a desistíªncia de {selectedStudentDropout?.nome}
+              Registrar a desistáªncia de {selectedStudentDropout?.nome}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=space-y-4>
             {/* Seletor de motivo estruturado */}
             <div>
-              <Label>Motivo da desistíªncia *</Label>
+              <Label>Motivo da desistáªncia *</Label>
               <Select
                 value={dropoutForm.motivo_codigo}
                 onValueChange={(value) =>
@@ -6666,7 +6670,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o motivo" />
+                  <SelectValue placeholder=Selecione o motivo />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.isArray(motivosDesistencia) &&
@@ -6679,8 +6683,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </Select>
             </div>
 
-            {/* Campo personalizado para motivo "outro" */}
-            {dropoutForm.motivo_codigo === "outro" && (
+            {/* Campo personalizado para motivo outro */}
+            {dropoutForm.motivo_codigo === outro && (
               <div>
                 <Label>Especifique o motivo *</Label>
                 <Textarea
@@ -6691,7 +6695,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       motivo_personalizado: e.target.value,
                     }))
                   }
-                  placeholder="Descreva o motivo especí­fico da desistíªncia..."
+                  placeholder=Descreva o motivo especá­fico da desistáªncia...
                   rows={3}
                 />
               </div>
@@ -6708,22 +6712,22 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     observacoes: e.target.value,
                   }))
                 }
-                placeholder="InformAções adicionais sobre a desistíªncia..."
+                placeholder=InformAções adicionais sobre a desistáªncia...
                 rows={2}
               />
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className=flex justify-end space-x-2>
               <Button
-                variant="outline"
+                variant=outline
                 onClick={() => setIsDropoutDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={submitDropout}
-                className="bg-red-600 hover:bg-red-700"
+                className=bg-red-600 hover:bg-red-700
               >
-                Registrar Desistíªncia
+                Registrar Desistáªncia
               </Button>
             </div>
           </div>
@@ -6737,35 +6741,35 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Upload Atestado Mí©dico</DialogTitle>
+            <DialogTitle>Upload Atestado Má©dico</DialogTitle>
             <DialogDescription>
-              Enviar atestado mí©dico para {selectedAluno?.nome}
+              Enviar atestado má©dico para {selectedAluno?.nome}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className=space-y-4>
             <div>
               <Label>Arquivo do atestado *</Label>
               <Input
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
+                type=file
+                accept=.pdf,.jpg,.jpeg,.png
                 onChange={(e) => setSelectedFile(e.target.files[0])}
               />
-              <p className="text-sm text-gray-500 mt-1">
-                Formatos aceitos: PDF, JPG, PNG (mí¡x. 5MB)
+              <p className=text-sm text-gray-500 mt-1>
+                Formatos aceitos: PDF, JPG, PNG (má¡x. 5MB)
               </p>
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className=flex justify-end space-x-2>
               <Button
-                variant="outline"
+                variant=outline
                 onClick={() => setIsAtestadoDialogOpen(false)}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={submitAtestado}
-                className="bg-green-600 hover:bg-green-700"
+                className=bg-green-600 hover:bg-green-700
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className=h-4 w-4 mr-2 />
                 Enviar Atestado
               </Button>
             </div>
@@ -6775,34 +6779,34 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
       {/* € BULK UPLOAD DIALOG */}
       <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent className=max-w-3xl max-h-[90vh] flex flex-col>
+          <DialogHeader className=flex-shrink-0>
             <DialogTitle>
-              <Upload className="h-5 w-5 mr-2 inline" />
-              Importaí§í£o em Massa de Alunos
+              <Upload className=h-5 w-5 mr-2 inline />
+              Importaá§á£o em Massa de Alunos
             </DialogTitle>
             <DialogDescription>
-              Importe míºltiplos alunos usando arquivo CSV.
-              {user?.tipo === "admin"
-                ? " Vocíª pode importar para qualquer curso."
-                : ` Vocíª pode importar apenas para ${
-                    user?.curso_nome || "seu curso"
+              Importe máºltiplos alunos usando arquivo CSV.
+              {user?.tipo === admin
+                ?  Vocáª pode importar para qualquer curso.
+                : ` Vocáª pode importar apenas para ${
+                    user?.curso_nome || seu curso
                   }.`}
             </DialogDescription>
           </DialogHeader>
 
           <div
-            className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
-            style={{ scrollbarWidth: "thin" }}
+            className=space-y-6 flex-1 overflow-y-scroll max-h-[60vh]
+            style={{ scrollbarWidth: thin }}
           >
-            {/* “‹ INSTRUí‡í•ES */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">
+            {/* “‹ INSTRUá‡á•ES */}
+            <div className=bg-blue-50 border border-blue-200 rounded-lg p-4>
+              <h3 className=font-semibold text-blue-800 mb-2>
                 “‹ Formato do CSV
               </h3>
-              <div className="text-sm text-blue-700 space-y-1">
+              <div className=text-sm text-blue-700 space-y-1>
                 <p>
-                  <strong>Campos obrigatí³rios:</strong> nome_completo, cpf,
+                  <strong>Campos obrigatá³rios:</strong> nome_completo, cpf,
                   data_nascimento
                 </p>
                 <p>
@@ -6813,83 +6817,83 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   <strong>Formato data:</strong> DD/MM/AAAA (ex: 15/03/1990)
                 </p>
                 <p>
-                  <strong>Formato CPF:</strong> Com ou sem pontuaí§í£o (ex:
+                  <strong>Formato CPF:</strong> Com ou sem pontuaá§á£o (ex:
                   123.456.789-09 ou 12345678909)
                 </p>
               </div>
             </div>
 
-            {/* Ž¯ SELEí‡íƒO DE ARQUIVO */}
-            <div className="space-y-4">
+            {/* Ž¯ SELEá‡áƒO DE ARQUIVO */}
+            <div className=space-y-4>
               <div>
-                <Label className="text-lg font-medium">
+                <Label className=text-lg font-medium>
                   1. Selecione o arquivo CSV
                 </Label>
-                <div className="mt-2">
+                <div className=mt-2>
                   <Input
-                    type="file"
-                    accept=".csv"
+                    type=file
+                    accept=.csv
                     onChange={(e) => setBulkUploadFile(e.target.files[0])}
-                    className="border-2 border-dashed border-gray-300 p-4"
+                    className=border-2 border-dashed border-gray-300 p-4
                   />
                   {bulkUploadFile && (
-                    <p className="text-sm text-green-600 mt-2">
+                    <p className=text-sm text-green-600 mt-2>
                       âœ… Arquivo selecionado: {bulkUploadFile.name}
                     </p>
                   )}
                 </div>
               </div>
 
-              {/* Ž¯ OPí‡í•ES DE IMPORTAí‡íƒO */}
-              <div className="space-y-3">
-                <Label className="text-lg font-medium">
-                  2. Opí§íµes de Importaí§í£o
+              {/* Ž¯ OPá‡á•ES DE IMPORTAá‡áƒO */}
+              <div className=space-y-3>
+                <Label className=text-lg font-medium>
+                  2. Opá§áµes de Importaá§á£o
                 </Label>
 
                 {/* Atualizar existentes */}
-                <div className="flex items-center space-x-2">
+                <div className=flex items-center space-x-2>
                   <input
-                    type="checkbox"
-                    id="updateExisting"
+                    type=checkbox
+                    id=updateExisting
                     checked={updateExisting}
                     onChange={(e) => setUpdateExisting(e.target.checked)}
-                    className="rounded"
+                    className=rounded
                   />
-                  <label htmlFor="updateExisting" className="text-sm">
+                  <label htmlFor=updateExisting className=text-sm>
                     Atualizar alunos existentes (baseado no CPF)
                   </label>
                 </div>
 
-                {/* Seleí§í£o de turma padrí£o */}
-                {user?.tipo !== "monitor" && (
-                  <div className="space-y-2">
-                    <Label>Turma padrí£o (opcional)</Label>
+                {/* Seleá§á£o de turma padrá£o */}
+                {user?.tipo !== monitor && (
+                  <div className=space-y-2>
+                    <Label>Turma padrá£o (opcional)</Label>
                     <Select
                       value={selectedTurmaForBulk}
                       onValueChange={setSelectedTurmaForBulk}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma turma padrí£o ou deixe em branco" />
+                        <SelectValue placeholder=Selecione uma turma padrá£o ou deixe em branco />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sem_turma_padrao">
-                          Sem turma padrí£o
+                        <SelectItem value=sem_turma_padrao>
+                          Sem turma padrá£o
                         </SelectItem>
                         {turmas
                           .filter(
                             (turma) =>
-                              user?.tipo === "admin" ||
+                              user?.tipo === admin ||
                               turma.curso_id === user?.curso_id
                           )
                           .map((turma) => (
                             <SelectItem key={turma.id} value={turma.id}>
-                              {turma.nome} -{" "}
-                              {turma.curso_nome || "Curso nío informado"}
+                              {turma.nome} -{ }
+                              {turma.curso_nome || Curso náo informado}
                             </SelectItem>
                           ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-gray-500">
+                    <p className=text-xs text-gray-500>
                       ’¡ Alunos sem turma especificada no CSV será£o alocados
                       nesta turma
                     </p>
@@ -6898,22 +6902,22 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </div>
             </div>
 
-            {/* Ž¯ Aí‡í•ES */}
-            <div className="flex justify-between">
-              <div className="space-x-2">
+            {/* Ž¯ Aá‡á•ES */}
+            <div className=flex justify-between>
+              <div className=space-x-2>
                 <Button
-                  variant="outline"
+                  variant=outline
                   onClick={downloadTemplate}
-                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  className=text-green-600 border-green-600 hover:bg-green-50
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className=h-4 w-4 mr-2 />
                   Baixar Modelo CSV
                 </Button>
               </div>
 
-              <div className="space-x-2">
+              <div className=space-x-2>
                 <Button
-                  variant="outline"
+                  variant=outline
                   onClick={() => setIsBulkUploadOpen(false)}
                 >
                   Cancelar
@@ -6921,16 +6925,16 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 <Button
                   onClick={handleBulkUpload}
                   disabled={!bulkUploadFile || bulkUploading}
-                  className="bg-green-600 hover:bg-green-700"
+                  className=bg-green-600 hover:bg-green-700
                 >
                   {bulkUploading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className=animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2></div>
                       Processando...
                     </>
                   ) : (
                     <>
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className=h-4 w-4 mr-2 />
                       Importar Alunos
                     </>
                   )}
@@ -6943,9 +6947,9 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
       {/* “Š BULK UPLOAD SUMMARY DIALOG */}
       <Dialog open={showBulkSummary} onOpenChange={setShowBulkSummary}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle>“Š Resultado da Importaí§í£o em Massa</DialogTitle>
+        <DialogContent className=max-w-4xl max-h-[90vh] flex flex-col>
+          <DialogHeader className=flex-shrink-0>
+            <DialogTitle>“Š Resultado da Importaá§á£o em Massa</DialogTitle>
             <DialogDescription>
               Resumo detalhado do processamento do arquivo CSV
             </DialogDescription>
@@ -6953,34 +6957,34 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
           {bulkSummaryData && (
             <div
-              className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
-              style={{ scrollbarWidth: "thin" }}
+              className=space-y-6 flex-1 overflow-y-scroll max-h-[60vh]
+              style={{ scrollbarWidth: thin }}
             >
-              {/* “ˆ Mí‰TRICAS GERAIS */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-700">
+              {/* “ˆ Má‰TRICAS GERAIS */}
+              <div className=grid grid-cols-2 md:grid-cols-4 gap-4>
+                <div className=bg-green-50 border border-green-200 rounded-lg p-4 text-center>
+                  <div className=text-2xl font-bold text-green-700>
                     {bulkSummaryData.resumo?.sucessos || 0}
                   </div>
-                  <div className="text-sm text-green-600">âœ… Sucessos</div>
+                  <div className=text-sm text-green-600>âœ… Sucessos</div>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-red-700">
+                <div className=bg-red-50 border border-red-200 rounded-lg p-4 text-center>
+                  <div className=text-2xl font-bold text-red-700>
                     {bulkSummaryData.resumo?.erros || 0}
                   </div>
-                  <div className="text-sm text-red-600">âŒ Erros</div>
+                  <div className=text-sm text-red-600>âŒ Erros</div>
                 </div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-yellow-700">
+                <div className=bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center>
+                  <div className=text-2xl font-bold text-yellow-700>
                     {bulkSummaryData.resumo?.duplicados || 0}
                   </div>
-                  <div className="text-sm text-yellow-600">”„ Duplicados</div>
+                  <div className=text-sm text-yellow-600>”„ Duplicados</div>
                 </div>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-700">
+                <div className=bg-blue-50 border border-blue-200 rounded-lg p-4 text-center>
+                  <div className=text-2xl font-bold text-blue-700>
                     {bulkSummaryData.resumo?.total || 0}
                   </div>
-                  <div className="text-sm text-blue-600">“‹ Total</div>
+                  <div className=text-sm text-blue-600>“‹ Total</div>
                 </div>
               </div>
 
@@ -6988,10 +6992,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               {bulkSummaryData.detalhes &&
                 bulkSummaryData.detalhes.length > 0 && (
                   <div>
-                    <h3 className="font-semibold mb-3">
+                    <h3 className=font-semibold mb-3>
                       “ Detalhes do Processamento
                     </h3>
-                    <div className="max-h-40 overflow-y-auto border rounded-lg">
+                    <div className=max-h-40 overflow-y-auto border rounded-lg>
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -7005,21 +7009,21 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           {bulkSummaryData.detalhes.map((item, index) => (
                             <TableRow key={index}>
                               <TableCell>{item.linha}</TableCell>
-                              <TableCell>{item.nome || "N/A"}</TableCell>
+                              <TableCell>{item.nome || N/A}</TableCell>
                               <TableCell>
                                 <Badge
                                   variant={
-                                    item.status === "sucesso"
-                                      ? "default"
-                                      : "destructive"
+                                    item.status === sucesso
+                                      ? default
+                                      : destructive
                                   }
                                 >
-                                  {item.status === "sucesso"
-                                    ? "âœ… Sucesso"
-                                    : "âŒ Erro"}
+                                  {item.status === sucesso
+                                    ? âœ… Sucesso
+                                    : âŒ Erro}
                                 </Badge>
                               </TableCell>
-                              <TableCell className="max-w-xs truncate">
+                              <TableCell className=max-w-xs truncate>
                                 {item.mensagem}
                               </TableCell>
                             </TableRow>
@@ -7033,30 +7037,30 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               {/* âš ¸ ERROS */}
               {bulkSummaryData.erros && bulkSummaryData.erros.length > 0 && (
                 <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-semibold text-red-700">
+                  <div className=flex justify-between items-center mb-3>
+                    <h3 className=font-semibold text-red-700>
                       âš ¸ Erros Encontrados
                     </h3>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant=outline
+                      size=sm
                       onClick={() => downloadErrorReport(bulkSummaryData.erros)}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
+                      className=text-red-600 border-red-600 hover:bg-red-50
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar Relatí³rio de Erros
+                      <Download className=h-4 w-4 mr-2 />
+                      Baixar Relatá³rio de Erros
                     </Button>
                   </div>
-                  <div className="max-h-32 overflow-y-auto bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className=max-h-32 overflow-y-auto bg-red-50 border border-red-200 rounded-lg p-3>
                     {bulkSummaryData.erros.slice(0, 5).map((erro, index) => (
-                      <div key={index} className="text-sm text-red-700 mb-1">
+                      <div key={index} className=text-sm text-red-700 mb-1>
                         <strong>Linha {erro.linha}:</strong> {erro.erro}
                       </div>
                     ))}
                     {bulkSummaryData.erros.length > 5 && (
-                      <div className="text-sm text-red-600 italic">
+                      <div className=text-sm text-red-600 italic>
                         ... e mais {bulkSummaryData.erros.length - 5} erros.
-                        Baixe o relatí³rio completo.
+                        Baixe o relatá³rio completo.
                       </div>
                     )}
                   </div>
@@ -7067,24 +7071,24 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               {bulkSummaryData.sucessos &&
                 bulkSummaryData.sucessos.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-green-700 mb-3">
+                    <h3 className=font-semibold text-green-700 mb-3>
                       âœ… Alunos Importados com Sucesso
                     </h3>
-                    <div className="max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className=max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3>
                       {bulkSummaryData.sucessos
                         .slice(0, 10)
                         .map((sucesso, index) => (
                           <div
                             key={index}
-                            className="text-sm text-green-700 mb-1"
+                            className=text-sm text-green-700 mb-1
                           >
                             <strong>{sucesso.nome}</strong> - CPF: {sucesso.cpf}
                             {sucesso.turma && ` â†’ Turma: ${sucesso.turma}`}
                           </div>
                         ))}
                       {bulkSummaryData.sucessos.length > 10 && (
-                        <div className="text-sm text-green-600 italic">
-                          ... e mais {bulkSummaryData.sucessos.length - 10}{" "}
+                        <div className=text-sm text-green-600 italic>
+                          ... e mais {bulkSummaryData.sucessos.length - 10}{ }
                           alunos importados.
                         </div>
                       )}
@@ -7094,8 +7098,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </div>
           )}
 
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="outline" onClick={() => setShowBulkSummary(false)}>
+          <div className=flex justify-end space-x-2 mt-4>
+            <Button variant=outline onClick={() => setShowBulkSummary(false)}>
               Fechar
             </Button>
             <Button
@@ -7103,24 +7107,24 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 setShowBulkSummary(false);
                 fetchAlunos(); // Recarregar lista de alunos
               }}
-              className="bg-blue-600 hover:bg-blue-700"
+              className=bg-blue-600 hover:bg-blue-700
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className=h-4 w-4 mr-2 />
               Atualizar Lista
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de visualizaí§í£o detalhada do aluno */}
+      {/* Dialog de visualizaá§á£o detalhada do aluno */}
       <Dialog
         open={isViewAlunoDialogOpen}
         onOpenChange={setIsViewAlunoDialogOpen}
       >
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="flex items-center">
-              <Users className="h-5 w-5 mr-2" />
+        <DialogContent className=max-w-4xl max-h-[90vh] flex flex-col>
+          <DialogHeader className=flex-shrink-0>
+            <DialogTitle className=flex items-center>
+              <Users className=h-5 w-5 mr-2 />
               Perfil Completo - {viewingAluno?.nome}
             </DialogTitle>
             <DialogDescription>
@@ -7130,61 +7134,61 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
 
           {viewingAluno && (
             <div
-              className="flex-1 overflow-y-scroll max-h-[70vh]"
-              style={{ scrollbarWidth: "thin" }}
+              className=flex-1 overflow-y-scroll max-h-[70vh]
+              style={{ scrollbarWidth: thin }}
             >
-              <Tabs defaultValue="dados" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="dados">Dados Pessoais</TabsTrigger>
-                  <TabsTrigger value="justificativas">
+              <Tabs defaultValue=dados className=w-full>
+                <TabsList className=grid w-full grid-cols-2>
+                  <TabsTrigger value=dados>Dados Pessoais</TabsTrigger>
+                  <TabsTrigger value=justificativas>
                     Justificativas ({studentJustifications.length})
                   </TabsTrigger>
                 </TabsList>
 
                 {/* Aba de Dados Pessoais */}
-                <TabsContent value="dados" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Dados Obrigatí³rios */}
+                <TabsContent value=dados className=space-y-4 mt-4>
+                  <div className=grid grid-cols-1 md:grid-cols-2 gap-6>
+                    {/* Dados Obrigatá³rios */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg flex items-center">
-                          <UserCheck className="h-5 w-5 mr-2" />
-                          Dados Obrigatí³rios
+                        <CardTitle className=text-lg flex items-center>
+                          <UserCheck className=h-5 w-5 mr-2 />
+                          Dados Obrigatá³rios
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className=space-y-3>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Nome Completo
                           </Label>
-                          <p className="text-base font-medium">
+                          <p className=text-base font-medium>
                             {viewingAluno.nome}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             CPF
                           </Label>
-                          <p className="text-base font-mono">
+                          <p className=text-base font-mono>
                             {viewingAluno.cpf}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Idade
                           </Label>
-                          <p className="text-base">
+                          <p className=text-base>
                             {viewingAluno.idade
                               ? `${viewingAluno.idade} anos`
-                              : "N/A"}
+                              : N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Data de Nascimento
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.data_nascimento || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.data_nascimento || N/A}
                           </p>
                         </div>
                       </CardContent>
@@ -7193,70 +7197,70 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     {/* Dados Complementares */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg flex items-center">
-                          <BookOpen className="h-5 w-5 mr-2" />
+                        <CardTitle className=text-lg flex items-center>
+                          <BookOpen className=h-5 w-5 mr-2 />
                           Dados Complementares
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className=space-y-3>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             RG
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.rg || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.rg || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            Gíªnero
+                          <Label className=text-sm font-medium text-gray-600>
+                            Gáªnero
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.genero || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.genero || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Telefone
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.telefone || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.telefone || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Email
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.email || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.email || N/A}
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
-                    {/* Dados do Responsí¡vel */}
+                    {/* Dados do Responsá¡vel */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg flex items-center">
-                          <Users className="h-5 w-5 mr-2" />
-                          Dados do Responsí¡vel
+                        <CardTitle className=text-lg flex items-center>
+                          <Users className=h-5 w-5 mr-2 />
+                          Dados do Responsá¡vel
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className=space-y-3>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            Nome do Responsí¡vel
+                          <Label className=text-sm font-medium text-gray-600>
+                            Nome do Responsá¡vel
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.nome_responsavel || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.nome_responsavel || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
-                            Telefone do Responsí¡vel
+                          <Label className=text-sm font-medium text-gray-600>
+                            Telefone do Responsá¡vel
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.telefone_responsavel || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.telefone_responsavel || N/A}
                           </p>
                         </div>
                       </CardContent>
@@ -7265,30 +7269,30 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     {/* Endereço e ObservAções */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg flex items-center">
-                          <Building2 className="h-5 w-5 mr-2" />
+                        <CardTitle className=text-lg flex items-center>
+                          <Building2 className=h-5 w-5 mr-2 />
                           Outras InformAções
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className=space-y-3>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Endereço
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.endereco || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.endereco || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             ObservAções
                           </Label>
-                          <p className="text-base">
-                            {viewingAluno.observacoes || "N/A"}
+                          <p className=text-base>
+                            {viewingAluno.observacoes || N/A}
                           </p>
                         </div>
                         <div>
-                          <Label className="text-sm font-medium text-gray-600">
+                          <Label className=text-sm font-medium text-gray-600>
                             Status
                           </Label>
                           <Badge variant={getStatusColor(viewingAluno.status)}>
@@ -7301,12 +7305,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 </TabsContent>
 
                 {/* Aba de Justificativas */}
-                <TabsContent value="justificativas" className="space-y-4 mt-4">
+                <TabsContent value=justificativas className=space-y-4 mt-4>
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <FileText className="h-5 w-5 mr-2" />
-                        Histí³rico de Justificativas
+                      <CardTitle className=flex items-center>
+                        <FileText className=h-5 w-5 mr-2 />
+                        Histá³rico de Justificativas
                       </CardTitle>
                       <CardDescription>
                         Justificativas de faltas registradas para este aluno
@@ -7314,61 +7318,61 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                     </CardHeader>
                     <CardContent>
                       {loadingJustifications ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                          <p className="text-sm text-gray-500 mt-2">
+                        <div className=text-center py-8>
+                          <div className=animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto></div>
+                          <p className=text-sm text-gray-500 mt-2>
                             Carregando justificativas...
                           </p>
                         </div>
                       ) : studentJustifications.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                          <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <div className=text-center py-8 text-gray-500>
+                          <FileText className=h-12 w-12 mx-auto mb-4 text-gray-300 />
                           <p>Nenhuma justificativa registrada</p>
-                          <p className="text-sm">
-                            Este aluno nío possui justificativas de faltas
+                          <p className=text-sm>
+                            Este aluno náo possui justificativas de faltas
                           </p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className=space-y-4>
                           {studentJustifications.map((justification) => (
                             <Card
                               key={justification.id}
-                              className="border-l-4 border-l-blue-500"
+                              className=border-l-4 border-l-blue-500
                             >
-                              <CardContent className="pt-4">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <Badge variant="outline">
+                              <CardContent className=pt-4>
+                                <div className=flex justify-between items-start>
+                                  <div className=flex-1>
+                                    <div className=flex items-center space-x-2 mb-2>
+                                      <Badge variant=outline>
                                         {justification.reason_label}
                                       </Badge>
-                                      <span className="text-sm text-gray-500">
+                                      <span className=text-sm text-gray-500>
                                         {new Date(
                                           justification.created_at
-                                        ).toLocaleDateString("pt-BR")}
+                                        ).toLocaleDateString(pt-BR)}
                                       </span>
                                     </div>
 
                                     {justification.observations && (
-                                      <div className="mb-3">
-                                        <Label className="text-sm font-medium text-gray-600">
+                                      <div className=mb-3>
+                                        <Label className=text-sm font-medium text-gray-600>
                                           ObservAções:
                                         </Label>
-                                        <p className="text-sm bg-gray-50 p-2 rounded border">
+                                        <p className=text-sm bg-gray-50 p-2 rounded border>
                                           {justification.observations}
                                         </p>
                                       </div>
                                     )}
 
                                     {justification.attendance_id && (
-                                      <div className="text-xs text-gray-500">
-                                        Vinculada í  chamada:{" "}
+                                      <div className=text-xs text-gray-500>
+                                        Vinculada á  chamada:{ }
                                         {justification.attendance_id}
                                       </div>
                                     )}
                                   </div>
 
-                                  <div className="flex space-x-2 ml-4">
+                                  <div className=flex space-x-2 ml-4>
                                     {justification.has_file && (
                                       <Button
                                         onClick={() =>
@@ -7377,11 +7381,11 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                                             justification.filename
                                           )
                                         }
-                                        variant="outline"
-                                        size="sm"
-                                        title="Baixar documento"
+                                        variant=outline
+                                        size=sm
+                                        title=Baixar documento
                                       >
-                                        <Download className="h-4 w-4" />
+                                        <Download className=h-4 w-4 />
                                       </Button>
                                     )}
 
@@ -7389,12 +7393,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                                       onClick={() =>
                                         deleteJustification(justification.id)
                                       }
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-red-600 border-red-600 hover:bg-red-50"
-                                      title="Remover justificativa"
+                                      variant=outline
+                                      size=sm
+                                      className=text-red-600 border-red-600 hover:bg-red-50
+                                      title=Remover justificativa
                                     >
-                                      <Trash2 className="h-4 w-4" />
+                                      <Trash2 className=h-4 w-4 />
                                     </Button>
                                   </div>
                                 </div>
@@ -7410,9 +7414,9 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </div>
           )}
 
-          <div className="flex justify-end pt-4 flex-shrink-0">
+          <div className=flex justify-end pt-4 flex-shrink-0>
             <Button
-              variant="outline"
+              variant=outline
               onClick={() => setIsViewAlunoDialogOpen(false)}
             >
               Fechar
@@ -7431,11 +7435,11 @@ const UnidadesManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUnidade, setEditingUnidade] = useState(null);
   const [formData, setFormData] = useState({
-    nome: "",
-    endereco: "",
-    telefone: "",
-    responsavel: "",
-    email: "",
+    nome: ,
+    endereco: ,
+    telefone: ,
+    responsavel: ,
+    email: ,
   });
   const { toast } = useToast();
 
@@ -7448,7 +7452,7 @@ const UnidadesManager = () => {
       const response = await axios.get(`${API}/units`);
       setUnidades(response.data);
     } catch (error) {
-      console.error("Error fetching unidades:", error);
+      console.error(Error fetching unidades:, error);
     } finally {
       setLoading(false);
     }
@@ -7460,14 +7464,14 @@ const UnidadesManager = () => {
       if (editingUnidade) {
         await axios.put(`${API}/units/${editingUnidade.id}`, formData);
         toast({
-          title: "Unidade atualizada com sucesso!",
-          description: "As informAções da unidade foram atualizadas.",
+          title: Unidade atualizada com sucesso!,
+          description: As informAções da unidade foram atualizadas.,
         });
       } else {
         await axios.post(`${API}/units`, formData);
         toast({
-          title: "Unidade criada com sucesso!",
-          description: "A nova unidade foi adicionada ao sistema.",
+          title: Unidade criada com sucesso!,
+          description: A nova unidade foi adicionada ao sistema.,
         });
       }
 
@@ -7478,21 +7482,21 @@ const UnidadesManager = () => {
     } catch (error) {
       toast({
         title: editingUnidade
-          ? "Erro ao atualizar unidade"
-          : "Erro ao criar unidade",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+          ? Erro ao atualizar unidade
+          : Erro ao criar unidade,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: "",
-      endereco: "",
-      telefone: "",
-      responsavel: "",
-      email: "",
+      nome: ,
+      endereco: ,
+      telefone: ,
+      responsavel: ,
+      email: ,
     });
   };
 
@@ -7501,27 +7505,27 @@ const UnidadesManager = () => {
     setFormData({
       nome: unidade.nome,
       endereco: unidade.endereco,
-      telefone: unidade.telefone || "",
-      responsavel: unidade.responsavel || "",
-      email: unidade.email || "",
+      telefone: unidade.telefone || ,
+      responsavel: unidade.responsavel || ,
+      email: unidade.email || ,
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (unidadeId) => {
-    if (window.confirm("Tem certeza que deseja desativar esta unidade?")) {
+    if (window.confirm(Tem certeza que deseja desativar esta unidade?)) {
       try {
         await axios.delete(`${API}/units/${unidadeId}`);
         toast({
-          title: "Unidade desativada com sucesso!",
-          description: "A unidade foi desativada do sistema.",
+          title: Unidade desativada com sucesso!,
+          description: A unidade foi desativada do sistema.,
         });
         fetchUnidades();
       } catch (error) {
         toast({
-          title: "Erro ao desativar unidade",
-          description: error.response?.data?.detail || "Tente novamente",
-          variant: "destructive",
+          title: Erro ao desativar unidade,
+          description: error.response?.data?.detail || Tente novamente,
+          variant: destructive,
         });
       }
     }
@@ -7538,7 +7542,7 @@ const UnidadesManager = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className=flex justify-between items-center>
           <div>
             <CardTitle>Gerenciamento de Unidades</CardTitle>
             <CardDescription>
@@ -7549,97 +7553,97 @@ const UnidadesManager = () => {
             <DialogTrigger asChild>
               <Button
                 onClick={handleOpenDialog}
-                className="bg-blue-600 hover:bg-blue-700"
+                className=bg-blue-600 hover:bg-blue-700
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className=h-4 w-4 mr-2 />
                 Nova Unidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-              <DialogHeader className="flex-shrink-0">
+            <DialogContent className=max-w-md max-h-[90vh] flex flex-col>
+              <DialogHeader className=flex-shrink-0>
                 <DialogTitle>
-                  {editingUnidade ? "Editar Unidade" : "Criar Nova Unidade"}
+                  {editingUnidade ? Editar Unidade : Criar Nova Unidade}
                 </DialogTitle>
                 <DialogDescription>
                   {editingUnidade
-                    ? "Atualize os dados da unidade"
-                    : "Preencha os dados para criar uma nova unidade"}
+                    ? Atualize os dados da unidade
+                    : Preencha os dados para criar uma nova unidade}
                 </DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={handleSubmit}
-                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-                style={{ scrollbarWidth: "thin" }}
+                className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+                style={{ scrollbarWidth: thin }}
               >
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome da Unidade</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=nome>Nome da Unidade</Label>
                   <Input
-                    id="nome"
+                    id=nome
                     value={formData.nome}
                     onChange={(e) =>
                       setFormData({ ...formData, nome: e.target.value })
                     }
-                    placeholder="Ex: Unidade Centro"
+                    placeholder=Ex: Unidade Centro
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="endereco">Endereço</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=endereco>Endereço</Label>
                   <Input
-                    id="endereco"
+                    id=endereco
                     value={formData.endereco}
                     onChange={(e) =>
                       setFormData({ ...formData, endereco: e.target.value })
                     }
-                    placeholder="Rua, níºmero, bairro, cidade"
+                    placeholder=Rua, náºmero, bairro, cidade
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=telefone>Telefone</Label>
                   <Input
-                    id="telefone"
+                    id=telefone
                     value={formData.telefone}
                     onChange={(e) =>
                       setFormData({ ...formData, telefone: e.target.value })
                     }
-                    placeholder="(11) 1234-5678"
+                    placeholder=(11) 1234-5678
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="responsavel">Responsí¡vel</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=responsavel>Responsá¡vel</Label>
                   <Input
-                    id="responsavel"
+                    id=responsavel
                     value={formData.responsavel}
                     onChange={(e) =>
                       setFormData({ ...formData, responsavel: e.target.value })
                     }
-                    placeholder="Nome do responsí¡vel"
+                    placeholder=Nome do responsá¡vel
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=email>Email</Label>
                   <Input
-                    id="email"
-                    type="email"
+                    id=email
+                    type=email
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="unidade@ios.com.br"
+                    placeholder=unidade@ios.com.br
                   />
                 </div>
 
                 <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  type=submit
+                  className=w-full bg-blue-600 hover:bg-blue-700
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingUnidade ? "Atualizar Unidade" : "Criar Unidade"}
+                  <Save className=h-4 w-4 mr-2 />
+                  {editingUnidade ? Atualizar Unidade : Criar Unidade}
                 </Button>
               </form>
             </DialogContent>
@@ -7647,14 +7651,14 @@ const UnidadesManager = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="table-container">
+        <div className=table-container>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Endereço</TableHead>
                 <TableHead>Contato</TableHead>
-                <TableHead>Responsí¡vel</TableHead>
+                <TableHead>Responsá¡vel</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -7662,51 +7666,51 @@ const UnidadesManager = () => {
             <TableBody>
               {unidades.map((unidade) => (
                 <TableRow key={unidade.id}>
-                  <TableCell className="font-medium">{unidade.nome}</TableCell>
+                  <TableCell className=font-medium>{unidade.nome}</TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                    <div className=flex items-center>
+                      <MapPin className=h-4 w-4 mr-1 text-gray-400 />
                       {unidade.endereco}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1">
+                    <div className=space-y-1>
                       {unidade.telefone && (
-                        <div className="flex items-center text-sm">
-                          <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                        <div className=flex items-center text-sm>
+                          <Phone className=h-3 w-3 mr-1 text-gray-400 />
                           {unidade.telefone}
                         </div>
                       )}
                       {unidade.email && (
-                        <div className="flex items-center text-sm">
-                          <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                        <div className=flex items-center text-sm>
+                          <Mail className=h-3 w-3 mr-1 text-gray-400 />
                           {unidade.email}
                         </div>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{unidade.responsavel || "-"}</TableCell>
+                  <TableCell>{unidade.responsavel || -}</TableCell>
                   <TableCell>
-                    <Badge variant={unidade.ativo ? "default" : "secondary"}>
-                      {unidade.ativo ? "Ativa" : "Inativa"}
+                    <Badge variant={unidade.ativo ? default : secondary}>
+                      {unidade.ativo ? Ativa : Inativa}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
+                    <div className=flex space-x-2>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleEdit(unidade)}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className=h-4 w-4 />
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleDelete(unidade.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className=text-red-600 hover:text-red-700
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className=h-4 w-4 />
                       </Button>
                     </div>
                   </TableCell>
@@ -7727,12 +7731,12 @@ const CursosManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCurso, setEditingCurso] = useState(null);
   const [formData, setFormData] = useState({
-    nome: "",
-    descricao: "",
-    carga_horaria: "",
-    categoria: "",
-    pre_requisitos: "",
-    dias_aula: ["segunda", "terca", "quarta", "quinta"], // “… Dias de aula padrí£o
+    nome: ,
+    descricao: ,
+    carga_horaria: ,
+    categoria: ,
+    pre_requisitos: ,
+    dias_aula: [segunda, terca, quarta, quinta], // “… Dias de aula padrá£o
   });
   const { toast } = useToast();
 
@@ -7745,7 +7749,7 @@ const CursosManager = () => {
       const response = await axios.get(`${API}/courses`);
       setCursos(response.data);
     } catch (error) {
-      console.error("Error fetching cursos:", error);
+      console.error(Error fetching cursos:, error);
     } finally {
       setLoading(false);
     }
@@ -7762,14 +7766,14 @@ const CursosManager = () => {
       if (editingCurso) {
         await axios.put(`${API}/courses/${editingCurso.id}`, submitData);
         toast({
-          title: "Curso atualizado com sucesso!",
-          description: "As informAções do curso foram atualizadas.",
+          title: Curso atualizado com sucesso!,
+          description: As informAções do curso foram atualizadas.,
         });
       } else {
         await axios.post(`${API}/courses`, submitData);
         toast({
-          title: "Curso criado com sucesso!",
-          description: "O novo curso foi adicionado ao sistema.",
+          title: Curso criado com sucesso!,
+          description: O novo curso foi adicionado ao sistema.,
         });
       }
 
@@ -7779,21 +7783,21 @@ const CursosManager = () => {
       fetchCursos();
     } catch (error) {
       toast({
-        title: editingCurso ? "Erro ao atualizar curso" : "Erro ao criar curso",
-        description: error.response?.data?.detail || "Tente novamente",
-        variant: "destructive",
+        title: editingCurso ? Erro ao atualizar curso : Erro ao criar curso,
+        description: error.response?.data?.detail || Tente novamente,
+        variant: destructive,
       });
     }
   };
 
   const resetForm = () => {
     setFormData({
-      nome: "",
-      descricao: "",
-      carga_horaria: "",
-      categoria: "",
-      pre_requisitos: "",
-      dias_aula: ["segunda", "terca", "quarta", "quinta"], // “… Resetar dias padrí£o
+      nome: ,
+      descricao: ,
+      carga_horaria: ,
+      categoria: ,
+      pre_requisitos: ,
+      dias_aula: [segunda, terca, quarta, quinta], // “… Resetar dias padrá£o
     });
   };
 
@@ -7801,29 +7805,29 @@ const CursosManager = () => {
     setEditingCurso(curso);
     setFormData({
       nome: curso.nome,
-      descricao: curso.descricao || "",
+      descricao: curso.descricao || ,
       carga_horaria: curso.carga_horaria.toString(),
-      categoria: curso.categoria || "",
-      pre_requisitos: curso.pre_requisitos || "",
-      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // “… Carregar dias de aula
+      categoria: curso.categoria || ,
+      pre_requisitos: curso.pre_requisitos || ,
+      dias_aula: curso.dias_aula || [segunda, terca, quarta, quinta], // “… Carregar dias de aula
     });
     setIsDialogOpen(true);
   };
 
   const handleDelete = async (cursoId) => {
-    if (window.confirm("Tem certeza que deseja desativar este curso?")) {
+    if (window.confirm(Tem certeza que deseja desativar este curso?)) {
       try {
         await axios.delete(`${API}/courses/${cursoId}`);
         toast({
-          title: "Curso desativado com sucesso!",
-          description: "O curso foi desativado do sistema.",
+          title: Curso desativado com sucesso!,
+          description: O curso foi desativado do sistema.,
         });
         fetchCursos();
       } catch (error) {
         toast({
-          title: "Erro ao desativar curso",
-          description: error.response?.data?.detail || "Tente novamente",
-          variant: "destructive",
+          title: Erro ao desativar curso,
+          description: error.response?.data?.detail || Tente novamente,
+          variant: destructive,
         });
       }
     }
@@ -7840,7 +7844,7 @@ const CursosManager = () => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className=flex justify-between items-center>
           <div>
             <CardTitle>Gerenciamento de Cursos</CardTitle>
             <CardDescription>
@@ -7851,58 +7855,58 @@ const CursosManager = () => {
             <DialogTrigger asChild>
               <Button
                 onClick={handleOpenDialog}
-                className="bg-blue-600 hover:bg-blue-700"
+                className=bg-blue-600 hover:bg-blue-700
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className=h-4 w-4 mr-2 />
                 Novo Curso
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-              <DialogHeader className="flex-shrink-0">
+            <DialogContent className=max-w-md max-h-[90vh] flex flex-col>
+              <DialogHeader className=flex-shrink-0>
                 <DialogTitle>
-                  {editingCurso ? "Editar Curso" : "Criar Novo Curso"}
+                  {editingCurso ? Editar Curso : Criar Novo Curso}
                 </DialogTitle>
                 <DialogDescription>
                   {editingCurso
-                    ? "Atualize os dados do curso"
-                    : "Preencha os dados para criar um novo curso"}
+                    ? Atualize os dados do curso
+                    : Preencha os dados para criar um novo curso}
                 </DialogDescription>
               </DialogHeader>
               <form
                 onSubmit={handleSubmit}
-                className="space-y-4 flex-1 overflow-y-scroll max-h-[60vh]"
-                style={{ scrollbarWidth: "thin" }}
+                className=space-y-4 flex-1 overflow-y-scroll max-h-[60vh]
+                style={{ scrollbarWidth: thin }}
               >
-                <div className="space-y-2">
-                  <Label htmlFor="nome">Nome do Curso</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=nome>Nome do Curso</Label>
                   <Input
-                    id="nome"
+                    id=nome
                     value={formData.nome}
                     onChange={(e) =>
                       setFormData({ ...formData, nome: e.target.value })
                     }
-                    placeholder="Ex: Informí¡tica Bí¡sica"
+                    placeholder=Ex: Informá¡tica Bá¡sica
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=descricao>Descrição</Label>
                   <Textarea
-                    id="descricao"
+                    id=descricao
                     value={formData.descricao}
                     onChange={(e) =>
                       setFormData({ ...formData, descricao: e.target.value })
                     }
-                    placeholder="Descreva o curso..."
+                    placeholder=Descreva o curso...
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="carga_horaria">Carga Horí¡ria (horas)</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=carga_horaria>Carga Horá¡ria (horas)</Label>
                   <Input
-                    id="carga_horaria"
-                    type="number"
+                    id=carga_horaria
+                    type=number
                     value={formData.carga_horaria}
                     onChange={(e) =>
                       setFormData({
@@ -7910,27 +7914,27 @@ const CursosManager = () => {
                         carga_horaria: e.target.value,
                       })
                     }
-                    placeholder="Ex: 80"
-                    min="1"
+                    placeholder=Ex: 80
+                    min=1
                     required
                   />
                 </div>
 
                 {/* “… Campo Dias de Aula */}
-                <div className="space-y-2">
+                <div className=space-y-2>
                   <Label>Dias de Aula</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className=grid grid-cols-2 gap-3>
                     {[
-                      { key: "segunda", label: "Segunda" },
-                      { key: "terca", label: "Terí§a" },
-                      { key: "quarta", label: "Quarta" },
-                      { key: "quinta", label: "Quinta" },
-                      { key: "sexta", label: "Sexta" },
-                      { key: "sabado", label: "Sí¡bado" },
+                      { key: segunda, label: Segunda },
+                      { key: terca, label: Terá§a },
+                      { key: quarta, label: Quarta },
+                      { key: quinta, label: Quinta },
+                      { key: sexta, label: Sexta },
+                      { key: sabado, label: Sá¡bado },
                     ].map((dia) => (
                       <div
                         key={dia.key}
-                        className="flex items-center space-x-2"
+                        className=flex items-center space-x-2
                       >
                         <Checkbox
                           id={dia.key}
@@ -7953,34 +7957,34 @@ const CursosManager = () => {
                         />
                         <Label
                           htmlFor={dia.key}
-                          className="text-sm font-normal cursor-pointer"
+                          className=text-sm font-normal cursor-pointer
                         >
                           {dia.label}
                         </Label>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className=text-xs text-gray-500>
                     Selecione os dias da semana em que o curso tem aulas
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="categoria">Categoria</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=categoria>Categoria</Label>
                   <Input
-                    id="categoria"
+                    id=categoria
                     value={formData.categoria}
                     onChange={(e) =>
                       setFormData({ ...formData, categoria: e.target.value })
                     }
-                    placeholder="Ex: Tecnologia, Gestí£o"
+                    placeholder=Ex: Tecnologia, Gestá£o
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="pre_requisitos">Prí©-requisitos</Label>
+                <div className=space-y-2>
+                  <Label htmlFor=pre_requisitos>Prá©-requisitos</Label>
                   <Textarea
-                    id="pre_requisitos"
+                    id=pre_requisitos
                     value={formData.pre_requisitos}
                     onChange={(e) =>
                       setFormData({
@@ -7988,16 +7992,16 @@ const CursosManager = () => {
                         pre_requisitos: e.target.value,
                       })
                     }
-                    placeholder="Liste os prí©-requisitos..."
+                    placeholder=Liste os prá©-requisitos...
                   />
                 </div>
 
                 <Button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  type=submit
+                  className=w-full bg-blue-600 hover:bg-blue-700
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {editingCurso ? "Atualizar Curso" : "Criar Curso"}
+                  <Save className=h-4 w-4 mr-2 />
+                  {editingCurso ? Atualizar Curso : Criar Curso}
                 </Button>
               </form>
             </DialogContent>
@@ -8005,13 +8009,13 @@ const CursosManager = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="table-container">
+        <div className=table-container>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
-                <TableHead>Carga Horí¡ria</TableHead>
+                <TableHead>Carga Horá¡ria</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Ações</TableHead>
@@ -8020,42 +8024,42 @@ const CursosManager = () => {
             <TableBody>
               {cursos.map((curso) => (
                 <TableRow key={curso.id}>
-                  <TableCell className="font-medium">{curso.nome}</TableCell>
+                  <TableCell className=font-medium>{curso.nome}</TableCell>
                   <TableCell>
                     {curso.categoria && (
-                      <Badge variant="outline">{curso.categoria}</Badge>
+                      <Badge variant=outline>{curso.categoria}</Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                    <div className=flex items-center>
+                      <Clock className=h-4 w-4 mr-1 text-gray-400 />
                       {curso.carga_horaria}h
                     </div>
                   </TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {curso.descricao || "-"}
+                  <TableCell className=max-w-xs truncate>
+                    {curso.descricao || -}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={curso.ativo ? "default" : "secondary"}>
-                      {curso.ativo ? "Ativo" : "Inativo"}
+                    <Badge variant={curso.ativo ? default : secondary}>
+                      {curso.ativo ? Ativo : Inativo}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex space-x-2">
+                    <div className=flex space-x-2>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleEdit(curso)}
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className=h-4 w-4 />
                       </Button>
                       <Button
-                        variant="outline"
-                        size="sm"
+                        variant=outline
+                        size=sm
                         onClick={() => handleDelete(curso.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className=text-red-600 hover:text-red-700
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className=h-4 w-4 />
                       </Button>
                     </div>
                   </TableCell>
@@ -8073,12 +8077,12 @@ const CursosManager = () => {
 function App() {
   return (
     <AuthProvider>
-      <div className="App">
+      <div className=App>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<LoginRoute />} />
+            <Route path=/login element={<LoginRoute />} />
             <Route
-              path="/"
+              path=/
               element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -8088,7 +8092,7 @@ function App() {
           </Routes>
         </BrowserRouter>
         <Toaster />
-        {/* Debug Panel sempre disponí­vel */}
+        {/* Debug Panel sempre disponá­vel */}
         <DebugPanel />
       </div>
     </AuthProvider>
@@ -8101,17 +8105,17 @@ const LoginRoute = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando IOS...</p>
-          <p className="text-sm text-gray-400 mt-2">
-            Se demorar muito, recarregue a pí¡gina
+      <div className=flex items-center justify-center min-h-screen>
+        <div className=text-center>
+          <div className=animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto></div>
+          <p className=mt-4 text-gray-600>Carregando IOS...</p>
+          <p className=text-sm text-gray-400 mt-2>
+            Se demorar muito, recarregue a pá¡gina
           </p>
         </div>
       </div>
     );
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to=/ replace />;
 
   return <Login />;
 };
@@ -8121,14 +8125,14 @@ const ProtectedRoute = ({ children }) => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verificando autenticaí§í£o...</p>
+      <div className=flex items-center justify-center min-h-screen>
+        <div className=text-center>
+          <div className=animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto></div>
+          <p className=mt-4 text-gray-600>Verificando autenticaá§á£o...</p>
         </div>
       </div>
     );
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to=/login replace />;
 
   return children;
 };
@@ -8140,37 +8144,37 @@ const DebugPanel = () => {
 
   useEffect(() => {
     const savedLogs = JSON.parse(
-      localStorage.getItem("ios_debug_logs") || "[]"
+      localStorage.getItem(ios_debug_logs) || []
     );
-    setLogs(savedLogs.slice(-20)); // íšltimos 20 logs
+    setLogs(savedLogs.slice(-20)); // ášltimos 20 logs
   }, [isOpen]);
 
   const toggleDebug = () => {
     const newDebugMode = !DEBUG_MODE;
     if (newDebugMode) {
-      localStorage.setItem("ios_debug", "true");
-      debugLog("DEBUG MODE ATIVADO", { userAgent: navigator.userAgent });
+      localStorage.setItem(ios_debug, true);
+      debugLog(DEBUG MODE ATIVADO, { userAgent: navigator.userAgent });
     } else {
-      localStorage.setItem("ios_debug", "false");
+      localStorage.setItem(ios_debug, false);
     }
     window.location.reload(); // Recarregar para aplicar o modo debug
   };
 
   const clearLogs = () => {
-    localStorage.removeItem("ios_debug_logs");
+    localStorage.removeItem(ios_debug_logs);
     setLogs([]);
-    debugLog("Logs limpos pelo usuí¡rio");
+    debugLog(Logs limpos pelo usuá¡rio);
   };
 
   const exportLogs = () => {
-    const allLogs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
+    const allLogs = JSON.parse(localStorage.getItem(ios_debug_logs) || []);
     const dataStr = JSON.stringify(allLogs, null, 2);
-    const blob = new Blob([dataStr], { type: "application/json" });
+    const blob = new Blob([dataStr], { type: application/json });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
+    const link = document.createElement(a);
     link.href = url;
     link.download = `ios_debug_logs_${
-      new Date().toISOString().split("T")[0]
+      new Date().toISOString().split(T)[0]
     }.json`;
     document.body.appendChild(link);
     link.click();
@@ -8179,49 +8183,49 @@ const DebugPanel = () => {
   };
 
   const testConnection = async () => {
-    debugLog("TESTE DE CONEXíƒO INICIADO");
+    debugLog(TESTE DE CONEXáƒO INICIADO);
     try {
       const response = await axios.get(`${API}/ping`, { timeout: 10000 });
-      debugLog("TESTE DE CONEXíƒO SUCESSO", response.data);
+      debugLog(TESTE DE CONEXáƒO SUCESSO, response.data);
       alert(
-        `âœ… Conexí£o OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
+        `âœ… Conexá£o OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
       );
     } catch (error) {
-      debugLog("TESTE DE CONEXíƒO ERRO", {
+      debugLog(TESTE DE CONEXáƒO ERRO, {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
       });
       alert(
-        `âŒ Erro de Conexí£o!\nErro: ${error.message}\nStatus: ${
-          error.response?.status || "N/A"
+        `âŒ Erro de Conexá£o!\nErro: ${error.message}\nStatus: ${
+          error.response?.status || N/A
         }`
       );
     }
   };
 
   const testReactDOM = () => {
-    debugLog("TESTE REACT DOM INICIADO - Simulando mudaní§as de estado");
+    debugLog(TESTE REACT DOM INICIADO - Simulando mudaná§as de estado);
 
-    // Simular as mudaní§as de estado que causam o problema
+    // Simular as mudaná§as de estado que causam o problema
     try {
-      // Criar elementos DOM temporí¡rios para testar
-      const testDiv = document.createElement("div");
-      testDiv.id = "react-dom-test";
+      // Criar elementos DOM temporá¡rios para testar
+      const testDiv = document.createElement(div);
+      testDiv.id = react-dom-test;
       document.body.appendChild(testDiv);
 
-      // Simular remoí§í£o imediata (similar ao que acontece na chamada)
+      // Simular remoá§á£o imediata (similar ao que acontece na chamada)
       setTimeout(() => {
-        if (document.getElementById("react-dom-test")) {
+        if (document.getElementById(react-dom-test)) {
           document.body.removeChild(testDiv);
-          debugLog("TESTE REACT DOM SUCESSO - Remoí§í£o de elemento funcionou");
+          debugLog(TESTE REACT DOM SUCESSO - Remoá§á£o de elemento funcionou);
           alert(
-            "âœ… Teste React DOM OK - nío hí¡ problema de removeChild neste computador"
+            âœ… Teste React DOM OK - náo há¡ problema de removeChild neste computador
           );
         }
       }, 10);
     } catch (error) {
-      debugLog("TESTE REACT DOM ERRO", {
+      debugLog(TESTE REACT DOM ERRO, {
         message: error.message,
         stack: error.stack,
       });
@@ -8231,11 +8235,11 @@ const DebugPanel = () => {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className=fixed bottom-4 right-4 z-50>
         <Button
           onClick={() => setIsOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
-          size="sm"
+          className=bg-purple-600 hover:bg-purple-700 text-white shadow-lg
+          size=sm
         >
           ” Debug
         </Button>
@@ -8244,62 +8248,62 @@ const DebugPanel = () => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-96 bg-white border rounded-lg shadow-xl">
-      <div className="p-4 border-b flex justify-between items-center">
-        <h3 className="font-semibold">Debug Panel</h3>
-        <Button onClick={() => setIsOpen(false)} variant="ghost" size="sm">
-          <X className="h-4 w-4" />
+    <div className=fixed bottom-4 right-4 z-50 w-96 max-h-96 bg-white border rounded-lg shadow-xl>
+      <div className=p-4 border-b flex justify-between items-center>
+        <h3 className=font-semibold>Debug Panel</h3>
+        <Button onClick={() => setIsOpen(false)} variant=ghost size=sm>
+          <X className=h-4 w-4 />
         </Button>
       </div>
 
-      <div className="p-4 space-y-2">
-        {/* Instruções para usuí¡rios */}
-        <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-          <p className="font-semibold">” Instruções para Fabiana e Ione:</p>
+      <div className=p-4 space-y-2>
+        {/* Instruções para usuá¡rios */}
+        <div className=text-xs text-gray-600 bg-yellow-50 p-2 rounded border>
+          <p className=font-semibold>” Instruções para Fabiana e Ione:</p>
           <p>1. Ative o Debug Mode</p>
-          <p>2. Teste a conexí£o com "Testar API"</p>
-          <p>3. Faí§a uma chamada normalmente</p>
+          <p>2. Teste a conexá£o com Testar API</p>
+          <p>3. Faá§a uma chamada normalmente</p>
           <p>4. Se der erro, exporte os logs e envie</p>
         </div>
 
-        <div className="flex justify-between items-center">
-          <span className="text-sm">Debug Mode:</span>
+        <div className=flex justify-between items-center>
+          <span className=text-sm>Debug Mode:</span>
           <Button
             onClick={toggleDebug}
-            variant={DEBUG_MODE ? "destructive" : "default"}
-            size="sm"
+            variant={DEBUG_MODE ? destructive : default}
+            size=sm
           >
-            {DEBUG_MODE ? "Desativar" : "Ativar"}
+            {DEBUG_MODE ? Desativar : Ativar}
           </Button>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={testConnection} variant="default" size="sm">
+        <div className=flex flex-wrap gap-2>
+          <Button onClick={testConnection} variant=default size=sm>
             Testar API
           </Button>
-          <Button onClick={testReactDOM} variant="secondary" size="sm">
+          <Button onClick={testReactDOM} variant=secondary size=sm>
             Testar DOM
           </Button>
-          <Button onClick={clearLogs} variant="outline" size="sm">
+          <Button onClick={clearLogs} variant=outline size=sm>
             Limpar
           </Button>
-          <Button onClick={exportLogs} variant="outline" size="sm">
+          <Button onClick={exportLogs} variant=outline size=sm>
             Exportar
           </Button>
         </div>
 
-        <div className="max-h-48 overflow-y-auto text-xs font-mono bg-gray-100 p-2 rounded">
+        <div className=max-h-48 overflow-y-auto text-xs font-mono bg-gray-100 p-2 rounded>
           {logs.length === 0 ? (
-            <p className="text-gray-500">Nenhum log disponí­vel</p>
+            <p className=text-gray-500>Nenhum log disponá­vel</p>
           ) : (
             logs.map((log, index) => (
-              <div key={index} className="mb-1">
-                <span className="text-gray-500">
-                  [{log.timestamp.split("T")[1].split(".")[0]}]
+              <div key={index} className=mb-1>
+                <span className=text-gray-500>
+                  [{log.timestamp.split(T)[1].split(.)[0]}]
                 </span>
-                <span className="ml-2">{log.message}</span>
+                <span className=ml-2>{log.message}</span>
                 {log.data && (
-                  <span className="text-blue-600 ml-2">
+                  <span className=text-blue-600 ml-2>
                     {JSON.stringify(log.data)}
                   </span>
                 )}
