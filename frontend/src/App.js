@@ -74,14 +74,14 @@ class ErrorBoundary extends React.Component {
               âš ¸ Erro Capturado
             </h2>
             <p className="text-gray-600 mb-4">
-              Ocorreu um erro na aplicação. A pí¡gina será¡ recarregada
+              Ocorreu um erro na aplicação. A página será recarregada
               automaticamente.
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              ”„ Recarregar Pí¡gina
+              ”„ Recarregar Página
             </button>
           </div>
         </div>
@@ -150,7 +150,7 @@ const debugLog = (message, data = null) => {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] IOS DEBUG:`, message, data || "");
 
-    // Salvar log no localStorage para aní¡lise posterior
+    // Salvar log no localStorage para análise posterior
     const logs = JSON.parse(localStorage.getItem("ios_debug_logs") || "[]");
     logs.push({ timestamp, message, data });
     if (logs.length > 100) logs.shift(); // Manter apenas íºltimos 100 logs
@@ -168,7 +168,7 @@ window.addEventListener("error", (event) => {
     stack: event.error?.stack,
   });
 
-  // Verificar se í© o erro especí­fico do removeChild
+  // Verificar se é o erro específico do removeChild
   if (
     event.message.includes("removeChild") ||
     event.message.includes("NotFoundError")
@@ -191,7 +191,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // Configurar timeout global para axios
 axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
-// ”„ INTERCEPTOR COM RETRY - FASE 2 (Correí§í£o de Timeout)
+// ”„ INTERCEPTOR COM RETRY - FASE 2 (Correção de Timeout)
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -208,7 +208,7 @@ axios.interceptors.response.use(
     }
 
     // Log estruturado do erro
-    console.error("âŒ Erro na requisií§í£o:", {
+    console.error("âŒ Erro na requisição:", {
       url: config?.url,
       method: config?.method,
       error: error.message,
@@ -219,14 +219,14 @@ axios.interceptors.response.use(
   }
 );
 
-// ¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisí£o dos Cí¡lculos)
+// ¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisão dos Cí¡lculos)
 const REGRAS_PRESENCA = {
-  MINIMO_APROVACAO: 75, // % mí­nimo para Aprovação
+  MINIMO_APROVACAO: 75, // % mínimo para Aprovação
   EM_RISCO: 60, // 60-74% = Aluno em risco
-  CRITICO: 40, // < 60% = Situaí§í£o crí­tica
+  CRITICO: 40, // < 60% = Situação crítica
   ALERTA_FALTAS_CONSECUTIVAS: 3, // 3+ faltas seguidas = alerta
-  PERIODO_ANALISE_TENDENCIA: 30, // Dias para aní¡lise preditiva
-  INCLUIR_DESISTENTES_STATS: false, // nío contar desistentes nas mí©dias
+  PERIODO_ANALISE_TENDENCIA: 30, // Dias para análise preditiva
+  INCLUIR_DESISTENTES_STATS: false, // não contar desistentes nas médias
 };
 
 // Ž¯ CLASSIFICADOR DE RISCO DE ALUNO
@@ -269,7 +269,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
     };
   });
 
-  // Estatí­sticas gerais
+  // Estatísticas gerais
   const alunosEmRisco = estatisticasPorAluno.filter(
     (a) => a.classificacao === "em_risco" || a.classificacao === "critico"
   ).length;
@@ -314,7 +314,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     "Presenças",
     "Faltas",
     "% Presença (Preciso)",
-    "Classificaí§í£o de Risco",
+    "Classificação de Risco",
     "Status do Aluno",
     "Data de Nascimento",
     "Email",
@@ -326,20 +326,20 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
   const linhas = estatisticasPrecisas.estatisticasPorAluno.map((aluno) => {
     const faltas = aluno.totalChamadas - aluno.presencas;
 
-    // Ž¯ Traduzir classificaí§í£o para texto legí­vel
+    // Ž¯ Traduzir classificação para texto legível
     const classificacaoTexto =
       {
-        adequado: "Frequíªncia Adequada",
+        adequado: "Frequência Adequada",
         em_risco: "Aluno em Risco",
-        critico: "Situaí§í£o Crí­tica",
-      }[aluno.classificacao] || "nío Classificado";
+        critico: "Situação Crítica",
+      }[aluno.classificacao] || "Não Classificado";
 
     // Ž¯ Status traduzido
     const statusTexto =
       {
         ativo: "Ativo",
         desistente: "Desistente",
-        concluido: "Concluí­do",
+        concluido: "Concluído",
       }[aluno.status] || "Ativo";
 
     return [
@@ -366,27 +366,27 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     [`Alunos em Risco: ${estatisticasPrecisas.alunosEmRisco}`],
     [`Desistentes: ${estatisticasPrecisas.desistentes}`],
     [
-      `Taxa Mí©dia de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
+      `Taxa Média de Presença: ${estatisticasPrecisas.taxaMediaPresenca.toFixed(
         2
       )}%`,
     ],
     [""],
     ["=== REGRAS APLICADAS ==="],
-    [`Mí­nimo para Aprovação: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
+    [`Mínimo para Aprovação: ≥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
     [
       `Alerta de Risco: ${REGRAS_PRESENCA.EM_RISCO}% - ${
         REGRAS_PRESENCA.MINIMO_APROVACAO - 1
       }%`,
     ],
-    [`Situaí§í£o Crí­tica: <${REGRAS_PRESENCA.EM_RISCO}%`],
+    [`Situação Crítica: <${REGRAS_PRESENCA.EM_RISCO}%`],
     [
-      `Desistentes nas mí©dias: ${
+      `Desistentes nas médias: ${
         REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS ? "SIM" : "NíƒO"
       }`,
     ],
     [""],
-    [`Relatí³rio gerado em: ${new Date().toLocaleString("pt-BR")}`],
-    [`Sistema: IOS - Fase 4 (Cí¡lculos Precisos)`],
+    [`Relatório gerado em: ${new Date().toLocaleString("pt-BR")}`],
+    [`Sistema: IOS - Fase 4 (Cálculos Precisos)`],
   ];
 
   // ”„ CONVERTER PARA CSV
@@ -403,7 +403,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
   const csvComBOM = "\ufeff" + csvContent;
 
   console.log(
-    `âœ… CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
+    `✅ CSV gerado: ${linhas.length} alunos, ${headers.length} colunas`
   );
   return csvComBOM;
 };
@@ -443,14 +443,14 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       healthStatus.total_alunos = alunosData.length;
       healthStatus.total_chamadas = chamadasData ? chamadasData.length : 0;
 
-      // Testar cí¡lculos precisos da Fase 3
+      // Testar cálculos precisos da Fase 3
       try {
         const testeCalculo = calcularEstatisticasPrecisas(
           alunosData.slice(0, 5),
           chamadasData || []
         );
         healthStatus.calculos_precisos = true;
-        healthStatus.fases_ativas.push("Fase 3 - Cí¡lculos Precisos");
+        healthStatus.fases_ativas.push("Fase 3 - Cálculos Precisos");
         healthStatus.estatisticas.taxa_media = testeCalculo.taxaMediaPresenca;
         healthStatus.estatisticas.alunos_em_risco = testeCalculo.alunosEmRisco;
       } catch (calculoError) {
@@ -458,7 +458,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
         healthStatus.calculos_precisos = false;
       }
 
-      // Testar geraí§í£o CSV da Fase 4
+      // Testar geração CSV da Fase 4
       try {
         const testeCsv = gerarCSVComDadosPrecisos(
           {
@@ -481,7 +481,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
           healthStatus.fases_ativas.push("Fase 4 - CSV Aprimorado");
         }
       } catch (csvError) {
-        console.error("âŒ Erro na geraí§í£o CSV Fase 4:", csvError);
+        console.error("âŒ Erro na geração CSV Fase 4:", csvError);
         healthStatus.csv_funcionando = false;
       }
     }
@@ -504,7 +504,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
         ? "saudavel"
         : "alerta";
 
-    console.log("âœ… Health Check concluí­do:", healthStatus);
+    console.log("✅ Health Check concluído:", healthStatus);
     return healthStatus;
   } catch (error) {
     console.error("âŒ Erro no Health Check:", error);
@@ -530,7 +530,7 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [loading, setLoading] = useState(true);
 
-  // Timeout de seguraní§a - nunca deixar loading indefinidamente
+  // Timeout de segurança - nunca deixar loading indefinidamente
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
       console.warn("âš ¸ Timeout de seguraní§a ativado - parando loading");
@@ -541,7 +541,7 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("€ Inicializando autenticaí§í£o...");
+    console.log("💫 Inicializando autenticação...");
     console.log("”— Backend URL:", BACKEND_URL);
 
     if (!BACKEND_URL) {
@@ -564,7 +564,7 @@ const AuthProvider = ({ children }) => {
     try {
       console.log("” Verificando usuí¡rio atual...");
       const response = await axios.get(`${API}/auth/me`);
-      console.log("âœ… Usuí¡rio carregado:", response.data.email);
+      console.log("✅ Usuário carregado:", response.data.email);
       setUser(response.data);
     } catch (error) {
       console.error("âŒ Erro ao buscar usuí¡rio:", error);
@@ -611,7 +611,7 @@ const usePendingAttendances = () => {
   const [error, setError] = useState(null);
 
   const fetchPending = async () => {
-    // âœ… CORREí‡íƒO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
+    // ✅ CORREÇÃO: Permitir chamadas pendentes para admin, instrutor, pedagogo e monitor
     if (
       !user ||
       !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
@@ -715,7 +715,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
       );
 
       toast({
-        title: "âœ… Chamada Salva",
+        title: "✅ Chamada Salva",
         description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
       });
 
@@ -725,13 +725,13 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
     } catch (error) {
       if (error.response?.status === 409) {
         toast({
-          title: "âš ¸ Chamada Jí¡ Realizada",
-          description: "A chamada desta turma jí¡ foi registrada hoje",
+          title: "⚠️ Chamada Já Realizada",
+          description: "A chamada desta turma já foi registrada hoje",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "âŒ Erro",
+          title: "❌ Erro",
           description: "Erro ao salvar chamada. Tente novamente.",
           variant: "destructive",
         });
@@ -762,8 +762,8 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             )}
           </DialogTitle>
           <DialogDescription>
-            {turma?.status_msg || "Marque os alunos presentes."} A chamada será¡
-            salva e nío poderí¡ ser alterada.
+            {turma?.status_msg || "Marque os alunos presentes."} A chamada será
+            salva e não poderá ser alterada.
           </DialogDescription>
         </DialogHeader>
 
@@ -833,14 +833,14 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             />
           </div>
 
-          {/* Confirmaí§í£o */}
+          {/* Confirmação */}
           {showConfirm && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 font-medium">
                 âš ¸ Confirmaí§í£o Necessí¡ria
               </p>
               <p className="text-yellow-700 text-sm mt-1">
-                A chamada será¡ salva e <strong>nío poderí¡ ser alterada</strong>.
+                A chamada será salva e <strong>não poderá ser alterada</strong>.
                 Deseja continuar?
               </p>
             </div>
@@ -866,7 +866,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
                   Salvando...
                 </span>
               ) : showConfirm ? (
-                "âœ… Confirmar e Salvar"
+                "✅ Confirmar e Salvar"
               ) : (
                 "’¾ Salvar Chamada"
               )}
@@ -951,7 +951,7 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
           >
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              <span>{turma.horario || "Horí¡rio nío definido"}</span>
+              <span>{turma.horario || "Horário não definido"}</span>
             </div>
             <div className="flex items-center gap-1">
               <Users className="h-4 w-4" />
@@ -1021,7 +1021,7 @@ const Login = () => {
     return () => window.removeEventListener("error", handleError);
   }, [toast]);
 
-  // Animaí§í£o do card temporal da marca
+  // Animação do card temporal da marca
   useEffect(() => {
     // Mostrar o card apí³s 500ms
     const showTimer = setTimeout(() => {
@@ -1081,10 +1081,10 @@ const Login = () => {
         `${API}/auth/first-access`,
         firstAccessData
       );
-      console.log("âœ… Resposta do servidor:", response.data);
+      console.log("✅ Resposta do servidor:", response.data);
 
       toast({
-        title: "Solicitaí§í£o enviada!",
+        title: "Solicitação enviada!",
         description:
           "Aguarde a Aprovação do administrador para acessar o sistema.",
       });
@@ -1093,7 +1093,7 @@ const Login = () => {
     } catch (error) {
       console.error("âŒ Erro na solicitaí§í£o de primeiro acesso:", error);
       toast({
-        title: "Erro na solicitaí§í£o",
+        title: "Erro na solicitação",
         description: error.response?.data?.detail || "Tente novamente",
         variant: "destructive",
       });
@@ -1392,7 +1392,7 @@ const NotificationButton = () => {
   }, [user]);
 
   const fetchNotifications = async () => {
-    // âœ… CORREí‡íƒO: Verificar se usuí¡rio pode ver notificAções
+    // ✅ CORREÇÃO: Verificar se usuário pode ver notificações
     if (
       !user ||
       !["admin", "instrutor", "pedagogo", "monitor"].includes(user.tipo)
@@ -1409,8 +1409,8 @@ const NotificationButton = () => {
       );
       setNotifications(response.data.pending || []);
     } catch (error) {
-      console.error("Erro ao buscar notificAções:", error);
-      setNotifications([]); // âœ… Garantir array vazio em caso de erro
+      console.error("Erro ao buscar notificações:", error);
+      setNotifications([]); // ✅ Garantir array vazio em caso de erro
     }
   };
 
@@ -1445,7 +1445,7 @@ const NotificationButton = () => {
     return date.toLocaleDateString("pt-BR");
   };
 
-  // Funí§í£o para navegar para chamada
+  // Função para navegar para chamada
   const handleGoToAttendance = (turmaId) => {
     // Implementar navegaí§í£o para fazer chamada
     toast({
@@ -1522,7 +1522,7 @@ const NotificationButton = () => {
               <p className="text-xs text-orange-600">
                 {user?.tipo === "admin"
                   ? "Monitoramento geral"
-                  : "Aí§í£o necessí¡ria"}
+                  : "Ação necessária"}
               </p>
             </div>
 
@@ -1977,7 +1977,7 @@ const Dashboard = () => {
                   value="usuarios"
                   className="flex-1 min-w-0 text-sm whitespace-nowrap"
                 >
-                  Usuí¡rios
+                  Usuários
                 </TabsTrigger>
               </>
             )}
@@ -2086,12 +2086,12 @@ const ChamadaManager = () => {
   const fetchJustificationReasons = async () => {
     try {
       const response = await axios.get(`${API}/justifications/reasons`);
-      // âœ… Garantir que sempre seja um array
+      // ✅ Garantir que sempre seja um array
       const reasons = Array.isArray(response.data) ? response.data : [];
       setJustificationReasons(reasons);
     } catch (error) {
       console.error("Erro ao carregar motivos de justificativa:", error);
-      // âœ… Fallback com motivos padrí£o se API falhar
+      // ✅ Fallback com motivos padrão se API falhar
       setJustificationReasons([
         { code: "doenca", label: "Doení§a" },
         { code: "medico", label: "Consulta mí©dica" },
@@ -2144,7 +2144,7 @@ const ChamadaManager = () => {
       });
 
       toast({
-        title: "âœ… Atestado anexado",
+        title: "✅ Atestado anexado",
         description: `Atestado de ${selectedAlunoDetalhes.nome} salvo com sucesso.`,
       });
 
@@ -2188,7 +2188,7 @@ const ChamadaManager = () => {
       window.URL.revokeObjectURL(url);
 
       toast({
-        title: "âœ… Download realizado",
+        title: "✅ Download realizado",
         description: `Arquivo ${filename} baixado com sucesso.`,
       });
     } catch (error) {
@@ -2223,7 +2223,7 @@ const ChamadaManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatí³rio adicionado
+      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório adicionado
       formData.append("reason_text", justificationForm.reason_text.trim());
       if (justificationForm.observations) {
         formData.append("observations", justificationForm.observations);
@@ -2303,7 +2303,7 @@ const ChamadaManager = () => {
       console.error("Error fetching alunos:", error);
       toast({
         title: "Erro ao carregar alunos",
-        description: "nío foi possí­vel carregar a lista de alunos da turma",
+        description: "não foi possível carregar a lista de alunos da turma",
         variant: "destructive",
       });
     } finally {
@@ -2393,7 +2393,7 @@ const ChamadaManager = () => {
       }));
 
       toast({
-        title: "âœ… Atestado anexado com sucesso",
+        title: "✅ Atestado anexado com sucesso",
         description: `Atestado de ${selectedAlunoAtestado.nome} registrado e falta justificada.`,
       });
 
@@ -2554,7 +2554,7 @@ const ChamadaManager = () => {
         title: "Erro ao salvar chamada",
         description:
           error.response?.data?.detail ||
-          "Jí¡ foi feita chamada hoje para esta turma",
+          "Já foi feita chamada hoje para esta turma",
         variant: "destructive",
       });
     }
@@ -2925,7 +2925,7 @@ const UsuariosManager = () => {
     console.log("”” Acordando backend Render...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("âœ… Backend acordado:", pingResponse.data);
+      console.log("✅ Backend acordado:", pingResponse.data);
       return true;
     } catch (error) {
       console.error("âŒ Erro ao acordar backend:", error);
@@ -3105,10 +3105,10 @@ const UsuariosManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="h-5 w-5 mr-2 text-orange-500" />
-              Usuí¡rios Pendentes de Aprovação
+              Usuários Pendentes de Aprovação
             </CardTitle>
             <CardDescription>
-              Usuí¡rios que solicitaram primeiro acesso e aguardam Aprovação
+              Usuários que solicitaram primeiro acesso e aguardam Aprovação
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -3143,9 +3143,9 @@ const UsuariosManager = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Gerenciamento de Usuí¡rios</CardTitle>
+              <CardTitle>Gerenciamento de Usuários</CardTitle>
               <CardDescription>
-                Gerencie usuí¡rios do sistema (Administrador(a), Professor(a),
+                Gerencie usuários do sistema (Administrador(a), Professor(a),
                 Coord. Pedagógico, Assistente)
               </CardDescription>
             </div>
@@ -3166,8 +3166,8 @@ const UsuariosManager = () => {
                   </DialogTitle>
                   <DialogDescription>
                     {editingUser
-                      ? "Atualize os dados do usuí¡rio"
-                      : "Preencha os dados para criar um novo usuí¡rio. Uma senha temporí¡ria será¡ gerada."}
+                      ? "Atualize os dados do usuário"
+                      : "Preencha os dados para criar um novo usuário. Uma senha temporária será gerada."}
                   </DialogDescription>
                 </DialogHeader>
                 <form
@@ -3376,7 +3376,7 @@ const UsuariosManager = () => {
 
 // Turmas Manager Component CORRIGIDO
 const TurmasManager = () => {
-  const { user } = useAuth(); // âœ… CORREí‡íƒO: Adicionar useAuth para acessar user
+  const { user } = useAuth(); // ✅ CORREÇÃO: Adicionar useAuth para acessar user
   const [turmas, setTurmas] = useState([]);
   const [unidades, setUnidades] = useState([]);
   const [cursos, setCursos] = useState([]);
@@ -3426,7 +3426,7 @@ const TurmasManager = () => {
         axios.get(`${API}/students`),
       ]);
 
-      // âœ… COMBINAR INSTRUTORES E PEDAGOGOS para seleí§í£o de responsí¡vel
+      // ✅ COMBINAR INSTRUTORES E PEDAGOGOS para seleção de responsável
       const todosUsuarios = [
         ...instrutoresRes.data.map((u) => ({ ...u, tipo_label: "Instrutor" })),
         ...pedagogosRes.data.map((u) => ({ ...u, tipo_label: "Pedagogo" })),
@@ -3437,13 +3437,13 @@ const TurmasManager = () => {
       console.log("Cursos:", cursosRes.data);
       console.log("Instrutores:", instrutoresRes.data);
       console.log("Pedagogos:", pedagogosRes.data);
-      console.log("Todos Usuí¡rios:", todosUsuarios);
+      console.log("Todos Usuários:", todosUsuarios);
       console.log("Alunos:", alunosRes.data);
 
       setTurmas(turmasRes.data);
       setUnidades(unidadesRes.data);
       setCursos(cursosRes.data);
-      setUsuarios(todosUsuarios); // âœ… Usar lista combinada
+      setUsuarios(todosUsuarios); // ✅ Usar lista combinada
       setAlunos(alunosRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -3488,7 +3488,7 @@ const TurmasManager = () => {
   };
 
   const resetForm = () => {
-    // âœ… AUTO-PREENCHIMENTO: Para não-Admin, prí©-preencher unidade e instrutor
+    // ✅ AUTO-PREENCHIMENTO: Para não-Admin, pré-preencher unidade e instrutor
     const defaultUnidadeId =
       user?.tipo !== "admin" ? user?.unidade_id || "" : "";
     const defaultInstrutorId = user?.tipo !== "admin" ? user?.id || "" : "";
@@ -3811,10 +3811,10 @@ const TurmasManager = () => {
 
                 <div className="space-y-2">
                   <Label>
-                    Responsí¡vel{" "}
+                    Responsável{" "}
                     {user?.tipo === "admin"
-                      ? `(${usuarios.length} instrutores/pedagogos disponí­veis)`
-                      : "(Vocíª)"}
+                      ? `(${usuarios.length} instrutores/pedagogos disponíveis)`
+                      : "(Você)"}
                   </Label>
                   {user?.tipo === "admin" ? (
                     <Select
@@ -4066,7 +4066,9 @@ const TurmasManager = () => {
 
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-2">Alunos Disponí­veis</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Alunos Disponí­veis
+              </h3>
               <div className="max-h-40 overflow-y-auto border rounded p-2">
                 {alunos
                   .filter(
@@ -4240,7 +4242,7 @@ const RelatoriosManager = () => {
     console.log("”” Acordando backend Render para dashboard...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
-      console.log("âœ… Backend acordado para dashboard:", pingResponse.data);
+      console.log("✅ Backend acordado para dashboard:", pingResponse.data);
       return true;
     } catch (error) {
       console.error("âŒ Erro ao acordar backend:", error);
@@ -4271,7 +4273,7 @@ const RelatoriosManager = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }),
-        // âœ… ENDPOINT CORRETO: reports/attendance (nío apenas /attendance)
+        // ✅ ENDPOINT CORRETO: reports/attendance (não apenas /attendance)
         axios.get(`${API}/reports/attendance`, {
           timeout: 60000,
           headers: {
@@ -4281,7 +4283,7 @@ const RelatoriosManager = () => {
         }),
       ]);
 
-      // âœ… DEFINIR DADOS SEMPRE (nunca undefined)
+      // ✅ DEFINIR DADOS SEMPRE (nunca undefined)
       const alunosData = Array.isArray(alunosResponse.data)
         ? alunosResponse.data
         : [];
@@ -4293,11 +4295,11 @@ const RelatoriosManager = () => {
       setChamadas(chamadasData);
 
       console.log(
-        `âœ… Dados carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`
+        `✅ Dados carregados: ${alunosData.length} alunos, ${chamadasData.length} chamadas`
       );
 
       toast({
-        title: "âœ… Dados MongoDB Carregados",
+        title: "✅ Dados MongoDB Carregados",
         description: `${alunosData.length} alunos e ${chamadasData.length} chamadas carregados`,
         variant: "default",
       });
@@ -4402,7 +4404,7 @@ const RelatoriosManager = () => {
         };
 
         setStats(statsComPrecisao);
-        console.log("âœ… Estatí­sticas Fase 3 aplicadas:", {
+        console.log("✅ Estatísticas Fase 3 aplicadas:", {
           taxa: estatisticasLocais.taxaMediaPresenca,
           risco: estatisticasLocais.alunosEmRisco,
           total: estatisticasLocais.totalAlunos,
@@ -4530,7 +4532,8 @@ const RelatoriosManager = () => {
     setCsvLoading(true);
     toast({
       title: "¿½ CSV Completo - STREAMING",
-      description: "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ”¥",
+      description:
+        "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ”¥",
     });
 
     try {
@@ -4592,7 +4595,7 @@ const RelatoriosManager = () => {
       }
 
       toast({
-        title: "âœ… CSV Completo Baixado!",
+        title: "✅ CSV Completo Baixado!",
         description: "Relatí³rio Pedagógico avaní§ado via job system! Ž¯",
       });
     } catch (error) {
@@ -4684,7 +4687,7 @@ const RelatoriosManager = () => {
       if (backendResponse && backendResponse.data?.csv_data) {
         csvData = backendResponse.data.csv_data;
         dataSource = "backend";
-        console.log("âœ… Usando dados do backend");
+        console.log("✅ Usando dados do backend");
         console.log(
           "“Š Preview CSV (primeiras 200 chars):",
           csvData.substring(0, 200)
@@ -4796,7 +4799,7 @@ const RelatoriosManager = () => {
 
       const statusIcon =
         healthResult.status_geral === "saudavel"
-          ? "âœ…"
+          ? "✅"
           : healthResult.status_geral === "alerta"
           ? "âš ¸"
           : "âŒ";
@@ -5340,7 +5343,7 @@ const AlunosManager = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [turmas, setTurmas] = useState([]);
 
-  // âœ… Estados para motivos de desistíªncia (MOVIDO DO APP PRINCIPAL)
+  // ✅ Estados para motivos de desistência (MOVIDO DO APP PRINCIPAL)
   const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
   // “‹ Estados para justificativas/atestados fora da chamada
@@ -5380,20 +5383,20 @@ const AlunosManager = () => {
     nome_responsavel: "",
     telefone_responsavel: "",
     observacoes: "",
-    turma_id: "", // âœ… Campo turma adicionado
+    turma_id: "", // ✅ Campo turma adicionado
   });
 
   useEffect(() => {
     fetchAlunos();
     fetchTurmas();
-    fetchMotivosDesistencia(); // âœ… Carregar motivos de desistíªncia
+    fetchMotivosDesistencia(); // ✅ Carregar motivos de desistência
   }, []);
 
   const fetchAlunos = async () => {
     try {
       console.log("” Buscando alunos...");
       const response = await axios.get(`${API}/students`);
-      console.log("âœ… Alunos recebidos:", response.data.length, "alunos");
+      console.log("✅ Alunos recebidos:", response.data.length, "alunos");
       setAlunos(response.data);
     } catch (error) {
       console.error("âŒ Erro ao buscar alunos:", error);
@@ -5414,13 +5417,13 @@ const AlunosManager = () => {
     }
   };
 
-  // âœ… Funí§í£o para buscar motivos de desistíªncia (ADICIONADA NO ALUNOSMANAGER)
+  // ✅ Função para buscar motivos de desistência (ADICIONADA NO ALUNOSMANAGER)
   const fetchMotivosDesistencia = async () => {
     try {
       console.log("” Buscando motivos de desistíªncia...");
       const response = await axios.get(`${API}/desistencias/motivos`);
       setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
-      console.log("âœ… Motivos carregados:", response.data.length, "motivos");
+      console.log("✅ Motivos carregados:", response.data.length, "motivos");
     } catch (error) {
       console.error("âŒ Erro ao buscar motivos:", error);
       // Fallback com motivos oficiais do IOS
@@ -5486,7 +5489,7 @@ const AlunosManager = () => {
     try {
       console.log("” Buscando turmas...");
       const response = await axios.get(`${API}/classes`);
-      console.log("âœ… Turmas recebidas:", response.data.length, "turmas");
+      console.log("✅ Turmas recebidas:", response.data.length, "turmas");
       setTurmas(response.data);
     } catch (error) {
       console.error("âŒ Erro ao buscar turmas:", error);
@@ -5501,7 +5504,7 @@ const AlunosManager = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // âœ… VALIDAí‡íƒO: Campos obrigatí³rios
+    // ✅ VALIDAÇÃO: Campos obrigatórios
     if (!formData.nome.trim()) {
       toast({
         title: "Campo obrigatí³rio",
@@ -5596,7 +5599,7 @@ const AlunosManager = () => {
       nome_responsavel: "",
       telefone_responsavel: "",
       observacoes: "",
-      turma_id: "", // âœ… Campo turma resetado
+      turma_id: "", // ✅ Campo turma resetado
     });
   };
 
@@ -5756,11 +5759,11 @@ const AlunosManager = () => {
       );
 
       toast({
-        title: "âœ… Aluno reativado com sucesso",
+        title: "✅ Aluno reativado com sucesso",
         description: `${aluno.nome} foi reativado e pode ser matriculado novamente.`,
       });
 
-      console.log("âœ… Resposta da reativaí§í£o:", response.data);
+      console.log("✅ Resposta da reativação:", response.data);
 
       // Atualizar lista de alunos
       fetchAlunos();
@@ -5828,7 +5831,7 @@ const AlunosManager = () => {
       });
 
       toast({
-        title: "âœ… Desistíªncia registrada",
+        title: "✅ Desistência registrada",
         description: `${selectedStudentDropout.nome} foi marcado como desistente.`,
       });
 
@@ -5863,7 +5866,7 @@ const AlunosManager = () => {
 
     try {
       const formData = new FormData();
-      formData.append("reason_code", "CUSTOM"); // âœ… Campo obrigatí³rio
+      formData.append("reason_code", "CUSTOM"); // ✅ Campo obrigatório
       formData.append("reason_text", justifyForm.reason_text.trim());
       if (justifyForm.observations.trim()) {
         formData.append("observations", justifyForm.observations.trim());
@@ -5883,7 +5886,7 @@ const AlunosManager = () => {
       );
 
       toast({
-        title: "âœ… Justificativa registrada",
+        title: "✅ Justificativa registrada",
         description: `Justificativa de ${selectedAlunoJustify.nome} registrada com sucesso.`,
       });
 
@@ -5983,7 +5986,7 @@ const AlunosManager = () => {
       );
 
       const result = response.data;
-      console.log("âœ… Upload concluí­do:", result);
+      console.log("✅ Upload concluído:", result);
 
       // Mostrar resumo
       setBulkSummaryData(result);
@@ -6001,7 +6004,7 @@ const AlunosManager = () => {
       fetchAlunos();
 
       toast({
-        title: "âœ… Upload Concluí­do",
+        title: "✅ Upload Concluído",
         description: result.message,
       });
     } catch (error) {
@@ -6111,7 +6114,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </Dialog>
             )}
 
-            {/* Ž¯ PRODUí‡íƒO: Botões de teste removidos para usuí¡rios finais */}
+            {/* 🎯 PRODUÇÃO: Botões de teste removidos para usuários finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -6413,7 +6416,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardHeader>
 
-      {/* Card de Permissões para Usuí¡rios não-Admin */}
+      {/* Card de Permissões para Usuários não-Admin */}
       {user?.tipo !== "admin" && (
         <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-center gap-2 text-orange-800">
@@ -6426,7 +6429,8 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               {user.tipo?.charAt(0).toUpperCase() + user.tipo?.slice(1)}
             </p>
             <p>
-              â€¢ <strong>Unidade:</strong> {user?.unidade_nome || "Sua unidade"}
+              â€¢ <strong>Unidade:</strong>{" "}
+              {user?.unidade_nome || "Sua unidade"}
             </p>
             <p>
               â€¢ <strong>Curso:</strong> {user?.curso_nome || "Seu curso"}
@@ -6834,7 +6838,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   />
                   {bulkUploadFile && (
                     <p className="text-sm text-green-600 mt-2">
-                      âœ… Arquivo selecionado: {bulkUploadFile.name}
+                      ✅ Arquivo selecionado: {bulkUploadFile.name}
                     </p>
                   )}
                 </div>
@@ -6962,7 +6966,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   <div className="text-2xl font-bold text-green-700">
                     {bulkSummaryData.resumo?.sucessos || 0}
                   </div>
-                  <div className="text-sm text-green-600">âœ… Sucessos</div>
+                  <div className="text-sm text-green-600">✅ Sucessos</div>
                 </div>
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-red-700">
@@ -7015,7 +7019,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                                   }
                                 >
                                   {item.status === "sucesso"
-                                    ? "âœ… Sucesso"
+                                    ? "✅ Sucesso"
                                     : "âŒ Erro"}
                                 </Badge>
                               </TableCell>
@@ -7063,12 +7067,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 </div>
               )}
 
-              {/* âœ… SUCESSOS */}
+              {/* ✅ SUCESSOS */}
               {bulkSummaryData.sucessos &&
                 bulkSummaryData.sucessos.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-green-700 mb-3">
-                      âœ… Alunos Importados com Sucesso
+                      ✅ Alunos Importados com Sucesso
                     </h3>
                     <div className="max-h-32 overflow-y-auto bg-green-50 border border-green-200 rounded-lg p-3">
                       {bulkSummaryData.sucessos
@@ -8182,12 +8186,12 @@ const DebugPanel = () => {
     debugLog("TESTE DE CONEXíƒO INICIADO");
     try {
       const response = await axios.get(`${API}/ping`, { timeout: 10000 });
-      debugLog("TESTE DE CONEXíƒO SUCESSO", response.data);
+      debugLog("TESTE DE CONEXÃO SUCESSO", response.data);
       alert(
-        `âœ… Conexí£o OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
+        `✅ Conexão OK!\nBackend: ${response.data.message}\nTimestamp: ${response.data.timestamp}`
       );
     } catch (error) {
-      debugLog("TESTE DE CONEXíƒO ERRO", {
+      debugLog("TESTE DE CONEXÃO ERRO", {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
@@ -8214,9 +8218,9 @@ const DebugPanel = () => {
       setTimeout(() => {
         if (document.getElementById("react-dom-test")) {
           document.body.removeChild(testDiv);
-          debugLog("TESTE REACT DOM SUCESSO - Remoí§í£o de elemento funcionou");
+          debugLog("TESTE REACT DOM SUCESSO - Remoção de elemento funcionou");
           alert(
-            "âœ… Teste React DOM OK - nío hí¡ problema de removeChild neste computador"
+            "✅ Teste React DOM OK - não há problema de removeChild neste computador"
           );
         }
       }, 10);
@@ -8253,7 +8257,7 @@ const DebugPanel = () => {
       </div>
 
       <div className="p-4 space-y-2">
-        {/* Instruções para usuí¡rios */}
+        {/* Instruções para usuários */}
         <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
           <p className="font-semibold">” Instruções para Fabiana e Ione:</p>
           <p>1. Ative o Debug Mode</p>
