@@ -50,7 +50,7 @@ import {
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
 
-// ðŸ›¡ï¸ Error Boundary para capturar erros DOM
+// ðŸ›¡¸ Error Boundary para capturar erros DOM
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -62,7 +62,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("ðŸš¨ ErrorBoundary capturou erro:", error, errorInfo);
+    console.error("¨ ErrorBoundary capturou erro:", error, errorInfo);
   }
 
   render() {
@@ -71,7 +71,7 @@ class ErrorBoundary extends React.Component {
         <div className="flex items-center justify-center min-h-screen bg-gray-50">
           <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
             <h2 className="text-xl font-bold text-red-600 mb-4">
-              âš ï¸ Erro Capturado
+              âš ¸ Erro Capturado
             </h2>
             <p className="text-gray-600 mb-4">
               Ocorreu um erro na aplicaí§í£o. A pí¡gina serí¡ recarregada
@@ -133,8 +133,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-// ï¿½ï¸ ERROR BOUNDARY para evitar tela branca
-// ï¿½ðŸš€ RENDER OBRIGATí“RIO - Sistema ní­vel Brasil
+// ¿½¸ ERROR BOUNDARY para evitar tela branca
+// ¿½€ RENDER OBRIGATí“RIO - Sistema ní­vel Brasil
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL ||
   "https://sistema-ios-backend.onrender.com";
@@ -158,7 +158,7 @@ const debugLog = (message, data = null) => {
   }
 };
 
-// ðŸš¨ CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
+// ¨ CAPTURADOR DE ERROS GLOBAIS DO REACT DOM
 window.addEventListener("error", (event) => {
   debugLog("ERRO GLOBAL CAPTURADO", {
     message: event.message,
@@ -219,7 +219,7 @@ axios.interceptors.response.use(
   }
 );
 
-// ï¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisí£o dos Cí¡lculos)
+// ¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisí£o dos Cí¡lculos)
 const REGRAS_PRESENCA = {
   MINIMO_APROVACAO: 75, // % mí­nimo para aprovaí§í£o
   EM_RISCO: 60, // 60-74% = Aluno em risco
@@ -291,7 +291,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   };
 };
 
-// ï¿½ðŸ‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
+// ¿½ðŸ‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
 const getUserTypeLabel = (tipo) => {
   const labels = {
     admin: "Administrador(a)",
@@ -432,7 +432,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       healthStatus.backend_response_time =
         pingResponse.config.timeout || "< 5s";
     } catch (backendError) {
-      console.warn("âš ï¸ Backend offline, continuando em modo local");
+      console.warn("âš ¸ Backend offline, continuando em modo local");
       healthStatus.backend_status = "offline";
       healthStatus.modo_offline = true;
     }
@@ -533,7 +533,7 @@ const AuthProvider = ({ children }) => {
   // Timeout de seguraní§a - nunca deixar loading indefinidamente
   useEffect(() => {
     const failsafeTimeout = setTimeout(() => {
-      console.warn("âš ï¸ Timeout de seguraní§a ativado - parando loading");
+      console.warn("âš ¸ Timeout de seguraní§a ativado - parando loading");
       setLoading(false);
     }, 15000); // 15 segundos
 
@@ -541,7 +541,7 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log("ðŸš€ Inicializando autenticaí§í£o...");
+    console.log("€ Inicializando autenticaí§í£o...");
     console.log("ðŸ”— Backend URL:", BACKEND_URL);
 
     if (!BACKEND_URL) {
@@ -555,7 +555,7 @@ const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchCurrentUser();
     } else {
-      console.log("â„¹ï¸ Sem token, direcionando para login");
+      console.log("â„¹¸ Sem token, direcionando para login");
       setLoading(false);
     }
   }, [token]);
@@ -603,7 +603,7 @@ const AuthProvider = ({ children }) => {
   );
 };
 
-// ðŸš€ HOOK: Chamadas Pendentes (Sistema de Attendance)
+// € HOOK: Chamadas Pendentes (Sistema de Attendance)
 const usePendingAttendances = () => {
   const { user } = useAuth();
   const [pending, setPending] = useState([]);
@@ -654,7 +654,7 @@ const usePendingAttendances = () => {
   };
 };
 
-// ðŸš€ COMPONENTE: Modal de Chamada
+// € COMPONENTE: Modal de Chamada
 const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -725,7 +725,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
     } catch (error) {
       if (error.response?.status === 409) {
         toast({
-          title: "âš ï¸ Chamada Jí¡ Realizada",
+          title: "âš ¸ Chamada Jí¡ Realizada",
           description: "A chamada desta turma jí¡ foi registrada hoje",
           variant: "destructive",
         });
@@ -837,7 +837,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
           {showConfirm && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-yellow-800 font-medium">
-                âš ï¸ Confirmaí§í£o Necessí¡ria
+                âš ¸ Confirmaí§í£o Necessí¡ria
               </p>
               <p className="text-yellow-700 text-sm mt-1">
                 A chamada serí¡ salva e <strong>nío poderí¡ ser alterada</strong>.
@@ -878,7 +878,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
   );
 };
 
-// ðŸš€ COMPONENTE: Card de Chamada Pendente
+// € COMPONENTE: Card de Chamada Pendente
 const PendingAttendanceCard = ({ turma, onComplete }) => {
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -1622,7 +1622,7 @@ const Dashboard = () => {
   const { user, logout } = useAuth();
   const { toast } = useToast();
 
-  // ðŸš€ HOOK: Chamadas Pendentes
+  // € HOOK: Chamadas Pendentes
   const {
     pending,
     loading: pendingLoading,
@@ -1845,7 +1845,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* ðŸš€ PAINEL CHAMADAS PENDENTES - APENAS PARA USUíRIOS NíƒO-ADMIN (Admin víª no sininho) */}
+        {/* € PAINEL CHAMADAS PENDENTES - APENAS PARA USUíRIOS NíƒO-ADMIN (Admin víª no sininho) */}
         {user && ["instrutor", "pedagogo", "monitor"].includes(user.tipo) && (
           <Card className="mb-6 border-l-4 border-l-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50">
             <CardHeader className="pb-3">
@@ -1858,7 +1858,7 @@ const Dashboard = () => {
                   ? "Carregando suas chamadas pendentes..."
                   : pending.length === 0
                   ? "ðŸŽ‰ Parabí©ns! Todas as suas chamadas estí£o em dia!"
-                  : `âš ï¸ Vocíª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
+                  : `âš ¸ Vocíª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
               </CardDescription>
             </CardHeader>
 
@@ -2920,7 +2920,7 @@ const UsuariosManager = () => {
     fetchData();
   }, []);
 
-  // ðŸš€ FUNí‡íƒO PING PARA ACORDAR RENDER
+  // € FUNí‡íƒO PING PARA ACORDAR RENDER
   const wakeUpBackend = async () => {
     console.log("ðŸ”” Acordando backend Render...");
     try {
@@ -2935,11 +2935,11 @@ const UsuariosManager = () => {
 
   const fetchData = async () => {
     try {
-      // ðŸš€ PRIMEIRO: Acordar o backend
+      // € PRIMEIRO: Acordar o backend
       const backendAwake = await wakeUpBackend();
       if (!backendAwake) {
         console.warn(
-          "âš ï¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
+          "âš ¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
         );
       }
 
@@ -3573,9 +3573,9 @@ const TurmasManager = () => {
       return;
     }
 
-    // âš ï¸ CONFIRMAí‡íƒO: Pedir confirmaí§í£o antes de deletar
+    // âš ¸ CONFIRMAí‡íƒO: Pedir confirmaí§í£o antes de deletar
     const confirmar = window.confirm(
-      `âš ï¸ ATENí‡íƒO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
+      `âš ¸ ATENí‡íƒO: Tem certeza que deseja DELETAR a turma "${turma.nome}"?\n\n` +
         `Esta aí§í£o í© IRREVERSíVEL e:\n` +
         `â€¢ Removerí¡ permanentemente a turma do sistema\n` +
         `â€¢ nío afetarí¡ os alunos (eles continuarí£o cadastrados)\n` +
@@ -3599,7 +3599,7 @@ const TurmasManager = () => {
       // Atualizar lista de turmas
       fetchData();
 
-      console.log("ðŸ—‘ï¸ Turma deletada:", response.data);
+      console.log("ðŸ—‘¸ Turma deletada:", response.data);
     } catch (error) {
       console.error("âŒ Erro ao deletar turma:", error);
 
@@ -4031,7 +4031,7 @@ const TurmasManager = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {/* ðŸ—‘ï¸ BOTíƒO DELETAR TURMA - Apenas para Admin */}
+                      {/* ðŸ—‘¸ BOTíƒO DELETAR TURMA - Apenas para Admin */}
                       {user?.tipo === "admin" && (
                         <Button
                           variant="destructive"
@@ -4172,7 +4172,7 @@ const RelatoriosManager = () => {
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // ï¿½ DADOS ESSENCIAIS PARA CíLCULOS FASE 3
+  // ¿½ DADOS ESSENCIAIS PARA CíLCULOS FASE 3
   const [alunos, setAlunos] = useState(() => {
     try {
       const cached = localStorage.getItem("ios_alunos_cache");
@@ -4197,7 +4197,7 @@ const RelatoriosManager = () => {
     return localStorage.getItem("ios_ultima_atualizacao") || null;
   });
 
-  // ï¿½ðŸ”§ HEALTH CHECK - FASE 5
+  // ¿½ðŸ”§ HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
   const [showHealthCheck, setShowHealthCheck] = useState(false);
 
@@ -4235,7 +4235,7 @@ const RelatoriosManager = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  // ï¿½ FUNí‡íƒO PING PARA ACORDAR RENDER (DASHBOARD)
+  // ¿½ FUNí‡íƒO PING PARA ACORDAR RENDER (DASHBOARD)
   const wakeUpBackendDashboard = async () => {
     console.log("ðŸ”” Acordando backend Render para dashboard...");
     try {
@@ -4248,17 +4248,17 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ï¿½ðŸ“Š CONEXíƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
+  // ¿½ðŸ“Š CONEXíƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
     console.log("ðŸ” Iniciando carregamento direto MongoDB via Render Backend");
     setDadosCarregando(true);
 
     try {
-      // ðŸš€ PRIMEIRO: Acordar o backend
+      // € PRIMEIRO: Acordar o backend
       const backendAwake = await wakeUpBackendDashboard();
       if (!backendAwake) {
         console.warn(
-          "âš ï¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
+          "âš ¸ Backend pode estar dormindo, tentando requisií§íµes diretas..."
         );
       }
 
@@ -4307,17 +4307,17 @@ const RelatoriosManager = () => {
       // ðŸŽ¯ DIAGNí“STICO DETALHADO
       if (error.response?.status === 405) {
         console.error(
-          "ðŸš¨ Erro 405: Mí©todo HTTP incorreto ou endpoint nío existe"
+          "¨ Erro 405: Mí©todo HTTP incorreto ou endpoint nío existe"
         );
       } else if (error.response?.status === 401) {
         console.error(
-          "ðŸš¨ Erro 401: Token inví¡lido ou expirado - faí§a login novamente"
+          "¨ Erro 401: Token inví¡lido ou expirado - faí§a login novamente"
         );
       } else if (error.code === "ECONNABORTED") {
-        console.error("ðŸš¨ Timeout: Backend Render demorou mais que 60s");
+        console.error("¨ Timeout: Backend Render demorou mais que 60s");
       }
 
-      // âš ï¸ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
+      // âš ¸ SEMPRE DEFINIR ARRAYS VAZIOS (nunca undefined)
       setAlunos([]);
       setChamadas([]);
 
@@ -4451,12 +4451,12 @@ const RelatoriosManager = () => {
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "ï¿½ CSV Simples - STREAMING",
+      title: "¿½ CSV Simples - STREAMING",
       description: "Nova tecnologia anti-timeout! Download em tempo real...",
     });
 
     try {
-      // ðŸš€ STREAMING DOWNLOAD - NO MORE TIMEOUTS!
+      // € STREAMING DOWNLOAD - NO MORE TIMEOUTS!
       const response = await axios.get(
         `${API}/reports/attendance?export_csv=true&format=simple`,
         {
@@ -4492,13 +4492,13 @@ const RelatoriosManager = () => {
       URL.revokeObjectURL(link.href);
 
       toast({
-        title: "ðŸš€ CSV Simples - STREAMING OK!",
+        title: "€ CSV Simples - STREAMING OK!",
         description: "Arquivo baixado com nova tecnologia anti-timeout! âš¡",
       });
     } catch (error) {
       console.error("Erro no download CSV simples:", error);
 
-      // ðŸš¨ ENHANCED ERROR HANDLING with streaming context
+      // ¨ ENHANCED ERROR HANDLING with streaming context
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
           title: "â° Timeout Raro com Streaming",
@@ -4508,7 +4508,7 @@ const RelatoriosManager = () => {
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "ðŸš¨ Gateway Timeout",
+          title: "¨ Gateway Timeout",
           description:
             "Servidor sobrecarregado mesmo com streaming. Aguarde e tente.",
           variant: "destructive",
@@ -4529,12 +4529,12 @@ const RelatoriosManager = () => {
   const downloadCompleteCSV = async () => {
     setCsvLoading(true);
     toast({
-      title: "ï¿½ CSV Completo - STREAMING",
-      description: "Aní¡lise pedagí³gica avaní§ada com streaming anti-timeout! ðŸ”¥",
+      title: "¿½ CSV Completo - STREAMING",
+      description: "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ðŸ”¥",
     });
 
     try {
-      // ðŸš€ JOB SYSTEM - Create CSV generation job first
+      // € JOB SYSTEM - Create CSV generation job first
       const jobResponse = await axios.post(
         `${API}/reports/csv-job`,
         { format: "complete" },
@@ -4598,7 +4598,7 @@ const RelatoriosManager = () => {
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
 
-      // ðŸš¨ ENHANCED ERROR HANDLING for complex streaming
+      // ¨ ENHANCED ERROR HANDLING for complex streaming
       if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
         toast({
           title: "â° Timeout Extremo",
@@ -4608,7 +4608,7 @@ const RelatoriosManager = () => {
         });
       } else if (error.response?.status === 504) {
         toast({
-          title: "ðŸš¨ Gateway Timeout",
+          title: "¨ Gateway Timeout",
           description:
             "Infraestrutura sobrecarregada. Sistema streaming nío ajudou.",
           variant: "destructive",
@@ -4636,7 +4636,7 @@ const RelatoriosManager = () => {
     });
 
     try {
-      console.log("ðŸš€ Iniciando download CSV com Fase 4 - Dados Precisos");
+      console.log("€ Iniciando download CSV com Fase 4 - Dados Precisos");
 
       // ðŸŽ¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUíŠNCIA)
       let backendResponse = null;
@@ -4667,12 +4667,12 @@ const RelatoriosManager = () => {
 
         backendResponse = await axios.get(url);
       } catch (backendError) {
-        console.error("ðŸš¨ ERRO BACKEND CSV:", backendError.message);
+        console.error("¨ ERRO BACKEND CSV:", backendError.message);
         console.error("Status:", backendError.response?.status);
         console.error("URL tentada:", url);
         console.error("Headers:", backendError.config?.headers);
         console.log(
-          "âš ï¸ Backend CSV falhou, gerando localmente com Fase 4:",
+          "âš ¸ Backend CSV falhou, gerando localmente com Fase 4:",
           backendError.message
         );
       }
@@ -4696,7 +4696,7 @@ const RelatoriosManager = () => {
 
         if (!alunos || !alunos.length) {
           toast({
-            title: "âš ï¸ Dados Indisponí­veis",
+            title: "âš ¸ Dados Indisponí­veis",
             description: "Aguarde o carregamento dos dados ou tente novamente",
             variant: "destructive",
           });
@@ -4798,7 +4798,7 @@ const RelatoriosManager = () => {
         healthResult.status_geral === "saudavel"
           ? "âœ…"
           : healthResult.status_geral === "alerta"
-          ? "âš ï¸"
+          ? "âš ¸"
           : "âŒ";
 
       toast({
@@ -5358,7 +5358,7 @@ const AlunosManager = () => {
   const [studentJustifications, setStudentJustifications] = useState([]);
   const [loadingJustifications, setLoadingJustifications] = useState(false);
 
-  // ðŸš€ BULK UPLOAD STATES
+  // € BULK UPLOAD STATES
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [bulkUploadFile, setBulkUploadFile] = useState(null);
   const [updateExisting, setUpdateExisting] = useState(false);
@@ -5944,7 +5944,7 @@ const AlunosManager = () => {
     }
   };
 
-  // ðŸš€ BULK UPLOAD FUNCTIONS
+  // € BULK UPLOAD FUNCTIONS
   const handleBulkUpload = async () => {
     if (!bulkUploadFile) {
       toast({
@@ -5968,7 +5968,7 @@ const AlunosManager = () => {
         params.append("turma_id", selectedTurmaForBulk);
       }
 
-      console.log("ðŸš€ Iniciando bulk upload...");
+      console.log("€ Iniciando bulk upload...");
       console.log("ðŸ“„ Arquivo:", bulkUploadFile.name);
       console.log("ðŸ”„ Atualizar existentes:", updateExisting);
       console.log("ðŸŽ¯ Turma selecionada:", selectedTurmaForBulk);
@@ -6096,7 +6096,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            {/* ðŸš€ BULK UPLOAD BUTTON */}
+            {/* € BULK UPLOAD BUTTON */}
             {user?.tipo !== "monitor" && (
               <Dialog
                 open={isBulkUploadOpen}
@@ -6567,7 +6567,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardContent>
 
-      {/* ï¿½ Dialog para justificar falta/anexar atestado */}
+      {/* ¿½ Dialog para justificar falta/anexar atestado */}
       <Dialog open={isJustifyDialogOpen} onOpenChange={setIsJustifyDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -6646,7 +6646,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* ï¿½ðŸšª Dialog para registrar desistíªncia - SISTEMA ESTRUTURADO */}
+      {/* ¿½ª Dialog para registrar desistíªncia - SISTEMA ESTRUTURADO */}
       <Dialog open={isDropoutDialogOpen} onOpenChange={setIsDropoutDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -6773,7 +6773,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* ðŸš€ BULK UPLOAD DIALOG */}
+      {/* € BULK UPLOAD DIALOG */}
       <Dialog open={isBulkUploadOpen} onOpenChange={setIsBulkUploadOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
@@ -7030,12 +7030,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   </div>
                 )}
 
-              {/* âš ï¸ ERROS */}
+              {/* âš ¸ ERROS */}
               {bulkSummaryData.erros && bulkSummaryData.erros.length > 0 && (
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-semibold text-red-700">
-                      âš ï¸ Erros Encontrados
+                      âš ¸ Erros Encontrados
                     </h3>
                     <Button
                       variant="outline"
@@ -8312,7 +8312,7 @@ const DebugPanel = () => {
   );
 };
 
-// ðŸ›¡ï¸ App envolvido com ErrorBoundary
+// ðŸ›¡¸ App envolvido com ErrorBoundary
 const AppWithErrorBoundary = () => {
   return (
     <ErrorBoundary>
