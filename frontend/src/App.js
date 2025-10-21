@@ -221,7 +221,7 @@ axios.interceptors.response.use(
 
 // ¿½ REGRAS DE NEGí“CIO - FASE 3 (Precisí£o dos Cí¡lculos)
 const REGRAS_PRESENCA = {
-  MINIMO_APROVACAO: 75, // % mí­nimo para aprovaí§í£o
+  MINIMO_APROVACAO: 75, // % mí­nimo para Aprovação
   EM_RISCO: 60, // 60-74% = Aluno em risco
   CRITICO: 40, // < 60% = Situaí§í£o crí­tica
   ALERTA_FALTAS_CONSECUTIVAS: 3, // 3+ faltas seguidas = alerta
@@ -372,7 +372,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     ],
     [""],
     ["=== REGRAS APLICADAS ==="],
-    [`Mí­nimo para Aprovaí§í£o: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
+    [`Mí­nimo para Aprovação: â‰¥${REGRAS_PRESENCA.MINIMO_APROVACAO}%`],
     [
       `Alerta de Risco: ${REGRAS_PRESENCA.EM_RISCO}% - ${
         REGRAS_PRESENCA.MINIMO_APROVACAO - 1
@@ -846,7 +846,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             </div>
           )}
 
-          {/* Botíµes */}
+          {/* Botões */}
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={onClose} disabled={saving}>
               Cancelar
@@ -1086,7 +1086,7 @@ const Login = () => {
       toast({
         title: "Solicitaí§í£o enviada!",
         description:
-          "Aguarde a aprovaí§í£o do administrador para acessar o sistema.",
+          "Aguarde a Aprovação do administrador para acessar o sistema.",
       });
       setShowFirstAccess(false);
       setFirstAccessData({ nome: "", email: "", tipo: "instrutor" });
@@ -2874,7 +2874,7 @@ const ChamadaManager = () => {
               </p>
             </div>
 
-            {/* Botíµes */}
+            {/* Botões */}
             <div className="flex justify-end space-x-2 pt-4">
               <Button
                 variant="outline"
@@ -3105,10 +3105,10 @@ const UsuariosManager = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="h-5 w-5 mr-2 text-orange-500" />
-              Usuí¡rios Pendentes de Aprovaí§í£o
+              Usuí¡rios Pendentes de Aprovação
             </CardTitle>
             <CardDescription>
-              Usuí¡rios que solicitaram primeiro acesso e aguardam aprovaí§í£o
+              Usuí¡rios que solicitaram primeiro acesso e aguardam Aprovação
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -3488,7 +3488,7 @@ const TurmasManager = () => {
   };
 
   const resetForm = () => {
-    // âœ… AUTO-PREENCHIMENTO: Para nío-admin, prí©-preencher unidade e instrutor
+    // âœ… AUTO-PREENCHIMENTO: Para não-Admin, prí©-preencher unidade e instrutor
     const defaultUnidadeId =
       user?.tipo !== "admin" ? user?.unidade_id || "" : "";
     const defaultInstrutorId = user?.tipo !== "admin" ? user?.id || "" : "";
@@ -6111,7 +6111,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </Dialog>
             )}
 
-            {/* Ž¯ PRODUí‡íƒO: Botíµes de teste removidos para usuí¡rios finais */}
+            {/* Ž¯ PRODUí‡íƒO: Botões de teste removidos para usuí¡rios finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -6413,12 +6413,12 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </div>
       </CardHeader>
 
-      {/* Card de Permissíµes para Usuí¡rios nío-Admin */}
+      {/* Card de Permissões para Usuí¡rios não-Admin */}
       {user?.tipo !== "admin" && (
         <div className="mx-6 mb-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <div className="flex items-center gap-2 text-orange-800">
             <Info className="h-4 w-4" />
-            <span className="text-sm font-medium">Suas Permissíµes:</span>
+            <span className="text-sm font-medium">Suas Permissões:</span>
           </div>
           <div className="mt-2 text-sm text-orange-700">
             <p>
@@ -8253,9 +8253,9 @@ const DebugPanel = () => {
       </div>
 
       <div className="p-4 space-y-2">
-        {/* Instruí§íµes para usuí¡rios */}
+        {/* Instruções para usuí¡rios */}
         <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-          <p className="font-semibold">” Instruí§íµes para Fabiana e Ione:</p>
+          <p className="font-semibold">” Instruções para Fabiana e Ione:</p>
           <p>1. Ative o Debug Mode</p>
           <p>2. Teste a conexí£o com "Testar API"</p>
           <p>3. Faí§a uma chamada normalmente</p>
