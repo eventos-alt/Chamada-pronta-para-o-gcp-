@@ -50,7 +50,7 @@ import {
 import { useToast } from "./hooks/use-toast";
 import { Toaster } from "./components/ui/toaster";
 
-// ðŸ›¡¸ Error Boundary para capturar erros DOM
+// ›¡¸ Error Boundary para capturar erros DOM
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -74,14 +74,14 @@ class ErrorBoundary extends React.Component {
               âš ¸ Erro Capturado
             </h2>
             <p className="text-gray-600 mb-4">
-              Ocorreu um erro na aplicaí§í£o. A pí¡gina serí¡ recarregada
+              Ocorreu um erro na aplicação. A pí¡gina será¡ recarregada
               automaticamente.
             </p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
-              ðŸ”„ Recarregar Pí¡gina
+              ”„ Recarregar Pí¡gina
             </button>
           </div>
         </div>
@@ -140,7 +140,7 @@ const BACKEND_URL =
   "https://sistema-ios-backend.onrender.com";
 const API = `${BACKEND_URL}/api`;
 
-// ðŸ” SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
+// ” SISTEMA DE DEBUG UNIVERSAL - Para testar em outros computadores
 const DEBUG_MODE =
   localStorage.getItem("ios_debug") === "true" ||
   process.env.NODE_ENV === "development";
@@ -191,7 +191,7 @@ window.addEventListener("unhandledrejection", (event) => {
 // Configurar timeout global para axios
 axios.defaults.timeout = 30000; // Aumentado para 30 segundos (Fase 2)
 
-// ðŸ”„ INTERCEPTOR COM RETRY - FASE 2 (Correí§í£o de Timeout)
+// ”„ INTERCEPTOR COM RETRY - FASE 2 (Correí§í£o de Timeout)
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -203,7 +203,7 @@ axios.interceptors.response.use(
       (error.code === "ECONNABORTED" || error.name === "AxiosError")
     ) {
       config.retry += 1;
-      console.log(`ðŸ”„ Tentativa ${config.retry}/3 para ${config.url}`);
+      console.log(`”„ Tentativa ${config.retry}/3 para ${config.url}`);
       return axios(config);
     }
 
@@ -229,14 +229,14 @@ const REGRAS_PRESENCA = {
   INCLUIR_DESISTENTES_STATS: false, // nío contar desistentes nas mí©dias
 };
 
-// ðŸŽ¯ CLASSIFICADOR DE RISCO DE ALUNO
+// Ž¯ CLASSIFICADOR DE RISCO DE ALUNO
 const classificarRiscoAluno = (percentualPresenca) => {
   if (percentualPresenca >= REGRAS_PRESENCA.MINIMO_APROVACAO) return "adequado";
   if (percentualPresenca >= REGRAS_PRESENCA.EM_RISCO) return "em_risco";
   return "critico";
 };
 
-// ðŸ“ˆ CALCULADORA DE ESTATíSTICAS PRECISAS
+// “ˆ CALCULADORA DE ESTATíSTICAS PRECISAS
 const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   const alunosAtivos = REGRAS_PRESENCA.INCLUIR_DESISTENTES_STATS
     ? alunos
@@ -291,7 +291,7 @@ const calcularEstatisticasPrecisas = (alunos, chamadas) => {
   };
 };
 
-// ¿½ðŸ‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
+// ¿½‘¥ NOMENCLATURA UNISSEX - OUT/2024 (Fase 1)
 const getUserTypeLabel = (tipo) => {
   const labels = {
     admin: "Administrador(a)",
@@ -302,11 +302,11 @@ const getUserTypeLabel = (tipo) => {
   return labels[tipo] || tipo;
 };
 
-// ðŸ“Š GERADOR CSV COM DADOS PRECISOS - FASE 4
+// “Š GERADOR CSV COM DADOS PRECISOS - FASE 4
 const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
-  console.log("ðŸ”§ Gerando CSV com dados precisos Fase 4");
+  console.log("”§ Gerando CSV com dados precisos Fase 4");
 
-  // ðŸ“‹ CABEí‡ALHO APRIMORADO COM NOVOS CAMPOS
+  // “‹ CABEí‡ALHO APRIMORADO COM NOVOS CAMPOS
   const headers = [
     "Nome do Aluno",
     "CPF",
@@ -322,11 +322,11 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     "ObservAções",
   ];
 
-  // ðŸ“Š PROCESSAR DADOS COM CíLCULOS PRECISOS
+  // “Š PROCESSAR DADOS COM CíLCULOS PRECISOS
   const linhas = estatisticasPrecisas.estatisticasPorAluno.map((aluno) => {
     const faltas = aluno.totalChamadas - aluno.presencas;
 
-    // ðŸŽ¯ Traduzir classificaí§í£o para texto legí­vel
+    // Ž¯ Traduzir classificaí§í£o para texto legí­vel
     const classificacaoTexto =
       {
         adequado: "Frequíªncia Adequada",
@@ -334,7 +334,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
         critico: "Situaí§í£o Crí­tica",
       }[aluno.classificacao] || "nío Classificado";
 
-    // ðŸŽ¯ Status traduzido
+    // Ž¯ Status traduzido
     const statusTexto =
       {
         ativo: "Ativo",
@@ -358,7 +358,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     ];
   });
 
-  // ðŸ“ˆ RODAPí‰ COM ESTATíSTICAS GERAIS
+  // “ˆ RODAPí‰ COM ESTATíSTICAS GERAIS
   const rodape = [
     [""],
     ["=== ESTATíSTICAS GERAIS (FASE 3) ==="],
@@ -389,7 +389,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     [`Sistema: IOS - Fase 4 (Cí¡lculos Precisos)`],
   ];
 
-  // ðŸ”„ CONVERTER PARA CSV
+  // ”„ CONVERTER PARA CSV
   const todasLinhas = [headers, ...linhas, ...rodape];
   const csvContent = todasLinhas
     .map((linha) =>
@@ -399,7 +399,7 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
     )
     .join("\n");
 
-  // ðŸ“‹ ADICIONAR BOM (Byte Order Mark) para UTF-8
+  // “‹ ADICIONAR BOM (Byte Order Mark) para UTF-8
   const csvComBOM = "\ufeff" + csvContent;
 
   console.log(
@@ -408,9 +408,9 @@ const gerarCSVComDadosPrecisos = (estatisticasPrecisas, filtrosAplicados) => {
   return csvComBOM;
 };
 
-// ðŸ”§ HEALTH CHECK SISTEMA - FASE 5
+// ”§ HEALTH CHECK SISTEMA - FASE 5
 const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
-  console.log("ðŸ” Executando Health Check - Fase 5");
+  console.log("” Executando Health Check - Fase 5");
 
   const healthStatus = {
     timestamp: new Date().toISOString(),
@@ -425,7 +425,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
   };
 
   try {
-    // ðŸŽ¯ TESTAR CONECTIVIDADE BACKEND
+    // Ž¯ TESTAR CONECTIVIDADE BACKEND
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 5000 });
       healthStatus.backend_status = "ok";
@@ -437,7 +437,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       healthStatus.modo_offline = true;
     }
 
-    // ðŸŽ¯ VERIFICAR DADOS LOCAIS
+    // Ž¯ VERIFICAR DADOS LOCAIS
     if (alunosData && alunosData.length > 0) {
       healthStatus.dados_disponiveis = true;
       healthStatus.total_alunos = alunosData.length;
@@ -486,7 +486,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
       }
     }
 
-    // ðŸŽ¯ VERIFICAR FASES IMPLEMENTADAS
+    // Ž¯ VERIFICAR FASES IMPLEMENTADAS
     if (typeof REGRAS_PRESENCA !== "undefined") {
       healthStatus.fases_ativas.push("Fase 3 - Regras de Negí³cio");
     }
@@ -496,7 +496,7 @@ const verificarHealthSistema = async (alunosData = [], chamadasData = []) => {
 
     healthStatus.fases_ativas.push("Fase 5 - Health Check");
 
-    // ðŸŽ¯ STATUS GERAL
+    // Ž¯ STATUS GERAL
     healthStatus.status_geral =
       healthStatus.backend_status === "ok" &&
       healthStatus.dados_disponiveis &&
@@ -542,7 +542,7 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     console.log("€ Inicializando autenticaí§í£o...");
-    console.log("ðŸ”— Backend URL:", BACKEND_URL);
+    console.log("”— Backend URL:", BACKEND_URL);
 
     if (!BACKEND_URL) {
       console.error("âŒ BACKEND_URL nío configurado!");
@@ -551,7 +551,7 @@ const AuthProvider = ({ children }) => {
     }
 
     if (token) {
-      console.log("ðŸ”‘ Token encontrado, verificando usuí¡rio...");
+      console.log("”‘ Token encontrado, verificando usuí¡rio...");
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchCurrentUser();
     } else {
@@ -562,7 +562,7 @@ const AuthProvider = ({ children }) => {
 
   const fetchCurrentUser = async () => {
     try {
-      console.log("ðŸ” Verificando usuí¡rio atual...");
+      console.log("” Verificando usuí¡rio atual...");
       const response = await axios.get(`${API}/auth/me`);
       console.log("âœ… Usuí¡rio carregado:", response.data.email);
       setUser(response.data);
@@ -719,7 +719,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
         description: `Chamada de ${turma.turma_nome} registrada com sucesso`,
       });
 
-      // ðŸŽ¯ FECHAR MODAL E ATUALIZAR LISTA
+      // Ž¯ FECHAR MODAL E ATUALIZAR LISTA
       onComplete(); // Notificar componente pai para remover da lista
       onClose(); // Fechar o modal
     } catch (error) {
@@ -750,7 +750,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
-            ðŸ“‹ Chamada: {turma?.turma_nome}
+            “‹ Chamada: {turma?.turma_nome}
             {turma?.data_pendente && (
               <span className="text-sm font-normal text-gray-600 ml-2">
                 (
@@ -762,7 +762,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
             )}
           </DialogTitle>
           <DialogDescription>
-            {turma?.status_msg || "Marque os alunos presentes."} A chamada serí¡
+            {turma?.status_msg || "Marque os alunos presentes."} A chamada será¡
             salva e nío poderí¡ ser alterada.
           </DialogDescription>
         </DialogHeader>
@@ -840,7 +840,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
                 âš ¸ Confirmaí§í£o Necessí¡ria
               </p>
               <p className="text-yellow-700 text-sm mt-1">
-                A chamada serí¡ salva e <strong>nío poderí¡ ser alterada</strong>.
+                A chamada será¡ salva e <strong>nío poderí¡ ser alterada</strong>.
                 Deseja continuar?
               </p>
             </div>
@@ -868,7 +868,7 @@ const AttendanceModal = ({ open, onClose, turma, onComplete }) => {
               ) : showConfirm ? (
                 "âœ… Confirmar e Salvar"
               ) : (
-                "ðŸ’¾ Salvar Chamada"
+                "’¾ Salvar Chamada"
               )}
             </Button>
           </div>
@@ -967,7 +967,7 @@ const PendingAttendanceCard = ({ turma, onComplete }) => {
             onClick={() => setModalOpen(true)}
             className={`w-full text-white ${styles.buttonClass}`}
           >
-            ðŸ“‹ Fazer Chamada
+            “‹ Fazer Chamada
           </Button>
         </CardContent>
       </Card>
@@ -993,13 +993,13 @@ const Login = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [showBrandCard, setShowBrandCard] = useState(false);
   const [firstAccessData, setFirstAccessData] = useState(() => {
-    console.log("ðŸ”§ Inicializando firstAccessData");
+    console.log("”§ Inicializando firstAccessData");
     const initialData = {
       nome: "",
       email: "",
       tipo: "instrutor",
     };
-    console.log("ðŸ“ Dados iniciais:", initialData);
+    console.log("“ Dados iniciais:", initialData);
     return initialData;
   });
   const { login } = useAuth();
@@ -1074,7 +1074,7 @@ const Login = () => {
     e.preventDefault();
 
     // Debug log para diagnosticar problemas
-    console.log("ðŸ” Dados do primeiro acesso:", firstAccessData);
+    console.log("” Dados do primeiro acesso:", firstAccessData);
 
     try {
       const response = await axios.post(
@@ -1109,7 +1109,7 @@ const Login = () => {
         email: resetEmail,
       });
 
-      // ðŸ” SEGURANí‡A: nío mostra mais a senha na tela
+      // ” SEGURANí‡A: nío mostra mais a senha na tela
       toast({
         title: "Solicitaí§í£o enviada!",
         description: response.data.message,
@@ -1295,12 +1295,12 @@ const Login = () => {
                 <Select
                   value={firstAccessData.tipo}
                   onValueChange={(value) => {
-                    console.log("ðŸ”„ Selecionando tipo de usuí¡rio:", value);
+                    console.log("”„ Selecionando tipo de usuí¡rio:", value);
                     try {
                       setFirstAccessData((prevData) => {
-                        console.log("ðŸ“ Estado anterior:", prevData);
+                        console.log("“ Estado anterior:", prevData);
                         const newData = { ...prevData, tipo: value };
-                        console.log("ðŸ“ Novo estado:", newData);
+                        console.log("“ Novo estado:", newData);
                         return newData;
                       });
                     } catch (error) {
@@ -1370,7 +1370,7 @@ const Login = () => {
   );
 };
 
-// ðŸ”” Componente de NotificAções Melhorado
+// ”” Componente de NotificAções Melhorado
 const NotificationButton = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1403,7 +1403,7 @@ const NotificationButton = () => {
 
     try {
       setLoading(false); // nío mostrar loading no sininho sempre
-      // ðŸŽ¯ USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
+      // Ž¯ USAR MESMO ENDPOINT DO SISTEMA DE CHAMADAS PENDENTES
       const response = await axios.get(
         `${API}/instructor/me/pending-attendances`
       );
@@ -1501,7 +1501,7 @@ const NotificationButton = () => {
           <div className="p-4 text-center">
             <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-green-700 mb-1">
-              {user?.tipo === "admin" ? "Sistema em dia! ðŸŽ¯" : "Parabí©ns! ðŸŽ‰"}
+              {user?.tipo === "admin" ? "Sistema em dia! Ž¯" : "Parabí©ns! Ž‰"}
             </p>
             <p className="text-xs text-gray-500">
               {user?.tipo === "admin"
@@ -1686,7 +1686,7 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* ðŸ“Š Dashboard Personalizado por Usuí¡rio */}
+        {/* “Š Dashboard Personalizado por Usuí¡rio */}
         {user?.tipo !== "admin" && (
           <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-3">
@@ -1857,7 +1857,7 @@ const Dashboard = () => {
                 {pendingLoading
                   ? "Carregando suas chamadas pendentes..."
                   : pending.length === 0
-                  ? "ðŸŽ‰ Parabí©ns! Todas as suas chamadas estí£o em dia!"
+                  ? "Ž‰ Parabí©ns! Todas as suas chamadas estí£o em dia!"
                   : `âš ¸ Vocíª tem ${pending.length} chamada(s) pendente(s) para realizar hoje`}
               </CardDescription>
             </CardHeader>
@@ -1890,7 +1890,7 @@ const Dashboard = () => {
                 <div className="text-center py-8 bg-green-50 rounded-lg border border-green-200">
                   <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                   <p className="font-semibold text-green-800 text-lg mb-2">
-                    Excelente trabalho! ðŸŽ¯
+                    Excelente trabalho! Ž¯
                   </p>
                   <p className="text-green-700 mb-1">
                     Todas as chamadas do dia foram realizadas!
@@ -1947,7 +1947,7 @@ const Dashboard = () => {
               Chamada
             </TabsTrigger>
 
-            {/* ðŸŽ¯ ALUNOS: Disponí­vel para instrutores, pedagogos, monitores e admin */}
+            {/* Ž¯ ALUNOS: Disponí­vel para instrutores, pedagogos, monitores e admin */}
             {["admin", "instrutor", "pedagogo", "monitor"].includes(
               user?.tipo
             ) && (
@@ -1997,7 +1997,7 @@ const Dashboard = () => {
             <ChamadaManager />
           </TabsContent>
 
-          {/* ðŸŽ¯ ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
+          {/* Ž¯ ALUNOS: Instrutores/Pedagogos/Monitores podem cadastrar alunos em suas turmas */}
           {["admin", "instrutor", "pedagogo", "monitor"].includes(
             user?.tipo
           ) && (
@@ -2056,7 +2056,7 @@ const ChamadaManager = () => {
   const [selectedFileAtestado, setSelectedFileAtestado] = useState(null);
   const [observacaoAtestado, setObservacaoAtestado] = useState("");
 
-  // ðŸ¥ Estados para sistema de atestados avaní§ado
+  // ¥ Estados para sistema de atestados avaní§ado
   const [alunoDetalheDialog, setAlunoDetalheDialog] = useState(false);
   const [selectedAlunoDetalhes, setSelectedAlunoDetalhes] = useState(null);
   const [atestadosAluno, setAtestadosAluno] = useState([]);
@@ -2103,7 +2103,7 @@ const ChamadaManager = () => {
     }
   };
 
-  // ðŸ¥ FUNí‡í•ES PARA GESTíƒO DE ATESTADOS
+  // ¥ FUNí‡í•ES PARA GESTíƒO DE ATESTADOS
   const handleVisualizarAlunoDetalhes = async (aluno) => {
     setSelectedAlunoDetalhes(aluno);
     try {
@@ -2430,7 +2430,7 @@ const ChamadaManager = () => {
       return;
     }
 
-    // ðŸ”’ VALIDAí‡íƒO: Sí³ permite chamada do dia atual
+    // ”’ VALIDAí‡íƒO: Sí³ permite chamada do dia atual
     const hoje = new Date().toISOString().split("T")[0];
     const agora = new Date().toTimeString().split(" ")[0].substring(0, 5);
 
@@ -2473,7 +2473,7 @@ const ChamadaManager = () => {
         )}`,
       });
 
-      // ðŸŽ¯ CORREí‡íƒO CRíTICA: Salvar ID da turma antes de limpar estados
+      // Ž¯ CORREí‡íƒO CRíTICA: Salvar ID da turma antes de limpar estados
       const turmaIdParaRemover = selectedTurma;
       debugLog("ChamadaManager: Turma ID salvo para remoí§í£o", {
         turmaIdParaRemover,
@@ -2815,7 +2815,7 @@ const ChamadaManager = () => {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* ðŸ“ Motivo da falta - CAMPO DE TEXTO LIVRE */}
+            {/* “ Motivo da falta - CAMPO DE TEXTO LIVRE */}
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center">
                 <AlertCircle className="h-4 w-4 mr-1" />
@@ -2834,7 +2834,7 @@ const ChamadaManager = () => {
                 className="resize-none"
               />
               <p className="text-xs text-muted-foreground">
-                ðŸ’¡ Seja especí­fico para facilitar o controle de frequíªncia
+                ’¡ Seja especí­fico para facilitar o controle de frequíªncia
               </p>
             </div>
 
@@ -2922,7 +2922,7 @@ const UsuariosManager = () => {
 
   // € FUNí‡íƒO PING PARA ACORDAR RENDER
   const wakeUpBackend = async () => {
-    console.log("ðŸ”” Acordando backend Render...");
+    console.log("”” Acordando backend Render...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
       console.log("âœ… Backend acordado:", pingResponse.data);
@@ -3001,7 +3001,7 @@ const UsuariosManager = () => {
     }
   };
 
-  // ðŸ” NOVA FUNí‡íƒO: Reset de senha administrativo
+  // ” NOVA FUNí‡íƒO: Reset de senha administrativo
   const handleResetPassword = async (userId, userName) => {
     try {
       const response = await axios.post(
@@ -3016,7 +3016,7 @@ const UsuariosManager = () => {
 
       // Mostra alert adicional para garantir que admin veja a senha
       alert(
-        `ðŸ” SENHA TEMPORíRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuí¡rio. Ele deverí¡ alterí¡-la no primeiro acesso.`
+        `” SENHA TEMPORíRIA para ${response.data.user_name}:\n\n${response.data.temp_password}\n\nInforme esta senha ao usuí¡rio. Ele deverí¡ alterí¡-la no primeiro acesso.`
       );
     } catch (error) {
       toast({
@@ -3167,7 +3167,7 @@ const UsuariosManager = () => {
                   <DialogDescription>
                     {editingUser
                       ? "Atualize os dados do usuí¡rio"
-                      : "Preencha os dados para criar um novo usuí¡rio. Uma senha temporí¡ria serí¡ gerada."}
+                      : "Preencha os dados para criar um novo usuí¡rio. Uma senha temporí¡ria será¡ gerada."}
                   </DialogDescription>
                 </DialogHeader>
                 <form
@@ -3519,7 +3519,7 @@ const TurmasManager = () => {
       usuarios.find((u) => u.id === turma.instrutor_id)?.nome || "N/A";
 
     alert(
-      `ðŸ“‹ DETALHES DA TURMA\n\n` +
+      `“‹ DETALHES DA TURMA\n\n` +
         `Nome: ${turma.nome}\n` +
         `Unidade: ${unidadeNome}\n` +
         `Curso: ${cursoNome}\n` +
@@ -3563,7 +3563,7 @@ const TurmasManager = () => {
   };
 
   const handleDeleteTurma = async (turma) => {
-    // ðŸ”’ VERIFICAí‡íƒO: Apenas admin pode deletar
+    // ”’ VERIFICAí‡íƒO: Apenas admin pode deletar
     if (user?.tipo !== "admin") {
       toast({
         title: "Acesso negado",
@@ -3599,7 +3599,7 @@ const TurmasManager = () => {
       // Atualizar lista de turmas
       fetchData();
 
-      console.log("ðŸ—‘¸ Turma deletada:", response.data);
+      console.log("—‘¸ Turma deletada:", response.data);
     } catch (error) {
       console.error("âŒ Erro ao deletar turma:", error);
 
@@ -4031,7 +4031,7 @@ const TurmasManager = () => {
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {/* ðŸ—‘¸ BOTíƒO DELETAR TURMA - Apenas para Admin */}
+                      {/* —‘¸ BOTíƒO DELETAR TURMA - Apenas para Admin */}
                       {user?.tipo === "admin" && (
                         <Button
                           variant="destructive"
@@ -4165,7 +4165,7 @@ const TurmasManager = () => {
   );
 };
 
-// ðŸ“Š RELATí“RIOS DINí‚MICOS - Atualizados Automaticamente
+// “Š RELATí“RIOS DINí‚MICOS - Atualizados Automaticamente
 const RelatoriosManager = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -4191,17 +4191,17 @@ const RelatoriosManager = () => {
     }
   });
 
-  // ðŸ“Š STATUS DE CONEXíƒO COM MONGODB
+  // “Š STATUS DE CONEXíƒO COM MONGODB
   const [dadosCarregando, setDadosCarregando] = useState(true);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(() => {
     return localStorage.getItem("ios_ultima_atualizacao") || null;
   });
 
-  // ¿½ðŸ”§ HEALTH CHECK - FASE 5
+  // ¿½”§ HEALTH CHECK - FASE 5
   const [healthStatus, setHealthStatus] = useState(null);
   const [showHealthCheck, setShowHealthCheck] = useState(false);
 
-  // ðŸ” FILTROS AVANí‡ADOS PARA ADMIN
+  // ” FILTROS AVANí‡ADOS PARA ADMIN
   const [filtros, setFiltros] = useState({
     data_inicio: "",
     data_fim: "",
@@ -4220,7 +4220,7 @@ const RelatoriosManager = () => {
   const [csvLoading, setCsvLoading] = useState(false);
 
   useEffect(() => {
-    // ðŸ“Š CARREGAR DADOS ESSENCIAIS PRIMEIRO
+    // “Š CARREGAR DADOS ESSENCIAIS PRIMEIRO
     fetchDadosBasicos();
     fetchDynamicStats();
 
@@ -4229,7 +4229,7 @@ const RelatoriosManager = () => {
       fetchFilterData();
     }
 
-    // ðŸ”„ AUTO-REFRESH: Atualizar Relatórios a cada 30 segundos
+    // ”„ AUTO-REFRESH: Atualizar Relatórios a cada 30 segundos
     const interval = setInterval(fetchDynamicStats, 30000);
 
     return () => clearInterval(interval);
@@ -4237,7 +4237,7 @@ const RelatoriosManager = () => {
 
   // ¿½ FUNí‡íƒO PING PARA ACORDAR RENDER (DASHBOARD)
   const wakeUpBackendDashboard = async () => {
-    console.log("ðŸ”” Acordando backend Render para dashboard...");
+    console.log("”” Acordando backend Render para dashboard...");
     try {
       const pingResponse = await axios.get(`${API}/ping`, { timeout: 30000 });
       console.log("âœ… Backend acordado para dashboard:", pingResponse.data);
@@ -4248,9 +4248,9 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ¿½ðŸ“Š CONEXíƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
+  // ¿½“Š CONEXíƒO DIRETA MONGODB - SEM CACHE, SEMPRE ATUALIZADO
   const fetchDadosBasicos = async () => {
-    console.log("ðŸ” Iniciando carregamento direto MongoDB via Render Backend");
+    console.log("” Iniciando carregamento direto MongoDB via Render Backend");
     setDadosCarregando(true);
 
     try {
@@ -4262,7 +4262,7 @@ const RelatoriosManager = () => {
         );
       }
 
-      // ðŸŽ¯ REQUISIí‡í•ES DIRETAS PARA ENDPOINTS CORRETOS
+      // Ž¯ REQUISIí‡í•ES DIRETAS PARA ENDPOINTS CORRETOS
       const [alunosResponse, chamadasResponse] = await Promise.all([
         axios.get(`${API}/students`, {
           timeout: 60000,
@@ -4304,7 +4304,7 @@ const RelatoriosManager = () => {
     } catch (error) {
       console.error("âŒ Erro ao carregar dados MongoDB:", error);
 
-      // ðŸŽ¯ DIAGNí“STICO DETALHADO
+      // Ž¯ DIAGNí“STICO DETALHADO
       if (error.response?.status === 405) {
         console.error(
           "¨ Erro 405: Mí©todo HTTP incorreto ou endpoint nío existe"
@@ -4351,7 +4351,7 @@ const RelatoriosManager = () => {
 
   const fetchDynamicStats = async (customFilters = null) => {
     try {
-      // ðŸŽ¯ FILTROS: Aplicar filtros se for admin e filtros estiverem definidos
+      // Ž¯ FILTROS: Aplicar filtros se for admin e filtros estiverem definidos
       let url = `${API}/reports/teacher-stats`;
       const filtersToUse = customFilters || filtros;
 
@@ -4379,14 +4379,14 @@ const RelatoriosManager = () => {
 
       const response = await axios.get(url);
 
-      // ðŸ“Š FASE 3: Aplicar regras de negí³cio precisas
+      // “Š FASE 3: Aplicar regras de negí³cio precisas
       if (alunos && alunos.length > 0) {
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
         );
 
-        // ðŸŽ¯ USAR APENAS DADOS DO BACKEND para consistíªncia
+        // Ž¯ USAR APENAS DADOS DO BACKEND para consistíªncia
         const statsComPrecisao = {
           ...response.data,
           // Manter alguns cí¡lculos locais apenas para detalhes especí­ficos
@@ -4413,9 +4413,9 @@ const RelatoriosManager = () => {
     } catch (error) {
       console.error("Error fetching dynamic stats:", error);
 
-      // ðŸ”„ Fallback com cí¡lculos locais precisos
+      // ”„ Fallback com cí¡lculos locais precisos
       if (alunos && alunos.length > 0) {
-        console.log("ðŸŽ¯ Aplicando Fase 3 offline - cí¡lculos precisos locais");
+        console.log("Ž¯ Aplicando Fase 3 offline - cí¡lculos precisos locais");
         const estatisticasLocais = calcularEstatisticasPrecisas(
           alunos,
           chamadas || []
@@ -4447,7 +4447,7 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ðŸ“Š CSV Export com Dois Formatos - STREAMING ANTI-TIMEOUT!
+  // “Š CSV Export com Dois Formatos - STREAMING ANTI-TIMEOUT!
   const downloadSimpleCSV = async () => {
     setCsvLoading(true);
     toast({
@@ -4530,7 +4530,7 @@ const RelatoriosManager = () => {
     setCsvLoading(true);
     toast({
       title: "¿½ CSV Completo - STREAMING",
-      description: "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ðŸ”¥",
+      description: "Aní¡lise pedagí³gica avançada com streaming anti-timeout! ”¥",
     });
 
     try {
@@ -4593,7 +4593,7 @@ const RelatoriosManager = () => {
 
       toast({
         title: "âœ… CSV Completo Baixado!",
-        description: "Relatí³rio Pedagógico avaní§ado via job system! ðŸŽ¯",
+        description: "Relatí³rio Pedagógico avaní§ado via job system! Ž¯",
       });
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
@@ -4625,20 +4625,20 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ðŸ“Š FASE 4: CSV Export Aprimorado com Dados Precisos (mantido para compatibilidade)
+  // “Š FASE 4: CSV Export Aprimorado com Dados Precisos (mantido para compatibilidade)
   const downloadFrequencyReport = async () => {
     setCsvLoading(true);
 
     // Toast de iní­cio do processo
     toast({
-      title: "ðŸ“Š Gerando Relatí³rio CSV",
+      title: "“Š Gerando Relatí³rio CSV",
       description: "Processando dados de frequíªncia... aguarde",
     });
 
     try {
       console.log("€ Iniciando download CSV com Fase 4 - Dados Precisos");
 
-      // ðŸŽ¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUíŠNCIA)
+      // Ž¯ TENTATIVA 1: Backend com filtros aplicados (NOVO ENDPOINT DE FREQUíŠNCIA)
       let backendResponse = null;
       try {
         let url = `${API}/reports/student-frequency?export_csv=true`;
@@ -4680,19 +4680,19 @@ const RelatoriosManager = () => {
       let csvData;
       let dataSource;
 
-      // ðŸŽ¯ USAR DADOS DO BACKEND SE DISPONíVEL
+      // Ž¯ USAR DADOS DO BACKEND SE DISPONíVEL
       if (backendResponse && backendResponse.data?.csv_data) {
         csvData = backendResponse.data.csv_data;
         dataSource = "backend";
         console.log("âœ… Usando dados do backend");
         console.log(
-          "ðŸ“Š Preview CSV (primeiras 200 chars):",
+          "“Š Preview CSV (primeiras 200 chars):",
           csvData.substring(0, 200)
         );
       }
-      // ðŸŽ¯ FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
+      // Ž¯ FALLBACK: GERAR CSV LOCALMENTE COM FASE 3
       else {
-        console.log("ðŸ”„ Gerando CSV localmente com cí¡lculos Fase 3");
+        console.log("”„ Gerando CSV localmente com cí¡lculos Fase 3");
 
         if (!alunos || !alunos.length) {
           toast({
@@ -4714,7 +4714,7 @@ const RelatoriosManager = () => {
         dataSource = "local-fase3";
       }
 
-      // ðŸ“ CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
+      // “ CRIAR E BAIXAR ARQUIVO CSV APRIMORADO
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
 
@@ -4722,7 +4722,7 @@ const RelatoriosManager = () => {
         const url = URL.createObjectURL(blob);
         link.setAttribute("href", url);
 
-        // ðŸ“‹ Nome do arquivo com indicadores de qualidade
+        // “‹ Nome do arquivo com indicadores de qualidade
         let fileName = `relatorio_frequencia_${
           new Date().toISOString().split("T")[0]
         }`;
@@ -4752,9 +4752,9 @@ const RelatoriosManager = () => {
         document.body.removeChild(link);
       }
 
-      // ðŸŽ‰ FEEDBACK COM DETALHES DA FASE 4
+      // Ž‰ FEEDBACK COM DETALHES DA FASE 4
       toast({
-        title: "ðŸ“Š Relatí³rio Fase 4 Exportado!",
+        title: "“Š Relatí³rio Fase 4 Exportado!",
         description: `${
           dataSource === "backend"
             ? "Dados Backend"
@@ -4775,18 +4775,18 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ðŸ” Funí§í£o para aplicar filtros
+  // ” Funí§í£o para aplicar filtros
   const aplicarFiltros = () => {
     setLoading(true);
     fetchDynamicStats(filtros);
   };
 
-  // ðŸ”§ EXECUTAR HEALTH CHECK - FASE 5
+  // ”§ EXECUTAR HEALTH CHECK - FASE 5
   const executarHealthCheck = async () => {
     try {
       setLoading(true);
       toast({
-        title: "ðŸ” Executando Health Check",
+        title: "” Executando Health Check",
         description: "Verificando status do sistema Fase 5...",
       });
 
@@ -4820,7 +4820,7 @@ const RelatoriosManager = () => {
     }
   };
 
-  // ðŸ§¹ Funí§í£o para limpar filtros
+  // §¹ Funí§í£o para limpar filtros
   const limparFiltros = () => {
     const filtrosVazios = {
       data_inicio: "",
@@ -4847,7 +4847,7 @@ const RelatoriosManager = () => {
     );
   }
 
-  // ðŸ“Š RELATí“RIOS DINí‚MICOS - Interface completamente atualizada
+  // “Š RELATí“RIOS DINí‚MICOS - Interface completamente atualizada
   return (
     <Card>
       <CardHeader>
@@ -4871,7 +4871,7 @@ const RelatoriosManager = () => {
               </Button>
             )}
 
-            {/* ðŸ“Š BOTí•ES DUAIS DE CSV */}
+            {/* “Š BOTí•ES DUAIS DE CSV */}
             <div className="flex gap-2">
               <Button
                 onClick={downloadSimpleCSV}
@@ -4916,7 +4916,7 @@ const RelatoriosManager = () => {
               </Button>
             </div>
 
-            {/* ðŸ”§ BOTíƒO HEALTH CHECK - FASE 5 */}
+            {/* ”§ BOTíƒO HEALTH CHECK - FASE 5 */}
             <Button
               onClick={executarHealthCheck}
               variant="outline"
@@ -4941,7 +4941,7 @@ const RelatoriosManager = () => {
         </CardDescription>
       </CardHeader>
 
-      {/* ðŸ” FILTROS AVANí‡ADOS PARA ADMIN */}
+      {/* ” FILTROS AVANí‡ADOS PARA ADMIN */}
       {user?.tipo === "admin" && showFilters && (
         <div className="mx-6 mb-4 p-4 bg-gray-50 border rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -5078,7 +5078,7 @@ const RelatoriosManager = () => {
         {/* Dados normais */}
         {(!stats || stats.total_alunos > 0 || user?.tipo !== "admin") && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ðŸŸ¢ MAIORES PRESENí‡AS - Dados dinâmicos */}
+            {/* Ÿ¢ MAIORES PRESENí‡AS - Dados dinâmicos */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-green-600">
@@ -5118,7 +5118,7 @@ const RelatoriosManager = () => {
               </CardContent>
             </Card>
 
-            {/* ðŸ”´ MAIORES FALTAS - Dados dinâmicos */}
+            {/* ”´ MAIORES FALTAS - Dados dinâmicos */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg text-red-600">
@@ -5157,7 +5157,7 @@ const RelatoriosManager = () => {
               </CardContent>
             </Card>
 
-            {/* ðŸ“Š RESUMO GERAL - Dados dinâmicos */}
+            {/* “Š RESUMO GERAL - Dados dinâmicos */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg">
@@ -5222,7 +5222,7 @@ const RelatoriosManager = () => {
                   </div>
                 </div>
 
-                {/* ðŸŽ¯ INDICADOR DE PRECISíƒO - FASE 3 */}
+                {/* Ž¯ INDICADOR DE PRECISíƒO - FASE 3 */}
                 {stats.calculo_preciso && (
                   <div
                     className={`mt-4 p-3 border rounded-lg ${
@@ -5275,7 +5275,7 @@ const RelatoriosManager = () => {
               </CardContent>
             </Card>
 
-            {/* ðŸ“‹ RESUMO POR TURMA - NOVO */}
+            {/* “‹ RESUMO POR TURMA - NOVO */}
             {stats.resumo_turmas && stats.resumo_turmas.length > 0 && (
               <Card className="md:col-span-2">
                 <CardHeader>
@@ -5321,7 +5321,7 @@ const RelatoriosManager = () => {
 
 // Alunos Manager Component COMPLETO
 const AlunosManager = () => {
-  const { user } = useAuth(); // ðŸ”§ HOOK ORDER FIX: useAuth deve vir primeiro
+  const { user } = useAuth(); // ”§ HOOK ORDER FIX: useAuth deve vir primeiro
   const { toast } = useToast();
 
   const [alunos, setAlunos] = useState([]);
@@ -5343,7 +5343,7 @@ const AlunosManager = () => {
   // âœ… Estados para motivos de desistíªncia (MOVIDO DO APP PRINCIPAL)
   const [motivosDesistencia, setMotivosDesistencia] = useState([]);
 
-  // ðŸ“‹ Estados para justificativas/atestados fora da chamada
+  // “‹ Estados para justificativas/atestados fora da chamada
   const [isJustifyDialogOpen, setIsJustifyDialogOpen] = useState(false);
   const [selectedAlunoJustify, setSelectedAlunoJustify] = useState(null);
   const [justifyForm, setJustifyForm] = useState({
@@ -5391,7 +5391,7 @@ const AlunosManager = () => {
 
   const fetchAlunos = async () => {
     try {
-      console.log("ðŸ” Buscando alunos...");
+      console.log("” Buscando alunos...");
       const response = await axios.get(`${API}/students`);
       console.log("âœ… Alunos recebidos:", response.data.length, "alunos");
       setAlunos(response.data);
@@ -5417,7 +5417,7 @@ const AlunosManager = () => {
   // âœ… Funí§í£o para buscar motivos de desistíªncia (ADICIONADA NO ALUNOSMANAGER)
   const fetchMotivosDesistencia = async () => {
     try {
-      console.log("ðŸ” Buscando motivos de desistíªncia...");
+      console.log("” Buscando motivos de desistíªncia...");
       const response = await axios.get(`${API}/desistencias/motivos`);
       setMotivosDesistencia(Array.isArray(response.data) ? response.data : []);
       console.log("âœ… Motivos carregados:", response.data.length, "motivos");
@@ -5484,7 +5484,7 @@ const AlunosManager = () => {
 
   const fetchTurmas = async () => {
     try {
-      console.log("ðŸ” Buscando turmas...");
+      console.log("” Buscando turmas...");
       const response = await axios.get(`${API}/classes`);
       console.log("âœ… Turmas recebidas:", response.data.length, "turmas");
       setTurmas(response.data);
@@ -5712,7 +5712,7 @@ const AlunosManager = () => {
     setIsDropoutDialogOpen(true);
   };
 
-  // ðŸ“‹ Funí§í£o para justificar falta/anexar atestado fora da chamada
+  // “‹ Funí§í£o para justificar falta/anexar atestado fora da chamada
   const handleJustifyStudent = (aluno) => {
     setSelectedAlunoJustify(aluno);
     setJustifyForm({
@@ -5723,7 +5723,7 @@ const AlunosManager = () => {
     setIsJustifyDialogOpen(true);
   };
 
-  // ðŸ”„ Funí§í£o para reativar aluno desistente (APENAS ADMIN)
+  // ”„ Funí§í£o para reativar aluno desistente (APENAS ADMIN)
   const handleReactivateStudent = async (aluno) => {
     if (user?.tipo !== "admin") {
       toast({
@@ -5736,7 +5736,7 @@ const AlunosManager = () => {
 
     // Confirmaí§í£o dupla para aí§í£o crí­tica
     const confirmReactivation = window.confirm(
-      `ðŸ”„ REATIVAí‡íƒO DE ALUNO\n\n` +
+      `”„ REATIVAí‡íƒO DE ALUNO\n\n` +
         `Aluno: ${aluno.nome}\n` +
         `Status atual: Desistente\n\n` +
         `Esta aí§í£o irí¡:\n` +
@@ -5749,7 +5749,7 @@ const AlunosManager = () => {
     if (!confirmReactivation) return;
 
     try {
-      console.log(`ðŸ”„ Iniciando reativaí§í£o do aluno: ${aluno.nome}`);
+      console.log(`”„ Iniciando reativaí§í£o do aluno: ${aluno.nome}`);
 
       const response = await axios.post(
         `${API}/students/${aluno.id}/reactivate`
@@ -5850,7 +5850,7 @@ const AlunosManager = () => {
     }
   };
 
-  // ðŸ“‹ Submeter justificativa/atestado fora da chamada
+  // “‹ Submeter justificativa/atestado fora da chamada
   const submitJustification = async () => {
     if (!justifyForm.reason_text.trim()) {
       toast({
@@ -5969,9 +5969,9 @@ const AlunosManager = () => {
       }
 
       console.log("€ Iniciando bulk upload...");
-      console.log("ðŸ“„ Arquivo:", bulkUploadFile.name);
-      console.log("ðŸ”„ Atualizar existentes:", updateExisting);
-      console.log("ðŸŽ¯ Turma selecionada:", selectedTurmaForBulk);
+      console.log("“„ Arquivo:", bulkUploadFile.name);
+      console.log("”„ Atualizar existentes:", updateExisting);
+      console.log("Ž¯ Turma selecionada:", selectedTurmaForBulk);
 
       const response = await axios.post(
         `${API}/students/bulk-upload?${params}`,
@@ -6071,13 +6071,13 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
     return labels[status] || status;
   };
 
-  // ðŸŽ¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
 
-  // ðŸŽ¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
 
-  // ðŸŽ¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
 
-  // ðŸŽ¯ PRODUí‡íƒO: Funí§í£o de debug removida
+  // Ž¯ PRODUí‡íƒO: Funí§í£o de debug removida
 
   if (loading) return <div>Carregando...</div>;
 
@@ -6111,7 +6111,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </Dialog>
             )}
 
-            {/* ðŸŽ¯ PRODUí‡íƒO: Botíµes de teste removidos para usuí¡rios finais */}
+            {/* Ž¯ PRODUí‡íƒO: Botíµes de teste removidos para usuí¡rios finais */}
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -6141,7 +6141,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   {/* Campos Obrigatí³rios - Destacados */}
                   <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                     <h3 className="text-lg font-semibold text-blue-800 mb-3">
-                      ðŸ“‹ Cadastro do aluno
+                      “‹ Cadastro do aluno
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
@@ -6209,7 +6209,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   {/* Campo Turma - Entre Obrigatí³rios e Complementares */}
                   <div className="border-2 border-green-200 rounded-lg p-4 bg-green-50">
                     <h3 className="text-lg font-semibold text-green-800 mb-3">
-                      ðŸŽ¯ Alocaí§í£o em Turma
+                      Ž¯ Alocaí§í£o em Turma
                     </h3>
                     <div className="space-y-2">
                       <Label
@@ -6240,7 +6240,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-green-600">
-                        ðŸ’¡ Vocíª pode deixar sem turma e alocar depois, ou
+                        ’¡ Vocíª pode deixar sem turma e alocar depois, ou
                         selecionar uma turma especí­fica
                       </p>
                     </div>
@@ -6249,7 +6249,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   {/* Campos Complementares */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-gray-700">
-                      ðŸ“„ InformAções Complementares
+                      “„ InformAções Complementares
                     </h3>
 
                     <div className="grid grid-cols-3 gap-4">
@@ -6449,9 +6449,9 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             </p>
             {user?.tipo === "instrutor" && (
               <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                <p className="font-medium">ðŸ’¡ Dicas para Instrutores:</p>
+                <p className="font-medium">’¡ Dicas para Instrutores:</p>
                 <p>
-                  â€¢ Turmas inexistentes no CSV serí£o criadas automaticamente
+                  â€¢ Turmas inexistentes no CSV será£o criadas automaticamente
                 </p>
                 <p>â€¢ Alunos sem turma definida ficarí£o como "nío alocado"</p>
                 <p>â€¢ Vocíª pode gerenciar alunos entre suas turmas</p>
@@ -6545,7 +6545,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                           <UserX className="h-4 w-4" />
                         </Button>
                       )}
-                      {/* ðŸ”„ Botí£o de reativaí§í£o - APENAS ADMIN */}
+                      {/* ”„ Botí£o de reativaí§í£o - APENAS ADMIN */}
                       {user?.tipo === "admin" &&
                         aluno.status === "desistente" && (
                           <Button
@@ -6592,7 +6592,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 className="min-h-[80px]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                ðŸ’¡ Seja especí­fico para facilitar o controle de frequíªncia
+                ’¡ Seja especí­fico para facilitar o controle de frequíªncia
               </p>
             </div>
 
@@ -6795,10 +6795,10 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
             className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
             style={{ scrollbarWidth: "thin" }}
           >
-            {/* ðŸ“‹ INSTRUí‡í•ES */}
+            {/* “‹ INSTRUí‡í•ES */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="font-semibold text-blue-800 mb-2">
-                ðŸ“‹ Formato do CSV
+                “‹ Formato do CSV
               </h3>
               <div className="text-sm text-blue-700 space-y-1">
                 <p>
@@ -6819,7 +6819,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </div>
             </div>
 
-            {/* ðŸŽ¯ SELEí‡íƒO DE ARQUIVO */}
+            {/* Ž¯ SELEí‡íƒO DE ARQUIVO */}
             <div className="space-y-4">
               <div>
                 <Label className="text-lg font-medium">
@@ -6840,7 +6840,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                 </div>
               </div>
 
-              {/* ðŸŽ¯ OPí‡í•ES DE IMPORTAí‡íƒO */}
+              {/* Ž¯ OPí‡í•ES DE IMPORTAí‡íƒO */}
               <div className="space-y-3">
                 <Label className="text-lg font-medium">
                   2. Opí§íµes de Importaí§í£o
@@ -6890,7 +6890,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500">
-                      ðŸ’¡ Alunos sem turma especificada no CSV serí£o alocados
+                      ’¡ Alunos sem turma especificada no CSV será£o alocados
                       nesta turma
                     </p>
                   </div>
@@ -6898,7 +6898,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               </div>
             </div>
 
-            {/* ðŸŽ¯ Aí‡í•ES */}
+            {/* Ž¯ Aí‡í•ES */}
             <div className="flex justify-between">
               <div className="space-x-2">
                 <Button
@@ -6941,11 +6941,11 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
         </DialogContent>
       </Dialog>
 
-      {/* ðŸ“Š BULK UPLOAD SUMMARY DIALOG */}
+      {/* “Š BULK UPLOAD SUMMARY DIALOG */}
       <Dialog open={showBulkSummary} onOpenChange={setShowBulkSummary}>
         <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>ðŸ“Š Resultado da Importaí§í£o em Massa</DialogTitle>
+            <DialogTitle>“Š Resultado da Importaí§í£o em Massa</DialogTitle>
             <DialogDescription>
               Resumo detalhado do processamento do arquivo CSV
             </DialogDescription>
@@ -6956,7 +6956,7 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
               className="space-y-6 flex-1 overflow-y-scroll max-h-[60vh]"
               style={{ scrollbarWidth: "thin" }}
             >
-              {/* ðŸ“ˆ Mí‰TRICAS GERAIS */}
+              {/* “ˆ Mí‰TRICAS GERAIS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-700">
@@ -6974,22 +6974,22 @@ Carlos Pereira,111.222.333-44,01/01/1988,carlos@email.com,11777777777,11.122.233
                   <div className="text-2xl font-bold text-yellow-700">
                     {bulkSummaryData.resumo?.duplicados || 0}
                   </div>
-                  <div className="text-sm text-yellow-600">ðŸ”„ Duplicados</div>
+                  <div className="text-sm text-yellow-600">”„ Duplicados</div>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-blue-700">
                     {bulkSummaryData.resumo?.total || 0}
                   </div>
-                  <div className="text-sm text-blue-600">ðŸ“‹ Total</div>
+                  <div className="text-sm text-blue-600">“‹ Total</div>
                 </div>
               </div>
 
-              {/* ðŸ“ DETALHES */}
+              {/* “ DETALHES */}
               {bulkSummaryData.detalhes &&
                 bulkSummaryData.detalhes.length > 0 && (
                   <div>
                     <h3 className="font-semibold mb-3">
-                      ðŸ“ Detalhes do Processamento
+                      “ Detalhes do Processamento
                     </h3>
                     <div className="max-h-40 overflow-y-auto border rounded-lg">
                       <Table>
@@ -7732,7 +7732,7 @@ const CursosManager = () => {
     carga_horaria: "",
     categoria: "",
     pre_requisitos: "",
-    dias_aula: ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Dias de aula padrí£o
+    dias_aula: ["segunda", "terca", "quarta", "quinta"], // “… Dias de aula padrí£o
   });
   const { toast } = useToast();
 
@@ -7793,7 +7793,7 @@ const CursosManager = () => {
       carga_horaria: "",
       categoria: "",
       pre_requisitos: "",
-      dias_aula: ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Resetar dias padrí£o
+      dias_aula: ["segunda", "terca", "quarta", "quinta"], // “… Resetar dias padrí£o
     });
   };
 
@@ -7805,7 +7805,7 @@ const CursosManager = () => {
       carga_horaria: curso.carga_horaria.toString(),
       categoria: curso.categoria || "",
       pre_requisitos: curso.pre_requisitos || "",
-      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // ðŸ“… Carregar dias de aula
+      dias_aula: curso.dias_aula || ["segunda", "terca", "quarta", "quinta"], // “… Carregar dias de aula
     });
     setIsDialogOpen(true);
   };
@@ -7916,7 +7916,7 @@ const CursosManager = () => {
                   />
                 </div>
 
-                {/* ðŸ“… Campo Dias de Aula */}
+                {/* “… Campo Dias de Aula */}
                 <div className="space-y-2">
                   <Label>Dias de Aula</Label>
                   <div className="grid grid-cols-2 gap-3">
@@ -8133,7 +8133,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// ðŸ” COMPONENTE DE DEBUG UNIVERSAL - Para teste em outros computadores
+// ” COMPONENTE DE DEBUG UNIVERSAL - Para teste em outros computadores
 const DebugPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [logs, setLogs] = useState([]);
@@ -8237,7 +8237,7 @@ const DebugPanel = () => {
           className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"
           size="sm"
         >
-          ðŸ” Debug
+          ” Debug
         </Button>
       </div>
     );
@@ -8255,7 +8255,7 @@ const DebugPanel = () => {
       <div className="p-4 space-y-2">
         {/* Instruí§íµes para usuí¡rios */}
         <div className="text-xs text-gray-600 bg-yellow-50 p-2 rounded border">
-          <p className="font-semibold">ðŸ” Instruí§íµes para Fabiana e Ione:</p>
+          <p className="font-semibold">” Instruí§íµes para Fabiana e Ione:</p>
           <p>1. Ative o Debug Mode</p>
           <p>2. Teste a conexí£o com "Testar API"</p>
           <p>3. Faí§a uma chamada normalmente</p>
@@ -8312,7 +8312,7 @@ const DebugPanel = () => {
   );
 };
 
-// ðŸ›¡¸ App envolvido com ErrorBoundary
+// ›¡¸ App envolvido com ErrorBoundary
 const AppWithErrorBoundary = () => {
   return (
     <ErrorBoundary>
