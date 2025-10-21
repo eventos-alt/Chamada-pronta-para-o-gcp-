@@ -4534,45 +4534,64 @@ const RelatoriosManager = () => {
     });
 
     try {
-      // 🚀 STREAMING DOWNLOAD - NO MORE TIMEOUTS FOR COMPLEX DATA!
-      const response = await axios.get(
-        `${API}/reports/attendance?export_csv=true&format=complete`,
+      // 🚀 JOB SYSTEM - Create CSV generation job first
+      const jobResponse = await axios.post(
+        `${API}/reports/csv-job`,
+        { format: "complete" },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          responseType: "blob", // CRITICAL: receive as streaming blob
-          timeout: 180000, // 3 minutes for complex analysis
+          timeout: 30000, // 30s just for job creation
         }
       );
 
-      // Handle streaming response directly as blob
-      const blob = new Blob([response.data], {
-        type: "text/csv;charset=utf-8;",
-      });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
+      const jobId = jobResponse.data.job_id;
+      
+      // Poll job status until completion
+      let jobCompleted = false;
+      let attempts = 0;
+      const maxAttempts = 60; // 5 minutes max
 
-      // Extract filename from Content-Disposition header if available
-      const contentDisposition = response.headers["content-disposition"];
-      let filename = `relatorio_completo_${
-        new Date().toISOString().split("T")[0]
-      }.csv`;
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
-        if (filenameMatch) filename = filenameMatch[1];
+      while (!jobCompleted && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+        attempts++;
+
+        const statusResponse = await axios.get(
+          `${API}/reports/csv-job/${jobId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            timeout: 10000,
+          }
+        );
+
+        const { status, csv_url } = statusResponse.data;
+
+        if (status === "completed" && csv_url) {
+          jobCompleted = true;
+          
+          // Download via data URL
+          const link = document.createElement("a");
+          link.href = csv_url;
+          link.download = `relatorio_completo_${new Date().toISOString().split("T")[0]}.csv`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          break;
+        } else if (status === "failed") {
+          throw new Error("Job failed");
+        }
       }
 
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      if (!jobCompleted) {
+        throw new Error("Timeout: Job não completou");
+      }
 
       toast({
-        title: "🚀 CSV Completo - STREAMING OK!",
-        description:
-          "Análise pedagógica baixada com streaming anti-timeout! 🎯",
+        title: "✅ CSV Completo Baixado!",
+        description: "Relatório pedagógico avançado via job system! 🎯",
       });
     } catch (error) {
       console.error("Erro no download CSV completo:", error);
