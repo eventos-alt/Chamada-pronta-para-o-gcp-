@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 // Importar componentes de dashboard avançado
 import AdminDashboard from "./components/AdminDashboard";
 import InsightsPanel from "./components/InsightsPanel";
+import DashboardMockado from "./components/dashboard/DashboardMockado";
 
 import {
   Dialog,
