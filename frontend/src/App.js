@@ -5348,12 +5348,12 @@ const RelatoriosManager = () => {
 
       {/* ABA 2: DASHBOARD AVANÇADO */}
       <TabsContent value="dashboard">
-        <AdminDashboard />
+        <DashboardMockado />
       </TabsContent>
 
       {/* ABA 3: INSIGHTS & ANÁLISES */}
       <TabsContent value="insights">
-        <InsightsPanel filtros={{}} />
+        <DashboardMockado />
       </TabsContent>
     </Tabs>
   );
