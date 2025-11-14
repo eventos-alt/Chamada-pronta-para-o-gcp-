@@ -4853,15 +4853,33 @@ const RelatoriosManager = () => {
 
   // “Š RELATí“RIOS DINí‚MICOS - Interface completamente atualizada
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2" />
-            {user?.tipo === "admin"
-              ? "Relatórios Gerais"
-              : "Estatí­sticas das Minhas Turmas"}
-          </div>
+    <Tabs defaultValue="geral" className="w-full">
+      <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsTrigger value="geral">
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Visão Geral
+        </TabsTrigger>
+        <TabsTrigger value="dashboard">
+          <TrendingUp className="h-4 w-4 mr-2" />
+          Dashboard Avançado
+        </TabsTrigger>
+        <TabsTrigger value="insights">
+          <Lightbulb className="h-4 w-4 mr-2" />
+          Insights & Análises
+        </TabsTrigger>
+      </TabsList>
+
+      {/* ABA 1: VISÃO GERAL (ATUAL) */}
+      <TabsContent value="geral">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                {user?.tipo === "admin"
+                  ? "Relatórios Gerais"
+                  : "Estatí­sticas das Minhas Turmas"}
+              </div>
           <div className="flex items-center gap-2">
             {user?.tipo === "admin" && (
               <Button
