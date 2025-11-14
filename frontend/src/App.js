@@ -131,6 +131,7 @@ import {
   BellRing,
   AlertTriangle,
   TriangleAlert,
+  Lightbulb,
 } from "lucide-react";
 
 // ¿½¸ ERROR BOUNDARY para evitar tela branca
