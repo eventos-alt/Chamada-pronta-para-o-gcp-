@@ -5347,54 +5347,12 @@ const RelatoriosManager = () => {
 
       {/* ABA 2: DASHBOARD AVANÇADO */}
       <TabsContent value="dashboard">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              Dashboard Avançado
-            </CardTitle>
-            <CardDescription>
-              Gráficos e análises detalhadas para administradores
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <TrendingUp className="h-16 w-16 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Dashboard em Desenvolvimento
-              </h3>
-              <p className="text-gray-500">
-                Gráficos avançados e métricas detalhadas serão implementados aqui
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <AdminDashboard />
       </TabsContent>
 
       {/* ABA 3: INSIGHTS & ANÁLISES */}
       <TabsContent value="insights">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-yellow-600" />
-              Insights & Análises
-            </CardTitle>
-            <CardDescription>
-              Análises preditivas e recomendações inteligentes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <Lightbulb className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                Insights em Desenvolvimento
-              </h3>
-              <p className="text-gray-500">
-                Análises preditivas e recomendações baseadas em IA serão implementadas aqui
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <InsightsPanel filtros={{}} />
       </TabsContent>
     </Tabs>
   );
